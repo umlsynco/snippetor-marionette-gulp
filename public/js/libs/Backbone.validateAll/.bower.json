@@ -1,0 +1,13 @@
+{
+  "name": "Backbone.validateAll",
+  "homepage": "https://github.com/gfranko/Backbone.validateAll",
+  "_release": "e736e55822",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e736e55822a73265838469fdb4277352fa2314dc"
+  },
+  "_source": "git://github.com/gfranko/Backbone.validateAll.git",
+  "_target": "*",
+  "_originalSource": "Backbone.validateAll"
+}
