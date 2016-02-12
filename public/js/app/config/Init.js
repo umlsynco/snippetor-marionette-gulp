@@ -15,6 +15,9 @@ require.config({
         "backbone.wreqr" : "../libs/backbone.wreqr/lib/backbone.wreqr",
         "backbone.eventbinder" : "../libs/backbone.eventbinder/lib/amd/backbone.eventbinder",
         "backbone.babysitter" : "../libs/backbone.babysitter/lib/backbone.babysitter",
+        "es6-promise": "../libs/es6-promise/promise",
+        "utf8": "../libs/utf8/utf8",
+        "base-64" : "../libs/base64/base64",
         
         axios: "../libs/axios/dist/axios",
 //    "backbone.marionette": "../libs/backbone.marionette/lib/core/backbone.marionette",
@@ -46,6 +49,10 @@ require.config({
             "deps":["jquery", "underscore"],
             // Exports the global window.Backbone object
             "exports":"Backbone"
+        },
+        "github-api": {
+            "deps":["backbone", "es6-promise"],
+            "exports": "Github"
         },
         // Backbone.validateAll plugin (https://github.com/gfranko/Backbone.validateAll)
         "backbone.validateAll":["backbone"],

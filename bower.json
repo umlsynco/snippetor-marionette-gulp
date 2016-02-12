@@ -27,6 +27,9 @@
     "marionette": "~2.4.1",
     "almond": "~0.3.1",
     "r.js": "~2.1.11",
-    "backbone.eventbinder": "~1.0.2"
+    "backbone.eventbinder": "~1.0.2",
+    "es6-promise": "^3.0.2",
+    "utf8": "^2.1.1",
+    "base64": "^0.3.0"
   }
 }

@@ -36,6 +36,19 @@ define( [ 'marionette'], function(Marionette) {
 		  className: "file-wrap",
 		  childView: contentItem,
 		  childViewContainer: "tbody",
+		  initialize: function(options) {
+			  this.github = options.githubAPI;
+			  this.collection = new Backbone.Collection;
+			  var that = this;
+              var repo = this.github.getRepo(this.model.get("repo"));
+
+			   repo.getSha("master", '', function(err, sha) {
+				   if (sha)
+                     repo.getTree(sha, function(err, data) {
+						 that.collection.add(data);
+					 });
+			   });
+	      },
           template: _.template('\
                <a href="/tehmaze/diagram/tree/24c3ba0cf7b3f3abdb0e9312b440099f8ff16d3e" class="hidden js-permalink-shortcut" data-hotkey="y">Permalink</a>\
                <table class="files js-navigation-container js-active-navigation-container" data-pjax="">\

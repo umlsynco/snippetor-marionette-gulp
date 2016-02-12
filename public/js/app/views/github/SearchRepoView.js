@@ -50,8 +50,16 @@ define( [ 'marionette'], function(Marionette) {
 		  className: "repo-tab",
 		  childView: repoItem,
 		  childViewContainer: "ul.repo-list",
-		  initalize: function(options) {
+		  initialize: function(options) {
 			  this.github = options.githubAPI;
+			  this.collection = new Backbone.Collection;
+			  var that = this;
+			  var user = this.github.getUser();
+			  user.repos({type:'all'}, function(err, repo) {
+				  if (!err)
+				    that.collection.add(repo);
+		      });
+
 		  },
           template: _.template('<div class="filter-bar">\
      <ul class="repo_filterer">\
