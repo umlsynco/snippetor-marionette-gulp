@@ -18,23 +18,37 @@ define(['App', 'backbone', 'marionette', 'github-api', 'views/WelcomeView', 'vie
         index:function () {
            requests.add({type:"dashboard"});
         },
-        githubRepoSearch: function(x, y, z) {
-	       requests.add([{type:"repo-search", query: "qwebengine"}]);
+        githubRepoSearch: function(q) {
+	       requests.add([{type:"repo-search", query: q}]);
         },
-        githubCodeSearchInsideRepo: function() {
-           requests.add([{type:"code-search", query: "qwebengine", repo: "full/name", branch:"master"}]);
+        githubCodeSearchInsideRepo: function(user, repo, q) {
+           requests.add([{type:"code-search", query: q, repo: repo, user:user, branch:"master"}]);
         },
         showTreeRoot: function(user, repo) {
            requests.add([{type:"tree-root", repo: user+ "/" + repo}]);
         },
-        showBranchTree: function(user, repo) {
-          requests.add({type:"tree-root", repo: user+ "/" + repo, branch:"master"});
+        showBranchTree: function(user, repo, branch) {
+          requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch});
         },
-        showSubTree: function() {
-           requests.add({type:"tree-root", repo: "full/name", branch:"master", path: "/", sha:""});
+        showSubTree: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
+		   var path = "", splitter = "";
+		   for (var i=3; i<7; ++i) {
+			   if (arguments[i] != undefined) {
+				   path = path + splitter + arguments[i];
+			   }
+			   splitter = "/";
+		   }
+           requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch, path: path, sha:""});
         },
-        githubShowBlob: function() {
-	    requests.add({type:"show-blob", repo: "full/name", branch:"master", path: "/", sha:""});
+        githubShowBlob: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
+		   var path = "", splitter = "";
+		   for (var i=3; i<7; ++i) {
+			   if (arguments[i] != undefined) {
+				   path = path + splitter + arguments[i];
+			   }
+			   splitter = "/";
+		   }
+	       requests.add({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
         }
     });
 });

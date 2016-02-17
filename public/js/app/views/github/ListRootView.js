@@ -1,13 +1,13 @@
 define( [ 'marionette'], function(Marionette) {
-	
-	  // GitHub Repository item description:
-	
+    
+      // GitHub Repository item description:
+    
       var contentItem = Marionette.ItemView.extend({
          template: _.template('\
         <tr class="js-navigation-item">\
           <td class="icon"><%= getItemIcon() %><img alt="" class="spinner" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" height="16"></td>\
           <td class="content">\
-            <span class="css-truncate css-truncate-target"><a href="<%= path %>" gtype="<%= type %>" class="js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>\
+            <span class="css-truncate css-truncate-target"><a href="/github.com/<%= getRepo() %>/<%= getType() %>/master/<%= path %>" gtype="<%= type %>" class="js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>\
           </td>\
           <td class="message">\
             <span class="css-truncate css-truncate-target">\
@@ -21,34 +21,62 @@ define( [ 'marionette'], function(Marionette) {
          templateHelpers: function(){
            return {
              getItemIcon: function(){ 
-	           return (this["type"] == "blob" ?
+               return (this["type"] == "file" || this["type"] == "blob" ?
                       '<svg aria-hidden="true" class="octicon octicon-file-text" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M6 5H2v-1h4v1zM2 8h7v-1H2v1z m0 2h7v-1H2v1z m0 2h7v-1H2v1z m10-7.5v9.5c0 0.55-0.45 1-1 1H1c-0.55 0-1-0.45-1-1V2c0-0.55 0.45-1 1-1h7.5l3.5 3.5z m-1 0.5L8 2H1v12h10V5z"></path></svg>'
                       : '<svg aria-hidden="true" class="octicon octicon-file-directory" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 4H7v-1c0-0.66-0.31-1-1-1H1c-0.55 0-1 0.45-1 1v10c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V5c0-0.55-0.45-1-1-1z m-7 0H1v-1h5v1z"></path></svg>');
              },
              getTitle: function(){ 
-			   return (this["path"].split("/").pop());
-             }
+               return (this["path"].split("/").pop());
+             },
+             getType: function() {
+				 if (this["type"] == "file" || this["type"] == "blob") return "blob";
+				 return "tree";
+			 },
+			 getRepo: function() {
+				 if (this["repo"]) return this["repo"];
+			 }
            }
          }
     });
           
       return Marionette.CompositeView.extend({
-		  className: "file-wrap",
-		  childView: contentItem,
-		  childViewContainer: "tbody",
-		  initialize: function(options) {
-			  this.github = options.githubAPI;
-			  this.collection = new Backbone.Collection;
-			  var that = this;
-              var repo = this.github.getRepo(this.model.get("repo"));
+          className: "file-wrap",
+          childView: contentItem,
+          childViewContainer: "tbody",
+          initialize: function(options) {
+              this.github = options.githubAPI;
+              this.collection = new Backbone.Collection;
 
-			   repo.getSha("master", '', function(err, sha) {
-				   if (sha)
-                     repo.getTree(sha, function(err, data) {
-						 that.collection.add(data);
-					 });
-			   });
-	      },
+              var that = this;
+              var repo = this.github.getRepo(this.model.get("repo"));
+              var branch = this.model.get("branch") || "master";
+
+              var path = this.model.get("path") || "";
+              var repoName = this.model.get("repo");
+              if (path != "") {
+                 repo.read(branch, path, function(err, data) {
+                     if (data) {
+					   _.each(data, function(val) {
+						   val.repo = repoName;
+					   });
+                       that.collection.add(data);
+				     }
+                 });
+             }
+             else {
+                 repo.getSha(branch, path, function(err, sha) {
+                     if (sha)
+                       repo.getTree(sha, function(err, data) {
+						   if (data) {
+					            _.each(data, function(val) {
+						            val.repo = repoName;
+            				   });
+                               that.collection.add(data);
+						  }
+                     });
+                 });
+			 }
+          },
           template: _.template('\
                <a href="/tehmaze/diagram/tree/24c3ba0cf7b3f3abdb0e9312b440099f8ff16d3e" class="hidden js-permalink-shortcut" data-hotkey="y">Permalink</a>\
                <table class="files js-navigation-container js-active-navigation-container" data-pjax="">\
