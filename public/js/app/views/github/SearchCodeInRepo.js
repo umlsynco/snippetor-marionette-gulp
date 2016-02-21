@@ -1,16 +1,18 @@
-define( [ 'marionette'], function(Marionette) {
+define( [ 'marionette', 'hljs'], function(Marionette) {
 	
 	  var cachedGithub = null, searchData = "";
 	  // GitHub Repository item description:
 	  var ContentView  = Marionette.ItemView.extend({
 		 tagName: "pre",
 		 className: "prettyprint linenums:1",
-         template: _.template('<%= getContent() %>'),
+         template: _.template('<code class="html"><%= getContent() %></code>'),
          templateHelpers: function(){
 		   var content = this.options.content;
            return {
              getContent: function(){
-				var datar = content.split("\n");
+				var res = content.replace(/\</g, "&lt;");
+				res = res.replace(/\>/g, "&gt;");
+				var datar = res.split("\n");
 				var resdata = "";
 				var counter = 0;
 				$.each(datar, function(idx, line) {
@@ -24,6 +26,13 @@ define( [ 'marionette'], function(Marionette) {
 				return resdata;
 			 }
 		   };
+		 },
+		 ui: {
+			 code: "code.html"
+		 },
+		 onRender: function() {
+			 //hljs.highlightBlock(this.ui.code);
+			 prettyPrint();
 		 }
       });
 	

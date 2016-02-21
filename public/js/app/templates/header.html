@@ -229,12 +229,16 @@
 <ul class="nav" id="sp-search-menu">
                         <li class="sidebar-search">
                             <div class="input-group custom-search-form">
-                                <input type="text" class="form-control" placeholder="Search...">
+							  <form accept-charset="UTF-8" action="/github.com/search" class="repo-search" method="get" role="search">
+                                <input name="utf8" value="✓" type="hidden">
+                                <input name="user" value="umlsynco" type="hidden">
+                                <input type="text" class="form-control" name="q" placeholder="Search...">
                                 <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">
+                                  <button class="btn btn-default" type="button">
                                     <i class="fa fa-search"></i>
-                                </button>
-                            </span>
+                                  </button>
+                                </span>
+                              </form>
                             </div>
                         </li> 
 </ul>

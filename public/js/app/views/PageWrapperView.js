@@ -20,6 +20,11 @@ define( [ 'marionette',
 				}
 
 				return gSearchRepoView;
+			},
+			onRender: function(view) {
+				var $t = $("DIV#page-wrapper").children("DIV").children("DIV");
+				$t.hide();
+				view.$el.show();
 			}
         });
     });

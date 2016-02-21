@@ -19,7 +19,7 @@ define(['App', 'backbone', 'marionette', 'github-api', 'views/WelcomeView', 'vie
            requests.add({type:"dashboard"});
         },
         githubRepoSearch: function(q) {
-	       requests.add([{type:"repo-search", query: q}]);
+	       requests.add([{type:"repo-search", query: q || ""}]);
         },
         githubCodeSearchInsideRepo: function(user, repo, q) {
            requests.add([{type:"code-search", query: q, repo: repo, user:user, branch:"master"}]);
@@ -32,7 +32,7 @@ define(['App', 'backbone', 'marionette', 'github-api', 'views/WelcomeView', 'vie
         },
         showSubTree: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
 		   var path = "", splitter = "";
-		   for (var i=3; i<7; ++i) {
+		   for (var i=3; i<10; ++i) {
 			   if (arguments[i] != undefined) {
 				   path = path + splitter + arguments[i];
 			   }
@@ -42,7 +42,7 @@ define(['App', 'backbone', 'marionette', 'github-api', 'views/WelcomeView', 'vie
         },
         githubShowBlob: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
 		   var path = "", splitter = "";
-		   for (var i=3; i<7; ++i) {
+		   for (var i=3; i<10; ++i) {
 			   if (arguments[i] != undefined) {
 				   path = path + splitter + arguments[i];
 			   }

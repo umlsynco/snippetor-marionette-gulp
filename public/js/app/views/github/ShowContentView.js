@@ -1,18 +1,26 @@
-define( [ 'marionette'], function(Marionette) {
+define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, hljs, App) {
     
       // GitHub Repository item description:
     
       var ContentView  = Marionette.ItemView.extend({
 		 tagName: "pre",
 		 className: "prettyprint linenums:1",
-         template: _.template('<%= getContent() %>'),
+         template: _.template('<code class="python"><%= getContent() %></code>'),
          templateHelpers: function(){
 		   var content = this.options.content;
            return {
              getContent: function(){ 
-				 return content;
+				 var res = content.replace(/\</g, "&lt;");
+				 res = res.replace(/\>/g, "&gt;");
+				 return res;
 			 }
 		   };
+		 },
+		 ui: {
+			 code: "code.python"
+		 },
+		 onRender: function() {
+//			 hljs.highlightBlock($(this.ui.code));
 		 }
       });
           
@@ -26,18 +34,52 @@ define( [ 'marionette'], function(Marionette) {
               this.collection = new Backbone.Collection;
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
+              var repoName = this.model.get("repo");
               var branch = this.model.get("branch") || "master";
               var path = this.model.get("path") || "";
               if (path != "") {
-                 repo.read(branch, path, function(err, data) {
+                 repo.contents(branch, path, function(err, data) {
+					 var content = "";
                      if (data) {
-                       that.showChildView("content", new ContentView({content: data}));
+					   if (data.encoding == "base64") {
+						   content = base64.decode(data.content);
+					   }
+                       that.showChildView("content", new ContentView({content: content}));
                        prettyPrint();
+                       $("span.typ").click(function() {
+						   App.appRouter.navigate("/github.com/" + repoName + "/search?q=" + $(this).text(), {trigger: true});
+				       });
 				     }
                  });
              }
           },
+          templateHelpers: function(){
+           return {
+             getBreadcrumbs: function(){
+				 if(!this.path) return "";
+				 
+				 var result = "";
+				 var subpath = "";
+				 var paths = (this.path || "").split("/");
+				 for(var i = 0; i<paths.length; ++i) {
+					 subpath = subpath + "/" + paths[i];
+					 if (i !=paths.length -1) {
+ 					   result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
+				     }
+				     // Final path is not selectable
+				     else {
+					   result += '<strong class="final-path">'+paths[i]+'</strong>'
+					 }
+				 } // for
+				 return result;
+				 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
+			 }
+		   };
+	      },
           template: _.template('\
+  <div class="breadcrumb js-zeroclipboard-target">\
+      <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+  </div>\
           <div class="file">\
   <div class="file-header">\
   <div class="file-actions">\

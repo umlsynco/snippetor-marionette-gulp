@@ -55,10 +55,32 @@ define( [ 'marionette'], function(Marionette) {
 			  this.collection = new Backbone.Collection;
 			  var that = this;
 			  var user = this.github.getUser();
+
+              // Parse query
+			  var req = "";
+			  _.each(this.model.get("query").split("&"), function(item) {
+				  var kv = item.split("=");
+				  if (kv.length == 2 && kv[0] == "q") {
+					  req = kv[1];
+				  }
+			  });
+			  
+			  this.model.set("req", req);
+
+
+if (req == "") {
 			  user.repos({type:'all'}, function(err, repo) {
 				  if (!err)
 				    that.collection.add(repo);
 		      });
+}
+else {
+	var gs = this.github.getSearch(req);
+			gs.repositories({}, function(error, repos) {
+				  if (!error)
+				    that.collection.add(repos.items);
+			});
+}
 
 		  },
           template: _.template('<div class="filter-bar">\
@@ -69,7 +91,8 @@ define( [ 'marionette'], function(Marionette) {
         <li class="all_repos"><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".all">All</a></li>\
       </ul>\
 \
-      <form accept-charset="UTF-8" action="/search" class="repo-search" method="get" role="search"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"></div>\
+      <form accept-charset="UTF-8" action="/search" class="repo-search" method="get" role="search"><div style="margin:0;padding:0;display:inline">\
+        <input name="utf8" value="✓" type="hidden"></div>\
         <input name="user" value="umlsynco" type="hidden">\
         <input id="your-repos-filter" name="q" class="filter_input js-filterable-field" placeholder="Find a repository…" tabindex="2" aria-label="Filter your repositories by name" type="text">\
         <input id="custom-repos-search" value="Search" class="btn">\
