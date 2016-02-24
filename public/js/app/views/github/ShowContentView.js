@@ -1,11 +1,55 @@
 define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, hljs, App) {
     
+   var BubbleView  = Marionette.ItemView.extend({
+	   template: _.template('\
+     <div style="top: 350.1px; left: 673px; width:250px; display: block; position:absolute;" id="step-0" class="popover tour-tour tour-tour-0 fade bottom in" role="tooltip">\
+       <div style="content: \'\';position: absolute;border-style: solid;border-width: 15px 15px 15px 0;border-color: transparent grey;display: block;width: 0;z-index: 1;left: -15px;top: 12px;"></div>\
+       <h3 class="popover-title">Snippet name</h3>\
+       <div class="popover-content">Introduce new users to your product by walking them through it step by step.</div>\
+       <div class="popover-navigation">\
+         <div class="btn-group">\
+           <button class="btn btn-sm btn-default disabled" id="bubble-prev">« Prev</button>\
+           <button class="btn btn-sm btn-default" id="bubble-next">Next »</button>\
+         </div>\
+         <div class="btn-group right">\
+          <button class="btn btn-sm btn-default" id="bubble-save">Save</button>\
+          <button class="btn btn-sm btn-default" id="bubble-close">Close</button>\
+         </div>\
+       </div></div>'),
+       ui: {
+		   prev: "button#bubble-prev",
+		   next: "button#bubble-next",
+		   save: "button#bubble-save",
+		   close: "button#bubble-close"
+	   },
+	   events: {
+		   "click @ui.save": "onSave",
+		   "click @ui.close": "onClose",
+		   "click @ui.prev": "onPrev",
+		   "click @ui.next": "onNext"
+	   },
+	   onSave: function() {
+		   App.vent.trigger("history:bubble", {path: "this/contnet.path", sha: "SOME MAGIC", branch: "BRANCH AS IS !", repo:"umlsynco/BUBLIK", comment: "SOME COMMENT"});
+			   
+	   },
+	   onClose: function() {
+		   alert("CLOSE");
+	   },
+	   onPrev: function() {
+		   alert("Previous");
+	   },
+	   onNext: function() {
+		   alert("NEXT");
+	   }
+   });
+
+
       // GitHub Repository item description:
     
       var ContentView  = Marionette.ItemView.extend({
 		 tagName: "pre",
 		 className: "prettyprint linenums:1",
-         template: _.template('<code class="python"><%= getContent() %></code>'),
+         template: _.template('<%= getContent() %>'),
          templateHelpers: function(){
 		   var content = this.options.content;
            return {
@@ -16,9 +60,6 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
 			 }
 		   };
 		 },
-		 ui: {
-			 code: "code.python"
-		 },
 		 onRender: function() {
 //			 hljs.highlightBlock($(this.ui.code));
 		 }
@@ -27,7 +68,8 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
       return Marionette.LayoutView.extend({
           className: "file-wrap",
           regions: {
-			  "content": ".blob-wrapper"
+			  "content": ".blob-wrapper",
+			  "bubble" : "div.bubble"
 		  },
           initialize: function(options) {
               this.github = options.githubAPI;
@@ -45,10 +87,20 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
 						   content = base64.decode(data.content);
 					   }
                        that.showChildView("content", new ContentView({content: content}));
+
                        prettyPrint();
+
                        $("span.typ").click(function() {
 						   App.appRouter.navigate("/github.com/" + repoName + "/search?q=" + $(this).text(), {trigger: true});
 				       });
+				       $("pre.prettyprint>ol>li").click(function() {
+                         that.showChildView("bubble", new BubbleView({}));
+                         var pos = $(this).position();
+                         pos.left += 50;
+                         pos.top += 80;
+                         var $t = $("div#step-0");
+                         $t.css(pos);
+					   });
 				     }
                  });
              }
@@ -78,7 +130,23 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
 	      },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
-      <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+    <div class="input-group custom-search-form right" style="padding-right:0px; margin-top: -5px;">\
+    <form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search" method="get" role="search">\
+      <div class="input-group">\
+         <input name="utf8" value="✓" type="hidden">\
+         <input name="user" value="umlsynco" type="hidden">\
+         <span class="input-group-addon beautiful"><span class="fa fa-check-circle-o"></span></span>\
+         <input type="text" class="form-control" name="q" placeholder="Search...">\
+         <span class="input-group-btn">\
+           <button class="btn btn-default" type="button">\
+             <i class="fa fa-search"></i>\
+           </button>\
+           <button class="btn btn-default" type="button">\
+             <i class="fa">  File</i>\
+           </button>\
+         </span></div>\
+    </form></div>\
   </div>\
           <div class="file">\
   <div class="file-header">\
@@ -101,7 +169,9 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
     7.59 KB\
   </div>\
   </div>\
-  <div class="blob-wrapper data type-javascript"></div></div>')
+  <div class="blob-wrapper data type-javascript"></div></div>\
+  <div class="bubble" style="position:absolute; left:250; top:0;"></div>\
+    ')
 
       });
 });

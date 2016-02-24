@@ -1,18 +1,39 @@
-define(['App', 'backbone', 'marionette', 'github-api', 'views/WelcomeView', 'views/HeaderView', 'views/PageWrapperView'],
-    function (App, Backbone, Marionette, GithubApi, WelcomeView, HeaderView, PageWrapperView) {
-	var requests = new Backbone.Collection;
+define(['App', 'backbone', 'marionette', 'github-api',
+        'views/WelcomeView', 'views/HeaderView', 'views/PageWrapperView',
+        'controllers/SnippetHistoryController'],
+    function (App, Backbone, Marionette, GithubApi,
+              WelcomeView, HeaderView, PageWrapperView,
+              SnippetHistoryController) {
+	var requests = new Backbone.Collection; // List of the route requests
+	var historyList = new Backbone.Collection; // List of the visited sites + comments for them
 	var github = new Github({
         token: "",
         auth: "oauth"
     });
 
+    // Initialize PAGES
 	var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github}});
     // Cache of the different pages which were requested
 	App.rootLayout.mainRegion.show(pages);
 
+    // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
+    var historyController = new SnippetHistoryController({collection: historyList});
+    App.addInitializer(function() {
+		App.vent.on("history:report", function() {
+			alert("Add item to history");
+		});
+		App.vent.on("history:bubble", function(model) {
+			historyList.add(model);
+		});
+	});
+
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
-           App.rootLayout.headerRegion.show(new HeaderView());
+		   var hv = new HeaderView();
+           App.rootLayout.headerRegion.show(hv);
+           // Show history in a left side menu
+           hv.historyRegion.show(historyController.getView());
+
         },
         //gets mapped to in AppRouter's appRoutes
         index:function () {

@@ -1,0 +1,30 @@
+{
+  "name": "es6-promise",
+  "version": "3.1.2",
+  "description": "A polyfill for ES6-style Promises, tracking rsvp",
+  "authors": [
+    "Stefan Penner <stefan.penner@gmail.com>"
+  ],
+  "main": "./promise.js",
+  "keywords": [
+    "promise"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jakearchibald/ES6-Promises.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jakearchibald/ES6-Promises/issues"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/components/es6-promise",
+  "_release": "3.1.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v3.1.2",
+    "commit": "12344b6777abadc9ed420ccf5ff4315738d68e19"
+  },
+  "_source": "git://github.com/components/es6-promise.git",
+  "_target": "^3.0.2",
+  "_originalSource": "es6-promise"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "utf8",
+  "version": "2.1.1",
+  "main": "utf8.js",
+  "ignore": [
+    "coverage",
+    "tests",
+    ".*",
+    "component.json",
+    "Gruntfile.js",
+    "node_modules",
+    "package.json"
+  ],
+  "homepage": "https://github.com/mathiasbynens/utf8.js",
+  "_release": "2.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.1.1",
+    "commit": "81f11c797f9601192c074f2be9f688a5a9bd1625"
+  },
+  "_source": "git://github.com/mathiasbynens/utf8.js.git",
+  "_target": "^2.1.1",
+  "_originalSource": "utf8"
+}

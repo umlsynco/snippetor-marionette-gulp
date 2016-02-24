@@ -99,7 +99,7 @@ define( [ 'marionette', 'hljs'], function(Marionette) {
 			  // TODO: HACK provide to the concreate child view !!
 			  searchData = req;
 
-              var search = Github.getSearch(req + "+user:"+this.model.get("user")+"+repo:"+this.model.get("repo")+"+filename:"+req);
+              var search = Github.getSearch(req + "+repo:"+this.model.get("user")+"/"+this.model.get("repo")+"+filename:"+req);
 
   		      search.code({}, function(error, data) {
 			        if (data) {
