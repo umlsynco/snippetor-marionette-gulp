@@ -20,20 +20,39 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
 		   prev: "button#bubble-prev",
 		   next: "button#bubble-next",
 		   save: "button#bubble-save",
-		   close: "button#bubble-close"
+		   close: "button#bubble-close",
+		   popover: "DIV.popover-content",
 	   },
 	   events: {
 		   "click @ui.save": "onSave",
 		   "click @ui.close": "onClose",
 		   "click @ui.prev": "onPrev",
-		   "click @ui.next": "onNext"
+		   "click @ui.next": "onNext",
+		   "dblclick @ui.popover" : "onToggleEdit"
+		   
+	   },
+	   onToggleEdit: function() {
+		  // Get current text
+          var text = this.ui.popover.text();
+          // Clear node
+          this.ui.popover.empty();
+          // add text area
+          this.ui.popover.append('<textarea style="width:100%; height: 75px;" placeholder="Please add you comment ...">'+text+'</textarea>');
+          this.ui.popover.children("textarea").blur(function() {
+			  var edited = $(this).val();
+			  var parent = $(this).parent();
+			  $(this).remove();
+			  parent.append(edited);
+			  
+		  });
 	   },
 	   onSave: function() {
-		   App.vent.trigger("history:bubble", {path: "this/contnet.path", sha: "SOME MAGIC", branch: "BRANCH AS IS !", repo:"umlsynco/BUBLIK", comment: "SOME COMMENT"});
+		   var text = this.ui.popover.text();
+		   App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text});
 			   
 	   },
 	   onClose: function() {
-		   alert("CLOSE");
+		   this.$el.remove();
 	   },
 	   onPrev: function() {
 		   alert("Previous");
@@ -93,13 +112,15 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
                        $("span.typ").click(function() {
 						   App.appRouter.navigate("/github.com/" + repoName + "/search?q=" + $(this).text(), {trigger: true});
 				       });
-				       $("pre.prettyprint>ol>li").click(function() {
-                         that.showChildView("bubble", new BubbleView({}));
+				       $("pre.prettyprint>ol>li").dblclick(function() {
+                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path})}));
                          var pos = $(this).position();
                          pos.left += 50;
                          pos.top += 80;
                          var $t = $("div#step-0");
                          $t.css(pos);
+					   }).click(function() {
+						   // TODO: hide snippet bubble
 					   });
 				     }
                  });

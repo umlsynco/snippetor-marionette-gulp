@@ -1,4 +1,4 @@
-define( [ 'marionette'], function(Marionette) {
+define( [ 'marionette', 'App'], function(Marionette, App) {
     
       // GitHub Repository item description:
     
@@ -7,7 +7,7 @@ define( [ 'marionette'], function(Marionette) {
         <tr class="js-navigation-item">\
           <td class="icon"><%= getItemIcon() %><img alt="" class="spinner" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" height="16"></td>\
           <td class="content">\
-            <span class="css-truncate css-truncate-target"><a href="/github.com/<%= getRepo() %>/<%= getType() %>/master/<%= path %>" gtype="<%= type %>" class="js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>\
+            <span class="css-truncate css-truncate-target"><a href="/github.com/<%= getRepo() %>/<%= getType() %>/master/<%= path %>" gtype="<%= type %>" class="sp-item js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>\
           </td>\
           <td class="message">\
             <span class="css-truncate css-truncate-target">\
@@ -36,7 +36,17 @@ define( [ 'marionette'], function(Marionette) {
 				 if (this["repo"]) return this["repo"];
 			 }
            }
-         }
+         },
+         ui : {
+			 "item": "A.sp-item"
+		 },
+		 events: {
+			 "click @ui.item" : "onNavigate"
+		 },
+		 onNavigate: function(e) {
+			 e.preventDefault();
+			 App.appRouter.navigate(this.ui.item.attr("href"), {trigger: true});
+		 }
     });
           
       return Marionette.CompositeView.extend({

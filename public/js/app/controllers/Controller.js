@@ -1,6 +1,6 @@
 define(['App', 'backbone', 'marionette', 'github-api',
         'views/WelcomeView', 'views/HeaderView', 'views/PageWrapperView',
-        'controllers/SnippetHistoryController'],
+        'controllers/SnippetHistoryController', "metisMenu"],
     function (App, Backbone, Marionette, GithubApi,
               WelcomeView, HeaderView, PageWrapperView,
               SnippetHistoryController) {
@@ -33,6 +33,8 @@ define(['App', 'backbone', 'marionette', 'github-api',
            App.rootLayout.headerRegion.show(hv);
            // Show history in a left side menu
            hv.historyRegion.show(historyController.getView());
+
+           $('#side-menu').metisMenu();
 
         },
         //gets mapped to in AppRouter's appRoutes
