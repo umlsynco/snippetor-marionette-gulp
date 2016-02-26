@@ -1,7 +1,6 @@
 define( [ 'marionette', 'App'], function(Marionette, App) {
-    
+
       // GitHub Repository item description:
-    
       var contentItem = Marionette.ItemView.extend({
          template: _.template('\
         <tr class="js-navigation-item">\
@@ -20,35 +19,35 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
         </tr>'),
          templateHelpers: function(){
            return {
-             getItemIcon: function(){ 
+             getItemIcon: function(){
                return (this["type"] == "file" || this["type"] == "blob" ?
                       '<svg aria-hidden="true" class="octicon octicon-file-text" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M6 5H2v-1h4v1zM2 8h7v-1H2v1z m0 2h7v-1H2v1z m0 2h7v-1H2v1z m10-7.5v9.5c0 0.55-0.45 1-1 1H1c-0.55 0-1-0.45-1-1V2c0-0.55 0.45-1 1-1h7.5l3.5 3.5z m-1 0.5L8 2H1v12h10V5z"></path></svg>'
                       : '<svg aria-hidden="true" class="octicon octicon-file-directory" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 4H7v-1c0-0.66-0.31-1-1-1H1c-0.55 0-1 0.45-1 1v10c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V5c0-0.55-0.45-1-1-1z m-7 0H1v-1h5v1z"></path></svg>');
              },
-             getTitle: function(){ 
+             getTitle: function(){
                return (this["path"].split("/").pop());
              },
              getType: function() {
-				 if (this["type"] == "file" || this["type"] == "blob") return "blob";
-				 return "tree";
-			 },
-			 getRepo: function() {
-				 if (this["repo"]) return this["repo"];
-			 }
+                 if (this["type"] == "file" || this["type"] == "blob") return "blob";
+                 return "tree";
+             },
+             getRepo: function() {
+                 if (this["repo"]) return this["repo"];
+             }
            }
          },
          ui : {
-			 "item": "A.sp-item"
-		 },
-		 events: {
-			 "click @ui.item" : "onNavigate"
-		 },
-		 onNavigate: function(e) {
-			 e.preventDefault();
-			 App.appRouter.navigate(this.ui.item.attr("href"), {trigger: true});
-		 }
+             "item": "A.sp-item"
+         },
+         events: {
+             "click @ui.item" : "onNavigate"
+         },
+         onNavigate: function(e) {
+             e.preventDefault();
+             App.appRouter.navigate(this.ui.item.attr("href"), {trigger: true});
+         }
     });
-          
+
       return Marionette.CompositeView.extend({
           className: "file-wrap",
           childView: contentItem,
@@ -66,50 +65,50 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
               if (path != "") {
                  repo.read(branch, path, function(err, data) {
                      if (data) {
-					   _.each(data, function(val) {
-						   val.repo = repoName;
-					   });
+                       _.each(data, function(val) {
+                           val.repo = repoName;
+                       });
                        that.collection.add(data);
-				     }
+                     }
                  });
              }
              else {
                  repo.getSha(branch, path, function(err, sha) {
                      if (sha)
                        repo.getTree(sha, function(err, data) {
-						   if (data) {
-					            _.each(data, function(val) {
-						            val.repo = repoName;
-            				   });
+                           if (data) {
+                                _.each(data, function(val) {
+                                    val.repo = repoName;
+                               });
                                that.collection.add(data);
-						  }
+                          }
                      });
                  });
-			 }
+             }
           },
           templateHelpers: function(){
            return {
              getBreadcrumbs: function(){
-				 if(!this.path) return "";
-				 
-				 var result = "";
-				 var subpath = "";
-				 var paths = (this.path || "").split("/");
-				 for(var i = 0; i<paths.length; ++i) {
-					 subpath = subpath + "/" + paths[i];
-					 if (i !=paths.length -1) {
- 					   result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
-				     }
-				     // Final path is not selectable
-				     else {
-					   result += '<strong class="final-path">'+paths[i]+'</strong>'
-					 }
-				 } // for
-				 return result;
-				 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
-			 }
-		   };
-	      },
+                 if(!this.path) return "";
+
+                 var result = "";
+                 var subpath = "";
+                 var paths = (this.path || "").split("/");
+                 for(var i = 0; i<paths.length; ++i) {
+                     subpath = subpath + "/" + paths[i];
+                     if (i !=paths.length -1) {
+                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
+                     }
+                     // Final path is not selectable
+                     else {
+                       result += '<strong class="final-path">'+paths[i]+'</strong>'
+                     }
+                 } // for
+                 return result;
+                 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
+             }
+           };
+          },
 
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\

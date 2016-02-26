@@ -1,11 +1,11 @@
-define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, hljs, App) {
-    
+define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
+
    var BubbleView  = Marionette.ItemView.extend({
-	   template: _.template('\
+       template: _.template('\
      <div style="top: 350.1px; left: 673px; width:250px; display: block; position:absolute;" id="step-0" class="popover tour-tour tour-tour-0 fade bottom in" role="tooltip">\
        <div style="content: \'\';position: absolute;border-style: solid;border-width: 15px 15px 15px 0;border-color: transparent grey;display: block;width: 0;z-index: 1;left: -15px;top: 12px;"></div>\
        <h3 class="popover-title">Snippet name</h3>\
-       <div class="popover-content">Introduce new users to your product by walking them through it step by step.</div>\
+       <div class="popover-content" style="min-height:90px;"><%= comment %></div>\
        <div class="popover-navigation">\
          <div class="btn-group">\
            <button class="btn btn-sm btn-default disabled" id="bubble-prev">« Prev</button>\
@@ -17,79 +17,76 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
          </div>\
        </div></div>'),
        ui: {
-		   prev: "button#bubble-prev",
-		   next: "button#bubble-next",
-		   save: "button#bubble-save",
-		   close: "button#bubble-close",
-		   popover: "DIV.popover-content",
-	   },
-	   events: {
-		   "click @ui.save": "onSave",
-		   "click @ui.close": "onClose",
-		   "click @ui.prev": "onPrev",
-		   "click @ui.next": "onNext",
-		   "dblclick @ui.popover" : "onToggleEdit"
-		   
-	   },
-	   onToggleEdit: function() {
-		  // Get current text
+           prev: "button#bubble-prev",
+           next: "button#bubble-next",
+           save: "button#bubble-save",
+           close: "button#bubble-close",
+           popover: "DIV.popover-content",
+       },
+       events: {
+           "click @ui.save": "onSave",
+           "click @ui.close": "onClose",
+           "click @ui.prev": "onPrev",
+           "click @ui.next": "onNext",
+           "dblclick @ui.popover" : "onToggleEdit"
+       },
+       onToggleEdit: function() {
+          // Get current text
           var text = this.ui.popover.text();
           // Clear node
           this.ui.popover.empty();
           // add text area
           this.ui.popover.append('<textarea style="width:100%; height: 75px;" placeholder="Please add you comment ...">'+text+'</textarea>');
           this.ui.popover.children("textarea").blur(function() {
-			  var edited = $(this).val();
-			  var parent = $(this).parent();
-			  $(this).remove();
-			  parent.append(edited);
-			  
-		  });
-	   },
-	   onSave: function() {
-		   var text = this.ui.popover.text();
-		   App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text});
-			   
-	   },
-	   onClose: function() {
-		   this.$el.remove();
-	   },
-	   onPrev: function() {
-		   alert("Previous");
-	   },
-	   onNext: function() {
-		   alert("NEXT");
-	   }
+              var edited = $(this).val();
+              var parent = $(this).parent();
+              $(this).remove();
+              parent.append(edited);
+          });
+       },
+       onSave: function() {
+           var text = this.ui.popover.text();
+           App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
+           this.$el.remove();
+       },
+       onClose: function() {
+           this.$el.remove();
+       },
+       onPrev: function() {
+           alert("Previous");
+       },
+       onNext: function() {
+           alert("NEXT");
+       }
    });
 
 
       // GitHub Repository item description:
-    
       var ContentView  = Marionette.ItemView.extend({
-		 tagName: "pre",
-		 className: "prettyprint linenums:1",
+         tagName: "pre",
+         className: "prettyprint linenums:1",
          template: _.template('<%= getContent() %>'),
          templateHelpers: function(){
-		   var content = this.options.content;
+           var content = this.options.content;
            return {
-             getContent: function(){ 
-				 var res = content.replace(/\</g, "&lt;");
-				 res = res.replace(/\>/g, "&gt;");
-				 return res;
-			 }
-		   };
-		 },
-		 onRender: function() {
-//			 hljs.highlightBlock($(this.ui.code));
-		 }
+             getContent: function(){
+                 var res = content.replace(/\</g, "&lt;");
+                 res = res.replace(/\>/g, "&gt;");
+                 return res;
+             }
+           };
+         },
+         onRender: function() {
+//             hljs.highlightBlock($(this.ui.code));
+         }
       });
-          
+
       return Marionette.LayoutView.extend({
           className: "file-wrap",
           regions: {
-			  "content": ".blob-wrapper",
-			  "bubble" : "div.bubble"
-		  },
+              "content": ".blob-wrapper",
+              "bubble" : "div.bubble"
+          },
           initialize: function(options) {
               this.github = options.githubAPI;
               this.collection = new Backbone.Collection;
@@ -100,55 +97,93 @@ define( [ 'marionette', 'base-64', 'hljs', 'App'], function(Marionette, base64, 
               var path = this.model.get("path") || "";
               if (path != "") {
                  repo.contents(branch, path, function(err, data) {
-					 var content = "";
+                     var content = "";
                      if (data) {
-					   if (data.encoding == "base64") {
-						   content = base64.decode(data.content);
-					   }
+                       ////////////////////////////////////
+                       // Decode content
+                       ////////////////////////////////////
+                       if (data.encoding == "base64") {
+                           content = base64.decode(data.content);
+                       }
+                       ////////////////////////////////////
+                       // Add content view
+                       ////////////////////////////////////
                        that.showChildView("content", new ContentView({content: content}));
 
+                       ////////////////////////////////////
+                       // Highlight code
+                       ////////////////////////////////////
                        prettyPrint();
 
+                       ////////////////////////////////////
+                       // Show snippet bubble
+                       ////////////////////////////////////
+                       if (that.model.get("linenum")) {
+                          var line = that.model.get("linenum");
+                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: that.model.get("comment")})}));
+                         var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
+                         if (list.length == 1) {
+                           var pos = list.position();
+                           pos.left += 50;
+                           pos.top += 190;
+                           var $t = $("div#step-0");
+                           $t.css(pos);
+
+                           // SCROLL TO THE ELEMENT
+                           $('html, body').animate({
+                              scrollTop: pos.top
+                           }, 2000);
+                         }
+                       }
+
+                       ////////////////////////////////////
+                       // Enable search directly from code
+                       ////////////////////////////////////
                        $("span.typ").click(function() {
-						   App.appRouter.navigate("/github.com/" + repoName + "/search?q=" + $(this).text(), {trigger: true});
-				       });
-				       $("pre.prettyprint>ol>li").dblclick(function() {
-                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path})}));
+                           App.appRouter.navigate("/github.com/" + repoName + "/search?q=" + $(this).text(), {trigger: true});
+                       });
+
+                       ////////////////////////////////////
+                       // Enable snippets bubble
+                       ////////////////////////////////////
+                       $("pre.prettyprint>ol>li").dblclick(function() {
+                         var linenum = $(this).index();
+                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: linenum, comment: "Your comment..." })}));
                          var pos = $(this).position();
                          pos.left += 50;
-                         pos.top += 80;
+                         pos.top += 190;
                          var $t = $("div#step-0");
                          $t.css(pos);
-					   }).click(function() {
-						   // TODO: hide snippet bubble
-					   });
-				     }
+                       }).click(function() {
+                           // TODO: hide snippet bubble
+                       });
+                     }
                  });
              }
           },
           templateHelpers: function(){
            return {
              getBreadcrumbs: function(){
-				 if(!this.path) return "";
-				 
-				 var result = "";
-				 var subpath = "";
-				 var paths = (this.path || "").split("/");
-				 for(var i = 0; i<paths.length; ++i) {
-					 subpath = subpath + "/" + paths[i];
-					 if (i !=paths.length -1) {
- 					   result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
-				     }
-				     // Final path is not selectable
-				     else {
-					   result += '<strong class="final-path">'+paths[i]+'</strong>'
-					 }
-				 } // for
-				 return result;
-				 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
-			 }
-		   };
-	      },
+                 if(!this.path) return "";
+
+                 var result = "";
+                 var subpath = "";
+                 var paths = (this.path || "").split("/");
+                 for(var i = 0; i<paths.length; ++i) {
+                     subpath = subpath + "/" + paths[i];
+                     if (i !=paths.length -1) {
+                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
+                     }
+                     // Final path is not selectable
+                     else {
+                       result += '<strong class="final-path">'+paths[i]+'</strong>'
+                     }
+                 } // for
+                 return result;
+                 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
+             }
+           };
+          },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
     <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\

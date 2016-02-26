@@ -16,7 +16,8 @@ define(['App', 'backbone', 'marionette'],
 		onSelect: function(e) {
 			e.preventDefault();
 			var url = this.ui.blob.attr("href");
-			App.appRouter.navigate(url, {trigger: true});
+			this.model.set({active: true});
+			App.vent.trigger("history:open", this.model);
 		}
 	});
 		
