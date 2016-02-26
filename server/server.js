@@ -4,8 +4,8 @@ var express = require("express"),
     http = require("http"),
     port = (process.env.PORT || 8001),
     server = module.exports = express(),
-    fs = require('fs'),
-    plantuml = require('node-plantuml');
+    fs = require('fs');
+    //plantuml = require('node-plantuml');
 
 // SERVER CONFIGURATION
 // ====================
