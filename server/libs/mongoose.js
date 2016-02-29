@@ -1,7 +1,9 @@
 var mongoose    = require('mongoose');
 var log         = require('./log')(module);
+var config      = require('./config');
 
-mongoose.connect('mongodb://localhost/test1');
+mongoose.connect(config.get('mongoose:uri'));
+
 var db = mongoose.connection;
 
 db.on('error', function (err) {
@@ -14,6 +16,9 @@ db.once('open', function callback () {
 var Schema = mongoose.Schema;
 
 // GitHub OAuth API
+var GithubUser = new Schema({
+    repository: { type: String, required: true }
+});
 
 
 // SNIPPETS DATABASE STRUCTURE
@@ -53,19 +58,7 @@ var rawSnippets = new Schema({
 	commentId: { type: CommentItem, required: true } // Unique comment for this snippet
 });
 
-var Article = new Schema({
-    title: { type: String, required: true },
-    author: { type: String, required: true },
-    description: { type: String, required: true },
-    images: [Images],
-    modified: { type: Date, default: Date.now }
-});
-
-// validation
-Article.path('title').validate(function (v) {
-    return v.length > 5 && v.length < 70;
-});
-
-var ArticleModel = mongoose.model('Article', Article);
-
-module.exports.ArticleModel = ArticleModel;
+module.exports.GithubUserModel = mongoose.model('github_user', GithubUser);
+module.exports.CommentItemModel = mongoose.model('comment', CommentItem);
+module.exports.SnippetItemModel = mongoose.model('snippet', SnippetItem);
+module.exports.RawSnippetsModel = mongoose.model('comment_snippet_raw', rawSnippets);
