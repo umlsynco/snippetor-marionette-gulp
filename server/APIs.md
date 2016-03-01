@@ -50,6 +50,10 @@ Get user info and the list of repositories which user contribute snipets to:
 POST /api/users/:id
 ```
 
+
+
+----------------------------------------------------------
+
 # Repository information:
 
 
@@ -82,4 +86,86 @@ POST /api/repos?name=umlsynco/snippetor
 ```
 
 
+
+
+
+
+----------------------------------------------------------
+
+
+# Snippets API
+
+
+## List snippets for user
+```
+GET /api/snippets?uid=userid&name_filter=bublik
+```
+
+Note: if user id is undefined then the authorized user id will be active
+
+### Response
+
+```
+[
+ {
+    "id": "snippet id",
+    "version" : "version",
+    "title" : " snippet title",
+    "description": "description",
+    "tags": ["tag", "tag2" ...],
+    "userid": "uid",
+    "repoid": {
+       "id": "repo id",
+       "name" : "repo name",
+       "snp_all": 188, // count of snippets
+       "snp_count": 8
+    },
+ }
+]
+
+```
+
+
+## Get concreate snippet:
+
+```
+GET /api/snippet/:id
+```
+### Response
+```
+ {
+    "id": "snippet id",
+    "version" : "1.0.1",
+    "title" : " Some snippet title",
+    "description": "description",
+    "tags": ["tag", "tag2" ...],
+    "userid": "uid",
+    "repositories": [
+      {
+       "id": "repo id",
+       "name" : "repo name",
+       "snp_all": 188, // count of snippets
+       "snp_count": 8
+       },
+       ...
+    ], 
+    "contnet" : [
+       {
+          "path" : "/path/to/file",
+          "sha": "optional",
+          "comment": "User comment",
+          "line": 12,
+          "repo_id": "repo id"
+        },
+        ...
+    ]
+ }
+```
+
+## POST/UPDATE/REMOVE snippets
+
+```
+POST /api/snippet
+UPDATE/REMOVE /api/snippets/:id
+```
 
