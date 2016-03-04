@@ -18,6 +18,8 @@ var userModel = require('./libs/mongoose').GithubUserModel;
 // SERVER CONFIGURATION
 // ====================
 server.configure(function () {
+//    server.use(express["static"](__dirname + "/../public"));
+    server.use(express.static(path.join(__dirname, "/../public")));
     // Get standard favicon 
     server.use(express.favicon());
     // console output of the all status requests

@@ -12,7 +12,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
     });
 
     // Initialize PAGES
-    var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github}});
+    var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github, snippetsAPI:null}});
     // Cache of the different pages which were requested
     App.rootLayout.mainRegion.show(pages);
 
@@ -79,6 +79,13 @@ define(['App', 'backbone', 'marionette', 'github-api',
            }
 
            requests.add({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
-        }
+        },
+        showSnippets: function() {
+          requests.add({type:"snippets"});
+        },
+
+        newSnippetForm: function() {
+			requests.add({type:"new-snippet"});
+		}
     });
 });

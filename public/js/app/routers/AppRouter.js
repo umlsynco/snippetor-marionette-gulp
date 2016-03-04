@@ -20,6 +20,8 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7" : "githubShowBlob",
+           "snippets/new": "newSnippetForm",
+           "snippets": "showSnippets",
            "": "index",
        },
        onRoute: function(x) {
