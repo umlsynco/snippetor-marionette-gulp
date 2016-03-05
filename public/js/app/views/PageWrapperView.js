@@ -1,8 +1,12 @@
 define( [ 'marionette',
           "views/github/SearchRepoView", "views/github/SearchCodeInRepo", // search views
           "views/github/ListRootView", // "views/github/ListBranchRootView", "views/github/ListSubTreeView", // Tree views
-          "views/github/ShowContentView"], // content view
-    function( Marionette, gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView) {
+          "views/github/ShowContentView",
+          "views/snippets/SnippetsView", "views/snippets/NewSnippetView"], // content view
+    function(Marionette,
+             gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView, // GitHub related views
+             SnippetsView, NewSnippetView) { // Snippetor's views
+
         // Collection of the different content which was loaded
         return Marionette.CompositeView.extend({
             template: _.template('\
@@ -21,12 +25,14 @@ define( [ 'marionette',
               <li id="tab-tree" class="active"><a data-target="#tree" data-toggle="tab">Tree <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-code"><a data-target="#code" data-toggle="tab">Code <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-profile"><a data-target="#profile" data-toggle="tab">Profile <i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\
             <div class="tab-content">\
               <div class="tab-pane active" id="tree"></div>\
               <div class="tab-pane" id="code"></div>\
               <div class="tab-pane" id="search"></div>\
+              <div class="tab-pane" id="snippets"></div>\
               <div class="tab-pane" id="profile"></div>\
             </div>'),
             getChildView: function(model) {
@@ -41,6 +47,12 @@ define( [ 'marionette',
                 }
                 else if (model.get("type") == "code-search") {
                     return gSearchCodeView;
+                }
+                else if (model.get("type") == "snippets") {
+                    return SnippetsView;
+                }
+                else if (model.get("type") == "new-snippet") {
+                    return NewSnippetView;
                 }
 
                 return gSearchRepoView;
@@ -71,6 +83,19 @@ define( [ 'marionette',
                     containter.children("div#search").empty();
                     return containter.children("div#search");
                 }
+                else if (childView.model.get("type") == "snippets") {
+                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click");
+                    containter.children("div#snippets").empty();
+                    containter.children("div#snippets").append("<br><br>");
+                    return containter.children("div#snippets");
+                }
+                else if (childView.model.get("type") == "new-snippet") {
+                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click");
+                    containter.children("div#snippets").empty();
+                    containter.children("div#snippets").append("<br><br>");
+                    return containter.children("div#snippets");
+                }
+
                 return containter;
             },
             collectionEvents: {
