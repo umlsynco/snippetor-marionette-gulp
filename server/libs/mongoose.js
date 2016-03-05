@@ -2,6 +2,8 @@ var mongoose    = require('mongoose');
 var log         = require('./log')(module);
 var config      = require('./config');
 
+log.info("DB: " + config.get('mongoose:uri'));
+
 mongoose.connect(config.get('mongoose:uri'));
 
 var db = mongoose.connection;
@@ -17,7 +19,7 @@ var Schema = mongoose.Schema;
 
 // GitHub OAuth API
 var GithubUser = new Schema({
-    repository: { type: String, required: true }
+    name: { type: String, required: true }
 });
 
 
@@ -27,7 +29,7 @@ var GithubUser = new Schema({
 var GitRepo = new Schema({
     dataProvider: {
         type: String,
-        enum: ['GitHub', 'GitLab', "Bitbacket"],
+        enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
         required: true
     },
     repository: { type: String, required: true },

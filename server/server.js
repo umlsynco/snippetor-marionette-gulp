@@ -18,6 +18,9 @@ var userModel = require('./libs/mongoose').GithubUserModel;
 // SERVER CONFIGURATION
 // ====================
 server.configure(function () {
+
+    server.use(express["static"](__dirname + "/../public"));
+
     // Get standard favicon 
     server.use(express.favicon());
     // console output of the all status requests
@@ -31,7 +34,6 @@ server.configure(function () {
     // static paths
     server.use(express.static(path.join(__dirname, "public")));
 
-
     // 
     //  List of the available API
     //
@@ -40,6 +42,53 @@ server.configure(function () {
 	  // Add more details about each API
       res.send('{"snippets":true, "plantuml":true, "social":true}');
     });
+
+    //
+    //  User API GET and POST
+    //
+    server.get('/api/users/:id', function (req, res, id) {
+	  return userModel.findById(req.params.id, function (err, user) {
+        if(!user) {
+            res.statusCode = 404;
+            return res.send({ error: 'Not found' });
+        }
+        if (!err) {
+            return res.send({ status: 'OK', user: user});
+        } else {
+            res.statusCode = 500;
+            log.error('Internal error(%d): %s',res.statusCode,err.message);
+            return res.send({ error: 'Server error' });
+        }
+      });
+    });
+
+    server.post('/api/users', function (req, res) {
+	  // create 
+      var user = new userModel({
+        name: req.body.name
+      });
+
+      user.save(function (err) {
+        if (!err) {
+            log.info("user created");
+            return res.send({ status: 'OK', user : user });
+        } else {
+            console.log(err);
+            if(err.name == 'ValidationError') {
+                res.statusCode = 400;
+                res.send({ error: 'Validation error' });
+            } else {
+                res.statusCode = 500;
+                res.send({ error: 'Server error' });
+            }
+            log.error('Internal error(%d): %s',res.statusCode,err.message);
+        }
+      });
+    });
+
+    //
+    // Repository API
+    //
 
     //
     // @name: PLANT UML 
