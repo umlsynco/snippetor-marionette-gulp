@@ -1,4 +1,4 @@
-define( [ 'marionette', 'hljs'], function(Marionette) {
+define( [ 'marionette', 'hljs', 'App'], function(Marionette, hljs, App) {
 	
 	  var cachedGithub = null, searchData = "";
 	  // GitHub Repository item description:
@@ -10,6 +10,7 @@ define( [ 'marionette', 'hljs'], function(Marionette) {
 		   var content = this.options.content;
            return {
              getContent: function(){
+                 if (!content) return;
 				var res = content.replace(/\</g, "&lt;");
 				res = res.replace(/\>/g, "&gt;");
 				var datar = res.split("\n");
@@ -70,6 +71,11 @@ define( [ 'marionette', 'hljs'], function(Marionette) {
 				 if (data)
 			       that.content.show(new ContentView({content: data}));
 			 });
+             this.$el.find("a.sp-github-blob-id").click(function(e) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  App.appRouter.navigate($(this).attr("href"), {trigger: true});
+             });
 		 }
     });
       
@@ -109,6 +115,13 @@ define( [ 'marionette', 'hljs'], function(Marionette) {
 					}
 		      });
 		  },
+          onRender: function() {
+              var that = this;
+              this.$el.find("#search_form").submit(function(e) {
+                  e.preventDefault();
+                  App.appRouter.navigate("/github.com/" + that.model.get("user") + "/" + that.model.get("repo") + "/search?" +$(this).serialize(), {trigger: true});
+              });
+          },
           template: _.template('<div class="column three-fourths codesearch-results">\
     <div class="codesearch-head">\
       <form accept-charset="UTF-8" action="/github.com/<%= user %>/<%= repo %>/search" class="flex-table search-form-fluid" id="search_form" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"></div>\

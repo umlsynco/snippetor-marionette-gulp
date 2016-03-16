@@ -69,7 +69,7 @@ define( [ 'marionette',
                     return containter.children("div#tree");
                 }
                 else if (childView.model.get("type") == "tree-root") {
-                    $("ul#sp-content-tabs>ali#tab-tree>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-tree>a").trigger("click");
                     containter.children("div#tree").empty();
                     return containter.children("div#tree");
                 }
