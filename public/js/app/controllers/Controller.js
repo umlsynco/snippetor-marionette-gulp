@@ -47,6 +47,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
         index:function () {
            requests.add({type:"dashboard"});
         },
+        githubUserInfo:  function(q) {
+           requests.add([{type:"user-info", user: q || ""}]);
+        },
         githubRepoSearch: function(q) {
            requests.add([{type:"repo-search", query: q || ""}]);
         },
@@ -59,9 +62,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
         showBranchTree: function(user, repo, branch) {
           requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch});
         },
-        showSubTree: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
+        showSubTree: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7, id8, id9) {
            var path = "", splitter = "";
-           for (var i=3; i<10; ++i) {
+           for (var i=3; i<12; ++i) {
                if (arguments[i] != undefined) {
                    path = path + splitter + arguments[i];
                }
@@ -69,9 +72,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
            }
            requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch, path: path, sha:""});
         },
-        githubShowBlob: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7) {
+        githubShowBlob: function(user, repo, branch, id1, id2, id3, id4, id5, id6, id7, id8, id9) {
            var path = "", splitter = "";
-           for (var i=3; i<10; ++i) {
+           for (var i=3; i<12; ++i) {
                if (arguments[i] != undefined) {
                    path = path + splitter + arguments[i];
                }
