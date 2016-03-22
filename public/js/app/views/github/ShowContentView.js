@@ -92,9 +92,12 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
               this.collection = new Backbone.Collection;
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
-              var repoName = this.model.get("repo");
-              var branch = this.model.get("branch") || "master";
-              var path = this.model.get("path") || "";
+              var model = options.history.get(this.model.get("ref"));
+
+              var repoName = model.get("repo");
+              var branch = model.get("branch") || "master";
+              var path = model.get("path") || "";
+
               if (path != "") {
                  repo.contents(branch, path, function(err, data) {
                      var content = "";
@@ -118,9 +121,9 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        ////////////////////////////////////
                        // Show snippet bubble
                        ////////////////////////////////////
-                       if (that.model.get("linenum")) {
-                          var line = that.model.get("linenum");
-                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: that.model.get("comment")})}));
+                       if (model.get("linenum")) {
+                          var line = model.get("linenum");
+                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: model.get("comment")})}));
                          var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
                          if (list.length == 1) {
                            var pos = list.position();

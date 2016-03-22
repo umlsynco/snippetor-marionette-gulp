@@ -18,23 +18,24 @@ define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Mar
       var  repoListView  = Marionette.ItemView.extend({
           className: "public source",
           tagName: "li",
-          template: _.template('<a href="/mikedeboer/node-github" class="mini-repo-list-item css-truncate">\
+          template: _.template('<a href="/github.com/<%=full_name%>" class="mini-repo-list-item css-truncate">\
         <svg aria-hidden="true" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
       <span class="repo-and-owner css-truncate-target">\
-<span class="repo" title="node-github">node-github</span>\
+<span class="repo" title="node-github"><%=full_name%></span>\
       </span>\
       <span class="stars">\
-        1,300\
+        <%=stargazers_count%>\
         <svg aria-label="stars" class="octicon octicon-star" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>\
       </span>\
-      <span class="repo-description css-truncate-target">node library to access the GitHub API</span>\
+      <span class="repo-description css-truncate-target"><%=description%></span>\
     </a>')
       });
     
-    var miniRepoList = Marionette.CollectionView.extend({
-        className: "mini-repo-list",
-        tagName: "ul", 
-        childView: repoListView
+    var miniRepoList = Marionette.CompositeView.extend({
+        className: "boxed-group flush",
+        template: _.template('<h3>Popular repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
+        childView: repoListView,
+        childViewContainer: "ul.mini-repo-list"
     });
 
       var VcardView = Marionette.ItemView.extend({
@@ -70,11 +71,10 @@ define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Mar
           childViewContainer: "ul.mini-repo-list",
           regions: {
              vcard: "div.vcard",
-             popularRepos: "div.popular-repos>div.one-half>DIV.flush"
+             popularRepos: "div.popular-repos>div.one-half"
           },
           initialize: function(options) {
               this.github = options.githubAPI;
-              this.collection = new Backbone.Collection;
           },
           onRender: function() {
               var that = this;
@@ -82,10 +82,19 @@ define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Mar
               var username = this.model.get("user");
               user.show(this.model.get("user"), function(err, data) {
                   that.vcard.show(new VcardView({model: new Backbone.Model(data)}));
+                  //
+                  // Get list of user repositories
+                  //
+                  user.userRepos(username, {type: data.type}, function(err, data2) {
+                     that.popularRepos.show(new miniRepoList({collection: new Backbone.Collection(data2)}));
+                  });
               });
-              user.userRepos(username, function(err, data) {
-                  that.popularRepos.show(new repoListView({model: new Backbone.Collection(data)}));
-              });
+
+              //
+              // Get user's snippets repository
+              //
+              
+              // Get snippets repositories ?
 /*              this.$el.find("a.sp-routing").click(function(e) {
                   e.stopPropagation();
                   e.preventDefault();

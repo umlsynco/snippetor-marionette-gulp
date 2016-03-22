@@ -58,10 +58,14 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
 
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
+              
+
               var branch = this.model.get("branch") || "master";
+              
 
               var path = this.model.get("path") || "";
               var repoName = this.model.get("repo");
+
               if (path != "") {
                  repo.read(branch, path, function(err, data) {
                      if (data) {

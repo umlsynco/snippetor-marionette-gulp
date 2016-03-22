@@ -3,7 +3,7 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
        //"index" must be a method in AppRouter's controller
        appRoutes: {
            "github\.com/search": "githubRepoSearch", // q=query & type=Repositories & utf8 - unused
-           "github\.com/user/:name": "githubUserInfo", // show user information
+           "github\.com/:name": "githubUserInfo", // show user information
            "github\.com/:user/:repo": "showTreeRoot",
            "github\.com/:user/:repo/search": "githubCodeSearchInsideRepo",
            "github\.com/:user/:repo/tree/:branch" : "showBranchTree",
