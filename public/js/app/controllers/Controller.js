@@ -15,8 +15,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
       defaults: {
         branch: "master",
         repo: null,
-        path: null,
-        comments: []  // number of comment + linenum
+        path: null
       }
     });
     var historyCollection = Backbone.Collection.extend({
@@ -27,22 +26,50 @@ define(['App', 'backbone', 'marionette', 'github-api',
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
     var historyController = new SnippetHistoryController({collection: historyList});
 
+    var snippetorAPI = {
+        getWorkingSnippets: function(model) {
+            var data = model.attributes;
+            // TODO: Merge all places of the snippet
+            var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
+            if (wms.length == 0) return null;
+            if (wms[0]) {
+                if (wms[0].comments) {
+                    return wms[0].comments;
+                }
+            }
+        },
+        // [???]: history items
+        getHistoryList: function() {
+            return historyList;
+        }
+    };
+
+
     App.addInitializer(function() {
         // Add visited page to the list
-        // TODO: handle Back and Forward arrows
         //
-        App.vent.on("history:report", function(model) {
-            historyList.add(model);
+        App.vent.on("history:report", function(data) {
+            // Add data directly
+            historyList.add(new Backbone.Model(data));
         });
 
         //
         // On save comment to the history
         // Get item in focus, compare with model, add comment to the  item
         //
-        App.vent.on("history:bubble", function(model, comment) {
-            var wm = historyList.get(model.id);
-            if (wm) {
-                wm.attributes.comments.push(comment);
+        App.vent.on("history:bubble", function(data) {
+            // It is possible to report bubble to existing items only ????
+            var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
+            if (wms.length == 0) return;
+            if (wms[0]) {
+                if (wms[0].comments) {
+                    wms[0].comments.add({comment: data.comment, linenum: data.linenum});
+                }
+                else {
+                  var cms = wms[0].get("comments") || [];
+                  cms.push({comment: data.comment, linenum: data.linenum});
+                  wms[0].set("comments", cms);
+                }
             }
         });
 
@@ -56,10 +83,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
             // trigger open manually
             requests.add({
               type:"show-blob", // Show github blob
-              ref: model.id, // history item model
-              comment_number: selected || 0}); // selected comment number
+              ref: model.cid, // reference on history item
+              repo: model.get("repo"), branch:model.get("branch"), path: model.get("path"), sha:null});
         });
-
         //
         // Handle item prev or next
         //
@@ -94,7 +120,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
                 ref: model.id,
                 comment_number: selected}); // selected comment number
         });
-    });
+    }); // addInitializer
 
     //
     // Github API
@@ -106,7 +132,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
     });
 
     // Initialize PAGES
-    var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github, snippetsAPI:null, history: historyList}});
+    var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github, snippetorAPI: snippetorAPI, history: historyList}});
 
     // Cache of the different pages which were requested
     App.rootLayout.mainRegion.show(pages);

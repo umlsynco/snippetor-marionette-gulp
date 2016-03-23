@@ -89,10 +89,12 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
           },
           initialize: function(options) {
               this.github = options.githubAPI;
+              this.snippetor = options.snippetorAPI;
+
               this.collection = new Backbone.Collection;
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
-              var model = options.history.get(this.model.get("ref"));
+              var model = this.model;
 
               var repoName = model.get("repo");
               var branch = model.get("branch") || "master";
@@ -102,6 +104,11 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                  repo.contents(branch, path, function(err, data) {
                      var content = "";
                      if (data) {
+                       // Report history item if it was not report before
+                       if (!model.get("ref")) {
+                         App.vent.trigger("history:report", {path: model.get("path"), sha: "", branch: model.get("branch"), repo:model.get("repo")});
+                       }    
+                         
                        ////////////////////////////////////
                        // Decode content
                        ////////////////////////////////////
@@ -121,23 +128,76 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        ////////////////////////////////////
                        // Show snippet bubble
                        ////////////////////////////////////
-                       if (model.get("linenum")) {
-                          var line = model.get("linenum");
-                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: model.get("comment")})}));
-                         var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
-                         if (list.length == 1) {
-                           var pos = list.position();
-                           pos.left += 50;
-                           pos.top += 190;
-                           var $t = $("div#step-0");
-                           $t.css(pos);
+                       that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
+                         $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
+                       });
+                       
+                       // Get Active snippets for current content
+                       that.snippets = that.snippetor.getWorkingSnippets(model);
+                       if (that.snippets.length > 0) {
+                           that.snippets.each(function(item) {
+                               var line = item.get("linenum");
+                               var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                               if (list.length == 1) {
+                                  var pos = list.position();
+                                  pos.left += 50;
+                                  pos.top += 190;
 
-                           // SCROLL TO THE ELEMENT
-                           $('html, body').animate({
-                              scrollTop: pos.top
-                           }, 2000);
-                         }
-                       }
+                                  list.children("i.fa").addClass("fa-comment");
+
+                                  if (item.get("active")) {
+                                    that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")})}));
+                                    var $t = $("div#step-0");
+                                    $t.css(pos);
+
+                                    // SCROLL TO THE ELEMENT
+                                    $('html, body').animate({
+                                       scrollTop: pos.top
+                                    }, 2000);
+                                  } // active
+                              } // if has line
+
+                              that.snippets.on("add", function(item) {
+                                  var line = item.get("linenum");
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  if (list.length == 1) {
+                                    list.children("i.fa").addClass("fa-comment");
+                                    list.children("i.fa").dblclick(function() {
+                                        alert("set active item");
+                                        item.set("active", true);
+                                    });
+                                  }
+                              });
+                              that.snippets.on("change:active", function(item, data) {
+                                var line = item.get("linenum");
+                                var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                if (list.length == 1) {
+                                  var pos = list.position();
+                                  pos.left += 50;
+                                  pos.top += 190;
+
+                                  if (item.get("active")) {
+                                    that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")})}));
+                                    var $t = $("div#step-0");
+                                    $t.css(pos);
+                                  } // active
+                                } // correct line number
+                              });
+                              that.snippets.on("remove", function(item) {
+                                  // Hide bubble on snippet remove
+                                  if (item.get("active")) {
+                                    that.getRegion("bubble").reset();
+                                  }
+                                  var line = item.get("linenum");
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  if (list.length == 1) {
+                                    list.children("i.fa").removeClass("fa-comment");
+                                  }
+                              });
+
+                              // TODO: Show each snippet position
+                        });
+                       } // has snippets
 
                        ////////////////////////////////////
                        // Enable search directly from code
@@ -150,7 +210,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        // Enable snippets bubble
                        ////////////////////////////////////
                        $("pre.prettyprint>ol>li").dblclick(function() {
-                         var linenum = $(this).index();
+                         var linenum = $(this).index() + 1;
                          that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: linenum, comment: "Your comment..." })}));
                          var pos = $(this).position();
                          pos.left += 50;
