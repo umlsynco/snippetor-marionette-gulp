@@ -33062,3 +33062,17 @@ b>span.typ {
 	border-right-color:#ddd;
 	border-width:8px;
 }
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #EEE;
+    border-color: #337AB7;
+    background-color: rgb(238, 238, 238);
+}
+
+.list-group-item:focus, .list-group-item:hover {
+    z-index: 2;
+    color: #EEE;
+    border-color: #337AB7;
+    background-color: rgb(238, 238, 238);
+}

@@ -1,6 +1,7 @@
 define(['App', 'backbone', 'marionette'],
     function (App, Backbone, Marionette) {
     var ActiveComment = null;
+    var ActiveItem = null;
     var commentItem = Marionette.ItemView.extend({
 		tagName: 'li',
 		className: 'list-group-item',
@@ -56,9 +57,20 @@ define(['App', 'backbone', 'marionette'],
 			"click @ui.blob": "onSelect",
             "click @ui.commentsIcon": "onShowComments"
 		},
-        'collectionEvents': {
+        modelEvents: {
+          'change:active': 'changeActive'
+        },
+        collectionEvents: {
           'add': 'changeCount',
           'remove': 'changeCount'
+        },
+        changeActive: function(model, value) {
+            if (value) {
+              this.$el.addClass("active");
+            }
+            else {
+              this.$el.removeClass("active");
+            }
         },
         onShowComments: function() {
             this.ui.comments.toggle();
@@ -72,9 +84,16 @@ define(['App', 'backbone', 'marionette'],
         initialize: function(options) {
             // List of comments
             this.collection = this.model.comments;
+            this.changeActive(this.model, this.model.get("active"));
         },
 		onSelect: function(e) {
 			e.preventDefault();
+            if (ActiveItem) {
+                ActiveItem.set("active", false);
+            }
+            ActiveItem = this.model;
+            ActiveItem.set("active", true);
+
 			var url = this.ui.blob.attr("href");
 			this.model.set({active: true});
 			App.vent.trigger("history:open", this.model);
@@ -83,7 +102,24 @@ define(['App', 'backbone', 'marionette'],
 		
     var historyListView = Marionette.CollectionView.extend({
 		tagName: "ul",
-		childView: historyItem
+		childView: historyItem,
+        'collectionEvents': {
+          'add': 'onAdd',
+          'remove': 'onRemove'
+        },
+        onAdd: function(newModel) {
+              if (ActiveItem) {
+                  ActiveItem.set("active", false);
+              }
+              ActiveItem = newModel;
+              ActiveItem.set("active", true);
+        },
+        onRemove: function(rmModel) {
+            if (ActiveItem == rmModel) {
+                ActiveItem.set("active", false);
+                ActiveItem = null;
+            }
+        }
 	});
 
     return Backbone.Marionette.Controller.extend({

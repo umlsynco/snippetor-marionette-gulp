@@ -1,9 +1,9 @@
 define(['App', 'backbone', 'marionette', 'github-api',
         'views/WelcomeView', 'views/HeaderView', 'views/PageWrapperView',
-        'controllers/SnippetHistoryController', "metisMenu"],
+        'controllers/SnippetHistoryController', 'controllers/SnippetNextPrevController',  "metisMenu"],
     function (App, Backbone, Marionette, GithubApi,
               WelcomeView, HeaderView, PageWrapperView,
-              SnippetHistoryController) {
+              SnippetHistoryController, SnippetNextPrevController) {
 
     // List of the route requests
     var requests = new Backbone.Collection;
@@ -26,6 +26,8 @@ define(['App', 'backbone', 'marionette', 'github-api',
     });
     var historyList = new Backbone.Collection; // List of the visited sites + comments for them
 
+    var nextPrevController = new SnippetNextPrevController({historyList: historyList});
+
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
     var historyController = new SnippetHistoryController({collection: historyList});
 
@@ -41,6 +43,18 @@ define(['App', 'backbone', 'marionette', 'github-api',
                 }
             }
         },
+        getHistoryItem: function(model) {
+            function findItem(data) {
+              var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
+              if (wms.length == 0) return null;
+              if (wms.length == 1) return wms[0];
+              // Get active item
+              return wms.find(function(item) {
+                  return item.get("active");
+              });
+            }
+            return findItem(model.attributes);
+        },
         // [???]: history items
         getHistoryList: function() {
             return historyList;
@@ -53,7 +67,17 @@ define(['App', 'backbone', 'marionette', 'github-api',
         //
         App.vent.on("history:report", function(data) {
             // Add data directly
-            historyList.add(new historyModel(data));
+            // history list trigger on add
+            // and set active model
+            var active = historyList.where({"active": true});
+            if (active.length == 0) {
+              historyList.add(new historyModel(data));
+            }
+            else {
+              // insert right after active element
+              // TODO: check that it is not the same file !!!
+              historyList.add(new historyModel(data), {at: historyList.indexOf(active[0]) + 1});
+            }
         });
 
         //
@@ -66,7 +90,14 @@ define(['App', 'backbone', 'marionette', 'github-api',
             if (wms.length == 0) return;
             if (wms[0]) {
                 if (wms[0].comments) {
-                    wms[0].comments.add({comment: data.comment, linenum: data.linenum});
+                    var hasActive = wms[0].comments.where({active:true});
+                    if (hasActive.length == 0) {
+                      wms[0].comments.add({comment: data.comment, linenum: data.linenum});
+                    }
+                    else {
+                      var insertAt = wms[0].comments.indexOf(hasActive[0]);
+                      wms[0].comments.add({comment: data.comment, linenum: data.linenum}, {at: insertAt+1});
+                    }
                 }
                 else {
                   var cms = wms[0].get("comments") || [];

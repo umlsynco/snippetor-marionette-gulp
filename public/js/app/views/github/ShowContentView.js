@@ -8,7 +8,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        <div class="popover-content" style="min-height:90px;"><%= comment %></div>\
        <div class="popover-navigation">\
          <div class="btn-group">\
-           <button class="btn btn-sm btn-default disabled" id="bubble-prev">« Prev</button>\
+           <button class="btn btn-sm btn-default" id="bubble-prev">« Prev</button>\
            <button class="btn btn-sm btn-default" id="bubble-next">Next »</button>\
          </div>\
          <div class="btn-group right">\
@@ -30,6 +30,20 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            "click @ui.next": "onNext",
            "dblclick @ui.popover" : "onToggleEdit"
        },
+       onRender: function() {
+           if (!this.options.historyItem) {
+               this.ui.next.addClass("disabled");
+               this.ui.prev.addClass("disabled");
+           }
+           else {
+               if (!this.options.historyItem.get("hasNext")) {
+                 this.ui.next.addClass("disabled");
+               }
+               if (!this.options.historyItem.get("hasPrev")) {
+                 this.ui.prev.addClass("disabled");
+               }
+           }
+       },
        onToggleEdit: function() {
           // Get current text
           var text = this.ui.popover.text();
@@ -46,11 +60,22 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        },
        onSave: function() {
            var text = this.ui.popover.text();
-           App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
+
+           // Update an existing comment
+           if (this.options.commentItem) {
+               this.options.commentItem.set("comment", text);
+               this.options.commentItem.set("active", false);
+           }
+           else {
+             App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
+           }
            this.$el.remove();
        },
        onClose: function() {
            this.$el.remove();
+           if (this.options.commentItem) {
+               this.options.commentItem.set("active", false);
+           }
        },
        onPrev: function() {
            alert("Previous");
@@ -131,7 +156,8 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
                          $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
                        });
-                       
+
+                       that.historyItem = that.snippetor.getHistoryItem(model);
                        // Get Active snippets for current content
                        that.snippets = that.snippetor.getWorkingSnippets(model);
                        if (that.snippets) {
@@ -144,9 +170,16 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                   pos.top += 190;
 
                                   list.children("i.fa").addClass("fa-comment");
+                                  list.children("i.fa").click(function() {
+                                    item.set("active", true);
+                                  });
 
                                   if (item.get("active")) {
-                                    that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")})}));
+                                    that.showChildView("bubble", new BubbleView({
+                                        model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
+                                        commentItem: item,
+                                        historyItem: that.historyItem
+                                    }));
                                     var $t = $("div#step-0");
                                     $t.css(pos);
 
@@ -179,7 +212,11 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                   pos.top += 190;
 
                                   if (item.get("active")) {
-                                    that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")})}));
+                                    that.showChildView("bubble", new BubbleView({
+                                        model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
+                                        commentItem: item,
+                                        historyItem: that.historyItem}));
+
                                     var $t = $("div#step-0");
                                     $t.css(pos);
                                   } // active
