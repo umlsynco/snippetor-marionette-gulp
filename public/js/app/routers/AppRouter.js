@@ -3,6 +3,7 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
        //"index" must be a method in AppRouter's controller
        appRoutes: {
            "github\.com/search": "githubRepoSearch", // q=query & type=Repositories & utf8 - unused
+           "github\.com/:name": "githubUserInfo", // show user information
            "github\.com/:user/:repo": "showTreeRoot",
            "github\.com/:user/:repo/search": "githubCodeSearchInsideRepo",
            "github\.com/:user/:repo/tree/:branch" : "showBranchTree",
@@ -13,6 +14,8 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
            "github\.com/:user/:repo/tree/:branch/:id1/:id2/:id3/:id4/:id5" : "showSubTree",
            "github\.com/:user/:repo/tree/:branch/:id1/:id2/:id3/:id4/:id5/:id6" : "showSubTree",
            "github\.com/:user/:repo/tree/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7" : "showSubTree",
+           "github\.com/:user/:repo/tree/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8" : "showSubTree",
+           "github\.com/:user/:repo/tree/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8/:id9" : "showSubTree",
            "github\.com/:user/:repo/blob/:branch/:id1" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3" : "githubShowBlob",
@@ -20,6 +23,8 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7" : "githubShowBlob",
+           "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8" : "githubShowBlob",
+           "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8/:id9" : "githubShowBlob",
            "snippets/new": "newSnippetForm",
            "snippets": "showSnippets",
            "": "index",

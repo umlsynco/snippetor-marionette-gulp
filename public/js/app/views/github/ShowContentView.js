@@ -8,7 +8,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        <div class="popover-content" style="min-height:90px;"><%= comment %></div>\
        <div class="popover-navigation">\
          <div class="btn-group">\
-           <button class="btn btn-sm btn-default disabled" id="bubble-prev">« Prev</button>\
+           <button class="btn btn-sm btn-default" id="bubble-prev">« Prev</button>\
            <button class="btn btn-sm btn-default" id="bubble-next">Next »</button>\
          </div>\
          <div class="btn-group right">\
@@ -30,6 +30,20 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            "click @ui.next": "onNext",
            "dblclick @ui.popover" : "onToggleEdit"
        },
+       onRender: function() {
+           if (!this.options.historyItem) {
+               this.ui.next.addClass("disabled");
+               this.ui.prev.addClass("disabled");
+           }
+           else {
+               if (!this.options.historyItem.get("hasNext")) {
+                 this.ui.next.addClass("disabled");
+               }
+               if (!this.options.historyItem.get("hasPrev")) {
+                 this.ui.prev.addClass("disabled");
+               }
+           }
+       },
        onToggleEdit: function() {
           // Get current text
           var text = this.ui.popover.text();
@@ -46,11 +60,22 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        },
        onSave: function() {
            var text = this.ui.popover.text();
-           App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
+
+           // Update an existing comment
+           if (this.options.commentItem) {
+               this.options.commentItem.set("comment", text);
+               this.options.commentItem.set("active", false);
+           }
+           else {
+             App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
+           }
            this.$el.remove();
        },
        onClose: function() {
            this.$el.remove();
+           if (this.options.commentItem) {
+               this.options.commentItem.set("active", false);
+           }
        },
        onPrev: function() {
            alert("Previous");
@@ -89,16 +114,26 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
           },
           initialize: function(options) {
               this.github = options.githubAPI;
+              this.snippetor = options.snippetorAPI;
+
               this.collection = new Backbone.Collection;
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
-              var repoName = this.model.get("repo");
-              var branch = this.model.get("branch") || "master";
-              var path = this.model.get("path") || "";
+              var model = this.model;
+
+              var repoName = model.get("repo");
+              var branch = model.get("branch") || "master";
+              var path = model.get("path") || "";
+
               if (path != "") {
                  repo.contents(branch, path, function(err, data) {
                      var content = "";
                      if (data) {
+                       // Report history item if it was not report before
+                       if (!model.get("ref")) {
+                         App.vent.trigger("history:report", {path: model.get("path"), sha: "", branch: model.get("branch"), repo:model.get("repo")});
+                       }    
+                         
                        ////////////////////////////////////
                        // Decode content
                        ////////////////////////////////////
@@ -118,23 +153,87 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        ////////////////////////////////////
                        // Show snippet bubble
                        ////////////////////////////////////
-                       if (that.model.get("linenum")) {
-                          var line = that.model.get("linenum");
-                         that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: that.model.get("comment")})}));
-                         var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
-                         if (list.length == 1) {
-                           var pos = list.position();
-                           pos.left += 50;
-                           pos.top += 190;
-                           var $t = $("div#step-0");
-                           $t.css(pos);
+                       that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
+                         $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
+                       });
 
-                           // SCROLL TO THE ELEMENT
-                           $('html, body').animate({
-                              scrollTop: pos.top
-                           }, 2000);
-                         }
-                       }
+                       that.historyItem = that.snippetor.getHistoryItem(model);
+                       // Get Active snippets for current content
+                       that.snippets = that.snippetor.getWorkingSnippets(model);
+                       if (that.snippets) {
+                           that.snippets.each(function(item) {
+                               var line = item.get("linenum");
+                               var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                               if (list.length == 1) {
+                                  var pos = list.position();
+                                  pos.left += 50;
+                                  pos.top += 190;
+
+                                  list.children("i.fa").addClass("fa-comment");
+                                  list.children("i.fa").click(function() {
+                                    item.set("active", true);
+                                  });
+
+                                  if (item.get("active")) {
+                                    that.showChildView("bubble", new BubbleView({
+                                        model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
+                                        commentItem: item,
+                                        historyItem: that.historyItem
+                                    }));
+                                    var $t = $("div#step-0");
+                                    $t.css(pos);
+
+                                    // SCROLL TO THE ELEMENT
+                                    $('html, body').animate({
+                                       scrollTop: pos.top
+                                    }, 2000);
+                                  } // active
+                              } // if has line
+
+                              // TODO: Show each snippet position
+                           }); // each
+
+                              that.snippets.on("add", function(item) {
+                                  var line = item.get("linenum");
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  if (list.length == 1) {
+                                    list.children("i.fa").addClass("fa-comment");
+                                    list.children("i.fa").click(function() {
+                                        item.set("active", true);
+                                    });
+                                  }
+                              });
+                              that.snippets.on("change:active", function(item, data) {
+                                var line = item.get("linenum");
+                                var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                if (list.length == 1) {
+                                  var pos = list.position();
+                                  pos.left += 50;
+                                  pos.top += 190;
+
+                                  if (item.get("active")) {
+                                    that.showChildView("bubble", new BubbleView({
+                                        model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
+                                        commentItem: item,
+                                        historyItem: that.historyItem}));
+
+                                    var $t = $("div#step-0");
+                                    $t.css(pos);
+                                  } // active
+                                } // correct line number
+                              });
+                              that.snippets.on("remove", function(item) {
+                                  // Hide bubble on snippet remove
+                                  if (item.get("active")) {
+                                    that.getRegion("bubble").reset();
+                                  }
+                                  var line = item.get("linenum");
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  if (list.length == 1) {
+                                    list.children("i.fa").removeClass("fa-comment");
+                                  }
+                              });
+                       } // has snippets
 
                        ////////////////////////////////////
                        // Enable search directly from code
@@ -147,7 +246,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        // Enable snippets bubble
                        ////////////////////////////////////
                        $("pre.prettyprint>ol>li").dblclick(function() {
-                         var linenum = $(this).index();
+                         var linenum = $(this).index() + 1;
                          that.showChildView("bubble", new BubbleView({model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: linenum, comment: "Your comment..." })}));
                          var pos = $(this).position();
                          pos.left += 50;
@@ -172,7 +271,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                  for(var i = 0; i<paths.length; ++i) {
                      subpath = subpath + "/" + paths[i];
                      if (i !=paths.length -1) {
-                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
+                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
                      }
                      // Final path is not selectable
                      else {
@@ -184,9 +283,16 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
              }
            };
           },
+          onRender: function() {
+              this.$el.find("a.sp-routing").click(function(e) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  App.appRouter.navigate($(this).attr("href"), {trigger: true});
+              });
+          },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
-    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
     <div class="input-group custom-search-form right" style="padding-right:0px; margin-top: -5px;">\
     <form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search" method="get" role="search">\
       <div class="input-group">\

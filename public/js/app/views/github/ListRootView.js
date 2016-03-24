@@ -58,10 +58,14 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
 
               var that = this;
               var repo = this.github.getRepo(this.model.get("repo"));
+              
+
               var branch = this.model.get("branch") || "master";
+              
 
               var path = this.model.get("path") || "";
               var repoName = this.model.get("repo");
+
               if (path != "") {
                  repo.read(branch, path, function(err, data) {
                      if (data) {
@@ -97,7 +101,7 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
                  for(var i = 0; i<paths.length; ++i) {
                      subpath = subpath + "/" + paths[i];
                      if (i !=paths.length -1) {
-                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
+                        result += '<span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/'+this.repo+'/tree/master'+ subpath + '" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">'+paths[i]+'</span></a></span></span><span class="separator">/</span>';
                      }
                      // Final path is not selectable
                      else {
@@ -109,10 +113,16 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
              }
            };
           },
-
+          onRender: function() {
+              this.$el.find("a.sp-routing").click(function(e) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  App.appRouter.navigate($(this).attr("href"), {trigger: true});
+              });
+          },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
-    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
     <div class="input-group custom-search-form right" style="padding-right:0px; margin-top: -5px;">\
 <form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search" method="get" role="search">\
 <div class="input-group">\

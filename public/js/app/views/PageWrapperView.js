@@ -2,9 +2,11 @@ define( [ 'marionette',
           "views/github/SearchRepoView", "views/github/SearchCodeInRepo", // search views
           "views/github/ListRootView", // "views/github/ListBranchRootView", "views/github/ListSubTreeView", // Tree views
           "views/github/ShowContentView",
+          "views/github/UserProfile",
           "views/snippets/SnippetsView", "views/snippets/NewSnippetView"], // content view
     function(Marionette,
              gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView, // GitHub related views
+             gUserProfile, // Github User information
              SnippetsView, NewSnippetView) { // Snippetor's views
 
         // Collection of the different content which was loaded
@@ -39,6 +41,9 @@ define( [ 'marionette',
                 if (model.get("type") == "repo-search") {
                     return gSearchRepoView;
                 }
+                else if (model.get("type") == "user-info") {
+                    return gUserProfile;
+                }
                 else if (model.get("type") == "tree-root") {
                     return gListTreeRoot;
                 }
@@ -68,8 +73,13 @@ define( [ 'marionette',
                 if (childView.model.get("type") == "repo-search_TODO") {
                     return containter.children("div#tree");
                 }
+                else if (childView.model.get("type") == "user-info") {
+                    $("ul#sp-content-tabs>li#tab-profile>a").trigger("click");
+                    containter.children("div#profile").empty();
+                    return containter.children("div#profile");
+                }
                 else if (childView.model.get("type") == "tree-root") {
-                    $("ul#sp-content-tabs>ali#tab-tree>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-tree>a").trigger("click");
                     containter.children("div#tree").empty();
                     return containter.children("div#tree");
                 }
