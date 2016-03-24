@@ -15,6 +15,10 @@ define(['App', 'backbone', 'marionette'],
         },
         ChangeColor: function() {
             if (this.model.get("active")) {
+                if (ActiveComment != null && ActiveComment != this.model)
+                  ActiveComment.set("active", false);
+
+                ActiveComment = this.model;
                 this.$el.addClass("active");
             }
             else {
@@ -67,8 +71,7 @@ define(['App', 'backbone', 'marionette'],
         childViewContainer : "ul.sp-comments",
         initialize: function(options) {
             // List of comments
-            this.collection = new Backbone.Collection;
-            this.model.comments = this.collection;
+            this.collection = this.model.comments;
         },
 		onSelect: function(e) {
 			e.preventDefault();

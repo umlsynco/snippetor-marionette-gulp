@@ -134,7 +134,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                        
                        // Get Active snippets for current content
                        that.snippets = that.snippetor.getWorkingSnippets(model);
-                       if (that.snippets.length > 0) {
+                       if (that.snippets) {
                            that.snippets.each(function(item) {
                                var line = item.get("linenum");
                                var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
@@ -157,13 +157,15 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                   } // active
                               } // if has line
 
+                              // TODO: Show each snippet position
+                           }); // each
+
                               that.snippets.on("add", function(item) {
                                   var line = item.get("linenum");
                                   var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
                                   if (list.length == 1) {
                                     list.children("i.fa").addClass("fa-comment");
-                                    list.children("i.fa").dblclick(function() {
-                                        alert("set active item");
+                                    list.children("i.fa").click(function() {
                                         item.set("active", true);
                                     });
                                   }
@@ -194,9 +196,6 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                     list.children("i.fa").removeClass("fa-comment");
                                   }
                               });
-
-                              // TODO: Show each snippet position
-                        });
                        } // has snippets
 
                        ////////////////////////////////////

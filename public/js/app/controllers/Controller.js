@@ -16,6 +16,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
         branch: "master",
         repo: null,
         path: null
+      },
+      initialize: function(options) {
+          this.comments = new Backbone.Collection;
       }
     });
     var historyCollection = Backbone.Collection.extend({
@@ -50,7 +53,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
         //
         App.vent.on("history:report", function(data) {
             // Add data directly
-            historyList.add(new Backbone.Model(data));
+            historyList.add(new historyModel(data));
         });
 
         //
