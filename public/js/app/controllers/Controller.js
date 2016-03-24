@@ -32,6 +32,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
     var historyController = new SnippetHistoryController({collection: historyList});
 
     var snippetorAPI = {
+		getNextPrevController: function() {
+			return nextPrevController;
+		},
         getWorkingSnippets: function(model) {
             var data = model.attributes;
             // TODO: Merge all places of the snippet

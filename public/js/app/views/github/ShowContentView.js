@@ -31,15 +31,18 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            "dblclick @ui.popover" : "onToggleEdit"
        },
        onRender: function() {
-           if (!this.options.historyItem) {
+           if (!this.options.controller) {
                this.ui.next.addClass("disabled");
                this.ui.prev.addClass("disabled");
            }
            else {
-               if (!this.options.historyItem.get("hasNext")) {
+			   var pn = this.options.controller.hasPrevNext(
+			     this.options.historyItem,
+			     this.options.commentItem);
+               if (!pn.hasNext) {
                  this.ui.next.addClass("disabled");
                }
-               if (!this.options.historyItem.get("hasPrev")) {
+               if (!pn.hasPrev) {
                  this.ui.prev.addClass("disabled");
                }
            }
@@ -81,7 +84,10 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            alert("Previous");
        },
        onNext: function() {
-           alert("NEXT");
+		 if (this.options.controller)
+           this.options.controller.stepNext(
+			 this.options.historyItem,
+			 this.options.commentItem);
        }
    });
 
@@ -178,7 +184,8 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                     that.showChildView("bubble", new BubbleView({
                                         model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
                                         commentItem: item,
-                                        historyItem: that.historyItem
+                                        historyItem: that.historyItem,
+                                        controller: that.snippetor.getNextPrevController()
                                     }));
                                     var $t = $("div#step-0");
                                     $t.css(pos);
@@ -215,7 +222,9 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                                     that.showChildView("bubble", new BubbleView({
                                         model: new Backbone.Model({repo:repoName, branch: branch, path:path, linenum: line, comment: item.get("comment")}),
                                         commentItem: item,
-                                        historyItem: that.historyItem}));
+                                        historyItem: that.historyItem,
+                                        controller: that.snippetor.getNextPrevController()
+                                    }));
 
                                     var $t = $("div#step-0");
                                     $t.css(pos);

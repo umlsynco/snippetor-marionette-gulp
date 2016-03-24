@@ -27,7 +27,16 @@ define(['App', 'backbone', 'marionette'],
         },
         handleCommentItem: function(historyItem, commentItem, idx, action) {
             if (action.add) {
-              this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid});
+				if (!action.at) {
+                   this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid});
+                   return;
+			    }
+			    var hms = this.collection.where({hcid: historyItem.cid});
+			    if (hms.length <= action.at) {
+					alert("Something wrong with data insertion!!!");
+					return;
+				}
+			    this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid}, {at: this.collection.indexOf(hms[action.at])+1});
             }
             if (action.remove) {
               var toRemove = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
@@ -36,11 +45,45 @@ define(['App', 'backbone', 'marionette'],
         },
         hasPrevNext: function(historyItem, commentItem) {
             var item = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
-            if (item.length != 1) {
+            if (item.length == 1) {
                 var idx = this.collection.indexOf(item[0]);
-                return {hasNext:(idx != this.collection.length), hasPrev: (idx > 0)};
+                return {hasNext:(idx < this.collection.length-1), hasPrev: (idx > 0)};
             }
             return {hasNext:false, hasPrev: false};
-        }
+        },
+        stepNext: function(historyItem, commentItem) {
+            var item = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
+            if (item.length == 1) {
+                var idx = this.collection.indexOf(item[0]);
+                if (idx >= this.collection.length-1) {
+					alert("it is final element !!!");
+					return;
+				}
+                var nextOne = this.collection.at(idx + 1);
+                var nextHistoryItem = historyItem.collection.get({cid: nextOne.get("hcid")});
+                if (nextHistoryItem != historyItem) {
+					nextHistoryItem.set("active", true);
+				}
+				var nextComment = nextHistoryItem.comments.get({cid: nextOne.get("ccid")});
+				nextComment.set("active", true);
+             }
+		 },
+        stepPrev: function(historyItem, commentItem) {
+            var item = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
+            if (item.length == 1) {
+                var idx = this.collection.indexOf(item[0]);
+                if (idx == 0) {
+					alert("it is final element !!!");
+					return;
+				}
+                var nextOne = this.collection.at(idx - 1);
+                var nextHistoryItem = historyItem.collection.get({cid: nextOne.get("hcid")});
+                if (nextHistoryItem != historyItem) {
+					nextHistoryItem.set("active", true);
+				}
+				var nextComment = nextHistoryItem.comments.get({cid: nextOne.get("ccid")});
+				nextComment.set("active", true);
+           }
+	   }
     });
 });
