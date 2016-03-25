@@ -67,7 +67,6 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            // Update an existing comment
            if (this.options.commentItem) {
                this.options.commentItem.set("comment", text);
-               this.options.commentItem.set("active", false);
            }
            else {
              App.vent.trigger("history:bubble", {path: this.model.get("path"), sha: "", branch: this.model.get("branch"), repo:this.model.get("repo"), comment: text, linenum: this.model.get("linenum")});
@@ -76,9 +75,9 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        },
        onClose: function() {
            this.$el.remove();
-           if (this.options.commentItem) {
+/*           if (this.options.commentItem) {
                this.options.commentItem.set("active", false);
-           }
+           }*/
        },
        onPrev: function() {
            this.options.controller.stepPrev(

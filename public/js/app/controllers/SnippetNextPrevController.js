@@ -15,7 +15,9 @@ define(['App', 'backbone', 'marionette'],
                 return;
             }
             if (action.add) {
-			  historyItem.comments.on("add remove", _.bind(this.handleCommentItem, this, historyItem));
+              // placeholder ????
+			  historyItem.comments.on("add", _.bind(this.handleAddCommentItem, this, historyItem));
+              historyItem.comments.on("remove", _.bind(this.handleRemoveCommentItem, this, historyItem));
             }
             if (action.remove) {
 			  historyItem.comments.off("add remove", this.handleCommentItem, this, historyItem);
@@ -25,23 +27,23 @@ define(['App', 'backbone', 'marionette'],
                 this.collection.remove(comments);
             }
         },
-        handleCommentItem: function(historyItem, commentItem, idx, action) {
+        handleAddCommentItem: function(historyItem, commentItem, idx, action) {
             if (action.add) {
-				if (!action.at) {
-                   this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid});
-                   return;
-			    }
 			    var hms = this.collection.where({hcid: historyItem.cid});
-			    if (hms.length <= action.at) {
+                var pos = hms.length - 1;
+				if (action.at) {
+  			      if (hms.length <= action.at) {
 					alert("Something wrong with data insertion!!!");
 					return;
-				}
-			    this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid}, {at: this.collection.indexOf(hms[action.at])+1});
+				  }
+                  pos = action.at;
+                }
+			    this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid}, {at: this.collection.indexOf(hms[pos])+1});
             }
-            if (action.remove) {
-              var toRemove = this.collection.where({ccid: commentItem.cid});
-              this.collection.remove(toRemove[0]);
-            }
+        },
+        handleRemoveCommentItem: function(historyItem, commentItem, idx, action) {
+           var toRemove = this.collection.where({ccid: commentItem.cid});
+           this.collection.remove(toRemove[0]);
         },
         hasPrevNext: function(historyItem, commentItem) {
             var item = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
