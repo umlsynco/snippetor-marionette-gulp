@@ -62,11 +62,27 @@ define(['App', 'backbone', 'marionette'],
         },
         collectionEvents: {
           'add': 'changeCount',
-          'remove': 'changeCount'
+          'remove': 'changeCount',
+          'change:active': 'changeActiveComment'
+        },
+        changeActiveComment: function(model, value) {
+            // Force load of the history item of the current comment
+            if (value)
+                this.ui.blob.trigger("click");
         },
         changeActive: function(model, value) {
             if (value) {
-              this.$el.addClass("active");
+                var shouldTrigger = (!ActiveItem || ActiveItem != model);
+                if (ActiveItem && ActiveItem != model) {
+                    ActiveItem.set("active", false);
+                }
+
+                ActiveItem = model;
+                // change class and trigger open
+                if (shouldTrigger) {
+                  this.$el.addClass("active");
+                  App.vent.trigger("history:open", model);
+                }
             }
             else {
               this.$el.removeClass("active");
@@ -88,15 +104,7 @@ define(['App', 'backbone', 'marionette'],
         },
 		onSelect: function(e) {
 			e.preventDefault();
-            if (ActiveItem) {
-                ActiveItem.set("active", false);
-            }
-            ActiveItem = this.model;
-            ActiveItem.set("active", true);
-
-			var url = this.ui.blob.attr("href");
-			this.model.set({active: true});
-			App.vent.trigger("history:open", this.model);
+            this.model.set("active", true);
 		}
 	});
 		

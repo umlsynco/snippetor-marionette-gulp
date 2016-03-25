@@ -39,8 +39,8 @@ define(['App', 'backbone', 'marionette'],
 			    this.collection.add({hcid: historyItem.cid, ccid: commentItem.cid}, {at: this.collection.indexOf(hms[action.at])+1});
             }
             if (action.remove) {
-              var toRemove = this.collection.where({hcid: historyItem.cid, ccid: commentItem.cid});
-              this.collection.remove(toRemove);
+              var toRemove = this.collection.where({ccid: commentItem.cid});
+              this.collection.remove(toRemove[0]);
             }
         },
         hasPrevNext: function(historyItem, commentItem) {

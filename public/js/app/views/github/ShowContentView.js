@@ -81,7 +81,9 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
            }
        },
        onPrev: function() {
-           alert("Previous");
+           this.options.controller.stepPrev(
+			 this.options.historyItem,
+			 this.options.commentItem);
        },
        onNext: function() {
 		 if (this.options.controller)

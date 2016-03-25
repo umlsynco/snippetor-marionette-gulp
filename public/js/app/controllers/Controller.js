@@ -113,7 +113,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
         //
         // Handle item click on the left side menu
         //
-        App.vent.on("history:open", function(model, selected) {
+        App.vent.on("history:open", function(model) {
             // route without trigger ( + SHA ? )
             App.appRouter.navigate("/github.com/" + model.get("repo") + "/blob/" + model.get("branch") + "/" + model.get("path"));
 
