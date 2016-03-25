@@ -108,12 +108,31 @@ define(['App', 'backbone', 'marionette'],
 		}
 	});
 		
-    var historyListView = Marionette.CollectionView.extend({
-		tagName: "ul",
+    var historyListView = Marionette.CompositeView.extend({
+		template: _.template('\
+                <button type="button" class="btn btn-warning sp-fork"><i class="fa fa-code-fork fw"></i></button>\
+                <button type="button" class="btn btn-danger sp-star"><i class="fa fa-star fw"></i></button>\
+                <button type="button" class="btn btn-warning sp-vote-up"><i class="fa fa-thumbs-up fw"></i></button>\
+                <button type="button" class="btn btn-warning sp-vote-down"><i class="fa fa-thumbs-down fw"></i></button>\
+                <button type="button" class="btn btn-warning sp-user-info"><i class="fa fa-user fw"></i></button>\
+                <button type="button" class="btn btn-danger sp-post-questions"><i class="fa fa-question fw"></i></button><br>\
+                <button type="button" class="btn btn-primary sp-save "><i class="fa fa-save fw"></i></button>\
+                <button type="button" class="btn btn-warning sp-close "><i class="fa fa-close fw"></i></button>\
+                <button type="button" class="btn btn-danger sp-delete "><i class="fa fa-trash fw"></i></button><br>\
+                <br><ul class="history-list"></ul>'),
+        childViewContainer: "ul.history-list",
+        ui: {
+            save: "button.sp-save",
+            star: "button.sp-star",
+            fork: "button.sp-fork",
+        },
 		childView: historyItem,
         'collectionEvents': {
           'add': 'onAdd',
           'remove': 'onRemove'
+        },
+        events: {
+            "click @ui.save": "onSave"
         },
         onAdd: function(newModel) {
               if (ActiveItem) {
@@ -127,6 +146,9 @@ define(['App', 'backbone', 'marionette'],
                 ActiveItem.set("active", false);
                 ActiveItem = null;
             }
+        },
+        onSave: function() {
+            App.appRouter.navigate("/github.com/snippets/save", {trigger: true});
         }
 	});
 

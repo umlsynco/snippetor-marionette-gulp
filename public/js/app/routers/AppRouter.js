@@ -3,6 +3,9 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
        //"index" must be a method in AppRouter's controller
        appRoutes: {
            "github\.com/search": "githubRepoSearch", // q=query & type=Repositories & utf8 - unused
+           "github\.com/snippets": "showSnippets",
+           "github\.com/snippets/new": "newSnippetForm",
+           "github\.com/snippets/save": "newSnippetForm",
            "github\.com/:name": "githubUserInfo", // show user information
            "github\.com/:user/:repo": "showTreeRoot",
            "github\.com/:user/:repo/search": "githubCodeSearchInsideRepo",
@@ -25,8 +28,6 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8" : "githubShowBlob",
            "github\.com/:user/:repo/blob/:branch/:id1/:id2/:id3/:id4/:id5/:id6/:id7/:id8/:id9" : "githubShowBlob",
-           "snippets/new": "newSnippetForm",
-           "snippets": "showSnippets",
            "": "index",
        },
        onRoute: function(x) {
