@@ -29,9 +29,10 @@ var DataProvider = new Schema({
 });
 
 var GithubUser = new Schema({
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     dataProvider: {
-        type: DataProvider,
+        type: String,
+        enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
         required: true
     }
 });
@@ -47,7 +48,8 @@ var GithubRepo = new Schema({
         required: true
     },
     dataProvider: {
-        type: DataProvider,
+        type: String,
+        enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
         required: true
     },
     count: {
@@ -58,15 +60,17 @@ var GithubRepo = new Schema({
 
 //
 // Keep the number of user repositories
-// which user commited users
+// which user commited snippets
 //
 var GithubUserRefs = new Schema({
     user: {
-        type: GithubUser,
+        type: Schema.Types.ObjectId,
+        ref: 'github_user',
         required: true
     },
     repository : {
-        type: GithubRepo,
+        type: Schema.Types.ObjectId,
+        ref: 'github_repo',
         required: true
     },
     count: {
@@ -79,7 +83,7 @@ var GithubUserRefs = new Schema({
 // Schemas
 
 var CommentItem = new Schema({
-	repository: { type: GithubRepo, required: true },
+	repository: { type: Schema.Types.ObjectId, ref: 'github_repo', required: true },
 	path: { type: String, required: true },
     line: { type: Number, required: true },
 	comment: { type: String, required: true },
@@ -89,19 +93,22 @@ var CommentItem = new Schema({
 var SnippetItem = new Schema({
 	name: { type: String, required: true }, // Unique filename
 	version: { type: String, required: true }, // version controle, to check diff etc
-	userId: { type: GithubUser, required: true }, // Github Oauth user ID
+	userId: { type: Schema.Types.ObjectId, ref: 'github_user', required: true }, // Github Oauth user ID
 	description: { type: String, required: true }, // Detailed description of the snippet
 	tags: { type: String, required: true }, // Hash tags ???
     visibility: {
         type: String,
         enum: ['public', 'private', "draft"],
         required: true
-    }
+    },
+    createdAt: Date,
+    updatedAt: Date,
+    ccount: Number // Number of comments
 });
 
 var rawSnippets = new Schema({
-	snippetId: { type: SnippetItem, required: true }, // Unique snippet id
-	commentId: [ CommentItem ] // Unique comment for this snippet
+	snippetId: { type: Schema.Types.ObjectId, ref: 'snippet',  required: true }, // Unique snippet id
+	commentId: {type: Schema.Types.ObjectId, ref: 'comment', required: true}  // Unique comment for this snippet
 });
 
 module.exports.GithubUserModel = mongoose.model('github_user', GithubUser);

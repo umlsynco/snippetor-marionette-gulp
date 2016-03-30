@@ -82,13 +82,14 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
           events: {
               "click @ui.save": "onSave"
           },
-          onSave: function() {
+          onSave: function(e) {
+              e.preventDefault();
               var list = this.snippetor.getHistoryList();
               var repos  = [];
               var nextSnippet = [];
 
               list.each(function(model) {
-                  var next = {repo: model.get("repo"), branch: model.get("branch"), data_provider: "GitHub"};
+                  var next = {full_name: model.get("repo"), branch: model.get("branch"), data_provider: "GitHub"};
                   var idx = -1;
                   for (var t = 0; t < repos.length; ++t) {
                       if (repos[t].repo == next.repo
@@ -106,7 +107,14 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
                   });
               });
               var result = JSON.stringify({title:this.ui.title.val(), tags: this.ui.hashtags.val(), description: this.ui.description.val(), repos: repos, comments: nextSnippet});
-              alert(result);
+
+              $.ajax({
+                  url: "/api/snippets",
+                  type: "POST",
+                  data: {title:this.ui.title.val(), tags: this.ui.hashtags.val(), description: this.ui.description.val(), repos: repos, comments: nextSnippet},
+                  success: function(bxzzz) {alert(bxzzz);},
+                  dataType: "JSON"
+              });
           },
 		  initialize: function(options) {
               // github api

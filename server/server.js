@@ -143,13 +143,280 @@ server.configure(function () {
     // Snippets REST API
     //
     // Search
+    var dbAPI = {
+        //
+        // User API
+        //
+        getUserById: function(id) {
+            return new Promise(function(resolve, reject) {
+                models.GithubUserModel.findOne(id, function(error, realUser) {
+                    if (error) {
+                        log.info(error);
+                        reject({message: "Invalid user", code: 500});
+                    }
+                    else {
+                        resolve(realUser);
+                    }
+                });
+            });
+        },
+        createUser: function(userName) {
+            return new Promise(function(resolve, reject) {
+                var newUser = models.GithubUserModel({
+                  name: userName,
+                  dataProvider: "GitHub"
+                });
+
+                newUser.save(function(err, realUser) {
+                    log.info("GOT SAVE USER DONE QQQQ: " + err);
+                    if (err) {
+                        reject({message: "Failed to create user: " + userName, code:404});
+                    }
+                    else {
+                        resolve(realUser);
+                    }
+                });
+            });
+                
+        },
+        //
+        // Repository APIs
+        //
+        findOrCreateRepo: function(repo) {
+            var promise = new Promise(function(resolve, reject){
+              models.GithubRepoModel.findOne({"repository": repo.full_name}, function (err, repos) {
+
+            // If real error happen
+            if (err) {
+              return reject({ error: 'Server error' });
+
+            }
+            // Check if found repository
+            else {
+                if (repos) {
+                  return resolve(repos);
+                }
+                else {
+                  // No error but repository doesn't exist
+                  var newRepo = models.GithubRepoModel({
+                    repository: repo.full_name,
+                    dataProvider: "GitHub",
+                    count: 0
+                  });
+
+                  newRepo.save(function (err, createdRepo) {
+                    if (!err) {
+                      log.info("created");
+                      return resolve(createdRepo);
+                    } else {
+                      console.log(err);
+                      if(err.name == 'ValidationError') {
+                        reject({ error: 'Validation error', statusCode : 400 });
+                      } else {
+                        reject({ error: 'Server error', statusCode: 500 });
+                      }
+                      log.error('Internal error(%d): %s',res.statusCode,err.message);
+                    }
+                  }); // save
+                } // if repos
+              } // else !err
+            }); // findOne
+          }); // new Promise
+          return promise;
+        },
+        //
+        // Snippet API
+        //
+        createSnippet: function(data, userModel) {
+            return new Promise(function(resolve, reject){
+            var newSnippet = models.SnippetItemModel({
+                name: data.title,
+                userId: userModel, // Github Oauth user ID
+	            description: data.description,
+	            tags: data.tags,
+                version: '1.0',
+                visibility: 'public',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                ccount: data.comments.length
+            });
+                newSnippet.save(function(err, snippet) {
+                    if (err) {
+                        log.info(err);
+                      reject({message: "Failed to create snippet", staus: 500});
+                    }
+                    else {
+                        log.info("DONE SNIPPET");
+                      resolve(snippet);
+                    }
+                });
+            });
+        },
+        listSnippet: function(options) {
+          options = options || {};
+          return new Promise(function(resolve, reject){
+              models.SnippetItemModel.find(options, function(err, data) {
+                  if (err) {
+                      reject({message: "Failed to find snippets"});
+                  }
+                  else {
+                      resolve(data);
+                  }
+              });
+          });
+        },
+        getSnippetById: function(id) {
+            return new Promise(function(resolve, reject){
+                models.SnippetItemModel.findOne(id, function(err, snippetItem) {
+                    if (err) {
+                        log.info(err);
+                      reject({message: "Failed to find snippet", staus: 500});
+                    }
+                    else {
+                        log.info("FOUND SNIPPET");
+                      resolve(snippetItem);
+                    }
+                });
+            });
+        },
+        //
+        // Create user comment
+        //
+        listComments: function(snippetModel) {
+           return new Promise(function(resolve, reject){
+               models.RawSnippetsModel.find({'snippetId': snippetModel}, //'commentId', // snippetId: snippetModel
+                 function(err, snippets) {
+                     if (err) {
+                         reject(err);
+                     }
+                     else {
+                         resolve(snippets);
+                     }
+                 }
+               );
+           });
+        },
+        createComment: function(repoModel, snippetModel, data) {
+          return new Promise(function(resolve, reject){
+              console.log(repoModel);
+              console.log(snippetModel);
+              log.info("CREATE NEW COMMENT ITEM !!! " + data);
+               var newComment = models.CommentItemModel({
+                  repository: repoModel,
+                  line: data.line || 1,
+	              comment: data.comment || "",
+	              path: data.path || "",
+                  sha: 'alskdaskldkaljdkladsjkl'
+                });
+log.info("SAVE NEW COMMENT ITEM !!!");
+                newComment.save(function(err, nextComment) {
+                    if (err) {
+                        log.info(err);
+                      reject({message: "Failed to create snippet comment", staus: 500});
+                    }
+                    else {
+                        log.info("DONE SNIPPET");
+                      var newRaw = models.RawSnippetsModel({
+                          commentId: nextComment,
+                          snippetId: snippetModel
+                      });
+                      newRaw.save(function(err, item) {
+                          if (err) {
+                              reject({message: "Failed to map snippet on comment", staus: 500});
+                          }
+                          else {
+                            resolve(nextComment);
+                          }
+                      });  // on save mapping
+                    }
+                });// on save comment
+            });
+        },
+    };
+
+    server.get('/api/comments/:id', function(req, res) {
+        log.info(req.params.id);
+        dbAPI.getSnippetById(req.params.id).then(
+           function(snippetItem) {
+               dbAPI.listComments(snippetItem).then(function(comments) {
+                   console.log(comments);
+                   res.send(comments);
+               },
+               function(err) {
+                   res.send(err);
+               });
+           },
+           function (err) {
+               res.send(err);
+           }
+        );
+    });
+
     server.get('/api/snippets', function(req, res) {
-      res.send('This is not implemented now');
+        dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
+               log.info("GOT USER PROMISE DONE");
+               dbAPI.listSnippet({userId: realUser}).then(function(snippets) {
+                   res.send(snippets);
+               },
+               function(err) {
+                   res.send("Failed to get user snippets:" + err);
+               });
+           },
+           function(realError) {
+               res.send("Failed to get current user");
+           });
     });
 
     // Create
     server.post('/api/snippets', function(req, res) {
-      res.send('This is not implemented now');
+        console.log(req.body);
+        var data = req.body;
+        var comments = data.comments;
+        
+        if (!data.repos || data.repos.length == 0) {
+            res.send({error: "Invalid parameter", status: 400});
+            return;
+        }
+        var repoPromises = data.repos.map(dbAPI.findOrCreateRepo);
+        
+        Promise.all(repoPromises).then( function(affectedRespoitories) {
+            log.info("GOT REPO PROMISE DONE");
+            dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
+               log.info("GOT USER PROMISE DONE");
+               dbAPI.createSnippet(data, realUser).then(function(snippet) {
+                   log.info("GOT SNIPPET PROMISE DONE");
+                  Promise.all(comments.map(function(data) {
+                     if (data.repoId < affectedRespoitories.length) {
+                       return dbAPI.createComment(affectedRespoitories[data.repoId]._id, snippet._id, data);
+                     }
+                     else {
+                         throw("Unexpected comment item");
+                     }
+                   }))
+                  .then(function(allComments) {
+                      res.send({status:"OK", repos:affectedRespoitories, user:realUser, snippet:snippet, comments: allComments});
+                  },
+                  function(err) {
+                      console.log(err);
+                      log.info("Failed to save all comments:"  +err);
+                      res.send({error: "Failed to save all comments:"  +err, status: 400});
+                  });
+                  
+               },
+               function(error) {
+                   log.info("GOT SNIPPET PROMISE FAILED");
+                   res.send({error: "Failed to create snippet", status: 400});
+               });
+           },
+           function(err) {
+               log.info("GOT USER PROMISE FAILED: " + err);
+               res.send({error: "Failed to create current user", status: 400});
+           });
+          },
+          function(err) {
+              log.info("GOT REPO PROMISE FAILED");
+            res.send(err);
+        });
     });
 
     // Get
