@@ -31,6 +31,37 @@ define(['App', 'backbone', 'marionette', 'github-api',
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
     var historyController = new SnippetHistoryController({collection: historyList});
 
+    var serverAPI = {
+       // User:
+       user: {
+           getUserInfo: function(name) {
+           }
+       },
+       // Repo
+       repo: {
+           getRepoById: function(_id) {
+           },
+           loadRepo: function(full_name, branch) {
+               // if (!findRepoByName) {
+               //   requestRepo from service
+               // if (!found on server)
+               // createRepo
+           },
+           findRepoByName: function(full_name, branch) {
+           },
+           createRepo: function(full_name) {
+           }
+       },
+       snippet: {
+           getSnippetsByUserId: function(user_id, limit, page) {
+           },
+           getSnippetsByRepoId: function(repo_id, limit, page) {
+           },
+           getCommentsBySnippetId: function(snippet_id) {
+           }
+       }
+    };
+
     var snippetorAPI = {
 		getNextPrevController: function() {
 			return nextPrevController;
@@ -61,6 +92,11 @@ define(['App', 'backbone', 'marionette', 'github-api',
         // [???]: history items
         getHistoryList: function() {
             return historyList;
+        },
+        addHistory: function(data) {
+            var hm = new historyModel(data);
+            historyList.add(hm);
+            return hm;
         }
     };
 
@@ -219,12 +255,16 @@ define(['App', 'backbone', 'marionette', 'github-api',
         //
         showTreeRoot: function(user, repo) {
            requests.add([{type:"tree-root", repo: user+ "/" + repo}]);
+           // TBD: do nothing if repo was loaded before
+           // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : "master"});
         },
         //
         // Show github branch-root
         //
         showBranchTree: function(user, repo, branch) {
           requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch});
+           // TBD: do nothing if repo was loaded before
+           // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },
         //
         // Show github sub-tree
@@ -238,6 +278,9 @@ define(['App', 'backbone', 'marionette', 'github-api',
                splitter = "/";
            }
            requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch, path: path, sha:""});
+
+           // TBD: do nothing if repo was loaded before
+           // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },
         //
         // Show github content file
@@ -252,6 +295,8 @@ define(['App', 'backbone', 'marionette', 'github-api',
            }
 
            requests.add({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
+           // TBD: do nothing if repo was loaded before
+           // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },
         // 
         // Show list of the user snippets

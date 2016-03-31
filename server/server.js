@@ -14,6 +14,7 @@ var config = require('./libs/config');
 
 
 var models = require('./libs/mongoose');
+var mongoose = require('mongoose');
 
 // SERVER CONFIGURATION
 // ====================
@@ -177,11 +178,23 @@ server.configure(function () {
                     }
                 });
             });
-                
         },
         //
         // Repository APIs
         //
+        getRepoById: function(id) {
+            return new Promise(function(resolve, reject) {
+                models.GithubRepoModel.findOne(id, function(error, realRepo) {
+                    if (error) {
+                        log.info(error);
+                        reject({message: "Invalid repo", code: 500});
+                    }
+                    else {
+                        resolve(realRepo);
+                    }
+                });
+            });
+        },
         findOrCreateRepo: function(repo) {
             var promise = new Promise(function(resolve, reject){
               models.GithubRepoModel.findOne({"repository": repo.full_name}, function (err, repos) {
@@ -231,7 +244,7 @@ server.configure(function () {
             return new Promise(function(resolve, reject){
             var newSnippet = models.SnippetItemModel({
                 name: data.title,
-                userId: userModel, // Github Oauth user ID
+                userId: userModel._id, // Github Oauth user ID
 	            description: data.description,
 	            tags: data.tags,
                 version: '1.0',
@@ -282,27 +295,30 @@ server.configure(function () {
         //
         // Create user comment
         //
-        listComments: function(snippetModel) {
+        listComments: function(snippetModelId) {
            return new Promise(function(resolve, reject){
-               models.RawSnippetsModel.find({'snippetId': snippetModel}, //'commentId', // snippetId: snippetModel
-                 function(err, snippets) {
+               models.RawSnippetsModel
+               .find({snippetId: snippetModelId})
+               .populate("commentId")
+               .exec(function(err, snippets) {
                      if (err) {
+                         log.info("ERROR: " + err);
                          reject(err);
                      }
                      else {
+                         log.info("FOUND: " + snippets);
                          resolve(snippets);
                      }
-                 }
-               );
+               }); //exec
            });
         },
         createComment: function(repoModel, snippetModel, data) {
           return new Promise(function(resolve, reject){
-              console.log(repoModel);
-              console.log(snippetModel);
+              console.log(repoModel._id);
+              console.log(snippetModel._id);
               log.info("CREATE NEW COMMENT ITEM !!! " + data);
                var newComment = models.CommentItemModel({
-                  repository: repoModel,
+                  repository: repoModel._id,
                   line: data.line || 1,
 	              comment: data.comment || "",
 	              path: data.path || "",
@@ -310,21 +326,25 @@ server.configure(function () {
                 });
 log.info("SAVE NEW COMMENT ITEM !!!");
                 newComment.save(function(err, nextComment) {
+              log.info("SAVE DONE !!");      
                     if (err) {
+                        log.info("SAVE ERROR" + err);
                         log.info(err);
-                      reject({message: "Failed to create snippet comment", staus: 500});
+                        reject({message: "Failed to create snippet comment", staus: 500});
                     }
                     else {
-                        log.info("DONE SNIPPET");
+                        log.info("DONE COMMENT RAW");
                       var newRaw = models.RawSnippetsModel({
-                          commentId: nextComment,
-                          snippetId: snippetModel
+                          commentId: nextComment._id,
+                          snippetId: snippetModel._id //require('mongoose').Schema.Types.ObjectId(snippetModel)
                       });
                       newRaw.save(function(err, item) {
                           if (err) {
+                              log.info("SAVE RAW FAILED !!!");
                               reject({message: "Failed to map snippet on comment", staus: 500});
                           }
                           else {
+                              log.info("DONE COMMENT RAW MAP");
                             resolve(nextComment);
                           }
                       });  // on save mapping
@@ -335,27 +355,32 @@ log.info("SAVE NEW COMMENT ITEM !!!");
     };
 
     server.get('/api/comments/:id', function(req, res) {
-        log.info(req.params.id);
-        dbAPI.getSnippetById(req.params.id).then(
-           function(snippetItem) {
-               dbAPI.listComments(snippetItem).then(function(comments) {
-                   console.log(comments);
-                   res.send(comments);
-               },
-               function(err) {
-                   res.send(err);
-               });
-           },
-           function (err) {
-               res.send(err);
-           }
-        );
+        dbAPI.listComments(req.params.id).then(function(comments) {
+            console.log(comments);
+            res.send(comments);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
     });
+
+    server.get('/api/repos/:id', function(req, res) {
+        dbAPI.getRepoById(req.params.id).then(function(repo) {
+            console.log(repo);
+            res.send(repo);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
+    });
+
 
     server.get('/api/snippets', function(req, res) {
         dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
                log.info("GOT USER PROMISE DONE");
-               dbAPI.listSnippet({userId: realUser}).then(function(snippets) {
+               dbAPI.listSnippet({userId: realUser._id}).then(function(snippets) {
                    res.send(snippets);
                },
                function(err) {
@@ -381,13 +406,15 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         
         Promise.all(repoPromises).then( function(affectedRespoitories) {
             log.info("GOT REPO PROMISE DONE");
-            dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
+            dbAPI.getUserById({name: "umlsynco"})
+            .then(function(realUser) {
                log.info("GOT USER PROMISE DONE");
                dbAPI.createSnippet(data, realUser).then(function(snippet) {
                    log.info("GOT SNIPPET PROMISE DONE");
-                  Promise.all(comments.map(function(data) {
-                     if (data.repoId < affectedRespoitories.length) {
-                       return dbAPI.createComment(affectedRespoitories[data.repoId]._id, snippet._id, data);
+                  Promise.all(comments.map(function(item) {
+                     if (item.repoId < affectedRespoitories.length) {
+                         log.info("SAVE: {" + affectedRespoitories[item.repoId]._id + ", " + snippet._id + ", " + item + "}");
+                       return dbAPI.createComment(affectedRespoitories[item.repoId], snippet, item);
                      }
                      else {
                          throw("Unexpected comment item");
@@ -398,7 +425,7 @@ log.info("SAVE NEW COMMENT ITEM !!!");
                   },
                   function(err) {
                       console.log(err);
-                      log.info("Failed to save all comments:"  +err);
+                      log.info("Failed to save all comments:"  + err);
                       res.send({error: "Failed to save all comments:"  +err, status: 400});
                   });
                   

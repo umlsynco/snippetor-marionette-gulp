@@ -8,10 +8,14 @@ define(['App', 'backbone', 'marionette'],
            this.collection = new Backbone.Collection;
 
            options.historyList.bind("add remove", this.handleHistoryItem, this);
+           options.historyList.bind("reset", this.handleHistoryReset, this);
+        },
+        handleHistoryReset: function() {
+            this.collection.reset();
         },
         handleHistoryItem: function(historyItem, collection, action) {
             if (!historyItem.comments) {
-                $.log("Something wrong with context of NextPrevController::addHistoryItem");
+                alert("Something wrong with context of NextPrevController::addHistoryItem");
                 return;
             }
             if (action.add) {

@@ -1,7 +1,9 @@
 define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, templateSnippets) {
+
+      var snippetorAPI = null;
 	
 	  // GitHub Repository item description:
-	
+ 	
       var repoItem = Marionette.ItemView.extend({
 		  tagName: "LI",
 		  className: "selectable read table-list-item js-navigation-item js-issue-row",
@@ -80,13 +82,41 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
          onFork: function() {
          },
          onPlay: function() {
-             alert("ON PLAY!!!");
+             
              var snid = this.model.get("_id");
              this.model.comments = new (Backbone.Collection.extend({
                  url: "/api/comments/" + snid + "/",
              }));
-             this.model.comments.fetch(function() {
-                 alert("LOADED COMMENTS");
+             
+             this.model.repos = new (Backbone.Collection.extend({
+                 url: "/api/repos/",
+                 model : Backbone.Model.extend({
+                     urlRoot: function() {
+                         return "/api/repos/" + this.model.get("_id");
+                     }
+                 })
+             }));
+             
+             var repoCollection = this.model.repos;
+             this.model.comments.fetch().always(function(data, status) {
+                 if (status == "success" && snippetorAPI) {
+                     snippetorAPI.getHistoryList().reset();
+                     _.each(data, function(item, idx) {
+                         var repo = new (Backbone.Model.extend({
+                            urlRoot: function() {
+                              return "/api/repos/" + item.commentId.repository;
+                            }
+                         })) ({ _id: item.commentId.repository});
+
+                         repo.fetch()
+                         .always(function(repoItem, success) {
+                             if (success == "success") {
+                               var hm = snippetorAPI.addHistory({repo: repoItem.repository, branch: "master", path: item.commentId.path, sha:""});
+                               hm.comments.add({linenum: item.commentId.line, comment: item.commentId.comment});
+                             }
+                         });
+                   });
+                 }
              });
          }
     });
@@ -96,7 +126,8 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
 		  childView: repoItem,
 		  childViewContainer: "ul.table-list-issues",
 		  initialize: function(options) {
-			  this.snippets = options.snippetsAPI;
+			  this.snippets = options.snippetorAPI;
+              snippetorAPI = options.snippetorAPI;
 			  this.collection = new (Backbone.Collection.extend({url: "/api/snippets",
                   model: Backbone.Model.extend({
                       defaults: {ccount: 0}})}));

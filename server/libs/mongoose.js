@@ -25,8 +25,11 @@ var DataProvider = new Schema({
         type: String,
         enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
         required: true
+    }},
+    {
+        versionKey: false
     }
-});
+);
 
 var GithubUser = new Schema({
     name: { type: String, required: true, unique: true },
@@ -34,8 +37,11 @@ var GithubUser = new Schema({
         type: String,
         enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
         required: true
+    }},
+    {
+        versionKey: false
     }
-});
+);
 
 //
 // Repository naming user/repo for github
@@ -55,8 +61,11 @@ var GithubRepo = new Schema({
     count: {
         type: Number,
         required: true
+    }},
+    {
+        versionKey: false
     }
-});
+);
 
 //
 // Keep the number of user repositories
@@ -76,8 +85,11 @@ var GithubUserRefs = new Schema({
     count: {
         type: Number,
         required: true
+    }},
+    {
+        versionKey: false
     }
-});
+);
 
 // SNIPPETS DATABASE STRUCTURE
 // Schemas
