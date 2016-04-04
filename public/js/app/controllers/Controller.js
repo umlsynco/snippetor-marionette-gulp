@@ -1,249 +1,61 @@
-define(['App', 'backbone', 'marionette', 'github-api',
-        'views/WelcomeView', 'views/HeaderView', 'views/PageWrapperView',
-        'controllers/SnippetHistoryController', 'controllers/SnippetNextPrevController',  "metisMenu"],
-    function (App, Backbone, Marionette, GithubApi,
-              WelcomeView, HeaderView, PageWrapperView,
-              SnippetHistoryController, SnippetNextPrevController) {
-
-    // List of the route requests
-    var requests = new Backbone.Collection;
-
-    //
-    // History model item
-    //
-    var historyModel = Backbone.Model.extend({
-      defaults: {
-        branch: "master",
-        repo: null,
-        path: null
-      },
-      initialize: function(options) {
-          this.comments = new Backbone.Collection;
-      }
-    });
-    var historyCollection = Backbone.Collection.extend({
-      model: historyModel
-    });
-    var historyList = new Backbone.Collection; // List of the visited sites + comments for them
-
-    var nextPrevController = new SnippetNextPrevController({historyList: historyList});
+define(['App', 'backbone', 'marionette',
+        'views/WelcomeView', 'views/HeaderView', 
+        'controllers/HistoryController', 'controllers/PageController',
+        'controllers/GithubController', 'controllers/ServerController',
+        'metisMenu'],
+    function (App, Backbone, Marionette,
+              WelcomeView, HeaderView,
+              HistoryController, PageController,
+              GithubController, ServerController) {
 
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
-    var historyController = new SnippetHistoryController({collection: historyList});
-
-    var serverAPI = {
-       // User:
-       user: {
-           getUserInfo: function(name) {
-           }
-       },
-       // Repo
-       repo: {
-           getRepoById: function(_id) {
-           },
-           loadRepo: function(full_name, branch) {
-               // if (!findRepoByName) {
-               //   requestRepo from service
-               // if (!found on server)
-               // createRepo
-           },
-           findRepoByName: function(full_name, branch) {
-           },
-           createRepo: function(full_name) {
-           }
-       },
-       snippet: {
-           getSnippetsByUserId: function(user_id, limit, page) {
-           },
-           getSnippetsByRepoId: function(repo_id, limit, page) {
-           },
-           getCommentsBySnippetId: function(snippet_id) {
-           }
-       }
-    };
-
-    var snippetorAPI = {
-		getNextPrevController: function() {
-			return nextPrevController;
-		},
-        getWorkingSnippets: function(model) {
-            var data = model.attributes;
-            // TODO: Merge all places of the snippet
-            var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
-            if (wms.length == 0) return null;
-            if (wms[0]) {
-                if (wms[0].comments) {
-                    return wms[0].comments;
-                }
-            }
-        },
-        getHistoryItem: function(model) {
-            function findItem(data) {
-              var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
-              if (wms.length == 0) return null;
-              if (wms.length == 1) return wms[0];
-              // Get active item
-              return wms.find(function(item) {
-                  return item.get("active");
-              });
-            }
-            return findItem(model.attributes);
-        },
-        // [???]: history items
-        getHistoryList: function() {
-            return historyList;
-        },
-        addHistory: function(data) {
-            var hm = new historyModel(data);
-            historyList.add(hm);
-            return hm;
-        }
-    };
-
-
-    App.addInitializer(function() {
-        // Add visited page to the list
-        //
-        App.vent.on("history:report", function(data) {
-            // Add data directly
-            // history list trigger on add
-            // and set active model
-            var active = historyList.where({"active": true});
-            if (active.length == 0) {
-              historyList.add(new historyModel(data));
-            }
-            else {
-              // insert right after active element
-              // TODO: check that it is not the same file !!!
-              historyList.add(new historyModel(data), {at: historyList.indexOf(active[0]) + 1});
-            }
-        });
-
-        //
-        // On save comment to the history
-        // Get item in focus, compare with model, add comment to the  item
-        //
-        App.vent.on("history:bubble", function(data) {
-            // It is possible to report bubble to existing items only ????
-            var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
-            if (wms.length == 0) return;
-            if (wms[0]) {
-                if (wms[0].comments) {
-                    var hasActive = wms[0].comments.where({active:true});
-                    if (hasActive.length == 0) {
-                      wms[0].comments.add({comment: data.comment, linenum: data.linenum});
-                    }
-                    else {
-                      var insertAt = wms[0].comments.indexOf(hasActive[0]);
-                      wms[0].comments.add({comment: data.comment, linenum: data.linenum}, {at: insertAt+1});
-                    }
-                }
-                else {
-                  var cms = wms[0].get("comments") || [];
-                  cms.push({comment: data.comment, linenum: data.linenum});
-                  wms[0].set("comments", cms);
-                }
-            }
-        });
-
-        //
-        // Handle item click on the left side menu
-        //
-        App.vent.on("history:open", function(model) {
-            // route without trigger ( + SHA ? )
-            App.appRouter.navigate("/github.com/" + model.get("repo") + "/blob/" + model.get("branch") + "/" + model.get("path"));
-
-            // trigger open manually
-            requests.add({
-              type:"show-blob", // Show github blob
-              ref: model.cid, // reference on history item
-              repo: model.get("repo"), branch:model.get("branch"), path: model.get("path"), sha:null});
-        });
-        //
-        // Handle item prev or next
-        //
-        App.vent.on("history:navigate", function(activeModel, isPrev) {
-            var idx = historyList.indexOf(activeModel);
-            var model;
-            if (idx < 0) {
-                alert("WTF: unknown active history item");
-                return;
-            }
-            
-            if (isPrev) {
-              if (idx == 0) {
-                alert("Attempt history item befor first one !!!");
-                return;
-              }
-              model = historyList.get(idx-1);
-            }
-            else {
-                if (idx >= historyList.length) {
-                    alert("Stack overflow, wrong position");
-                    return;
-                }
-                model = historyList.get(idx+1);
-            }
-
-            // route without trigger
-            App.appRouter.navigate("/github.com/" + model.get("repo") + "/blob/" + model.get("branch") + "/" + model.get("path"));
-            // trigger open manually
-            requests.add({
-                type:"show-blob",
-                ref: model.id,
-                comment_number: selected}); // selected comment number
-        });
-    }); // addInitializer
+    var snippetorAPI = new HistoryController;
 
     //
     // Github API
     // TODO: wrapp all code to cache items
     //
-    var github = new Github({
-        token: "",
-        auth: "oauth"
-    });
+    var githubAPI = new GithubController;
 
     // Initialize PAGES
-    var pages = new PageWrapperView({collection: requests, childViewOptions: {githubAPI: github, snippetorAPI: snippetorAPI, history: historyList}});
+    var pageAPI = new PageController({githubAPI: githubAPI.getAPI(), snippetorAPI: snippetorAPI});
 
     // Cache of the different pages which were requested
-    App.rootLayout.mainRegion.show(pages);
+    App.rootLayout.mainRegion.show(pageAPI.getView());
 
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
            var hv = new HeaderView();
            App.rootLayout.headerRegion.show(hv);
            // Show history in a left side menu
-           hv.historyRegion.show(historyController.getView());
+           hv.historyRegion.show(snippetorAPI.getView());
 
            $('#side-menu').metisMenu();
-
         },
         //gets mapped to in AppRouter's appRoutes
         //
         // Base template loader and default dashboard
         //
         index:function () {
-           requests.add({type:"dashboard"});
+           pageAPI.request({type:"dashboard"});
         },
         //
         // Some information about user
         //
         githubUserInfo:  function(q) {
-           requests.add([{type:"user-info", user: q || ""}]);
+           pageAPI.request([{type:"user-info", user: q || ""}]);
         },
         //
         // Find repository by name
         //
         githubRepoSearch: function(q) {
-           requests.add([{type:"repo-search", query: q || ""}]);
+           pageAPI.request([{type:"repo-search", query: q || ""}]);
         },
         //
         // Search code inside repository
         //
         githubCodeSearchInsideRepo: function(user, repo, q) {
-           requests.add([{type:"code-search", query: q, repo: repo, user:user, branch:"master"}]);
+           pageAPI.request([{type:"code-search", query: q, repo: repo, user:user, branch:"master"}]);
         },
         //
         // Show github default root
@@ -254,7 +66,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
         // The major idea is to re-use github's routing behavior
         //
         showTreeRoot: function(user, repo) {
-           requests.add([{type:"tree-root", repo: user+ "/" + repo}]);
+           pageAPI.request([{type:"tree-root", repo: user+ "/" + repo}]);
            // TBD: do nothing if repo was loaded before
            // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : "master"});
         },
@@ -262,7 +74,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
         // Show github branch-root
         //
         showBranchTree: function(user, repo, branch) {
-          requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch});
+          pageAPI.request({type:"tree-root", repo: user+ "/" + repo, branch:branch});
            // TBD: do nothing if repo was loaded before
            // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },
@@ -277,7 +89,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
                }
                splitter = "/";
            }
-           requests.add({type:"tree-root", repo: user+ "/" + repo, branch:branch, path: path, sha:""});
+           pageAPI.request({type:"tree-root", repo: user+ "/" + repo, branch:branch, path: path, sha:""});
 
            // TBD: do nothing if repo was loaded before
            // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
@@ -294,7 +106,7 @@ define(['App', 'backbone', 'marionette', 'github-api',
                splitter = "/";
            }
 
-           requests.add({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
+           pageAPI.request({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
            // TBD: do nothing if repo was loaded before
            // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },
@@ -302,13 +114,13 @@ define(['App', 'backbone', 'marionette', 'github-api',
         // Show list of the user snippets
         //
         showSnippets: function() {
-          requests.add({type:"snippets"});
+          pageAPI.request({type:"snippets"});
         },
         //
         // Create new snippet
         //
         newSnippetForm: function() {
-			requests.add({type:"new-snippet"});
+			pageAPI.request({type:"new-snippet"});
         }
     }); // Controller
 }); // define
