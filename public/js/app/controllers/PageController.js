@@ -29,14 +29,13 @@ define(['App', 'backbone', 'marionette', 'views/PageWrapperView'],
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
           // Initialize PAGES
-          this.pages = new PageWrapperView(
-            {collection: requests,
+          this.pages = new PageWrapperView({
+             collection: requests,
              childViewOptions: {
                  githubAPI: options.githubAPI,
-                 snippetorAPI: options.snippetorAPI,
-                 //history: options.snippetorAPI.getHistoryList()
-                 }}
-          );
+                 snippetorAPI: options.snippetorAPI
+             }
+          });
         }, // initialize
         //
         // Left side view

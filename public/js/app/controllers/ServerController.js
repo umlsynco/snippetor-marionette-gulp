@@ -1,4 +1,30 @@
 define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
+    var SERVER_API_URL = "/api/";
+
+    // Repository Models
+    var repositoryModel = Backbone.Model.extend({
+       rootUrl: SERVER_API_URL + "repos" 
+    });
+
+    var repositoryModel = Backbone.Collection.extend({
+       onAdd: {
+       }
+    });
+
+    //
+    // User model
+    //
+    var userModel = Backbone.Model.extend({
+       rootUrl: SERVER_API_URL + "repos" 
+    });
+
+    //
+    // user repo search model
+    //
+    var userRepoModel = Backbone.Model.extend({
+       rootUrl: SERVER_API_URL + "repos" 
+    });
+    
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
         },
