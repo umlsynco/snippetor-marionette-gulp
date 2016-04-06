@@ -48,7 +48,7 @@ define( [ 'marionette', 'hljs', 'App'], function(Marionette, hljs, App) {
       <span class="text-small text-muted updated-at">Last indexed <time title="11 окт. 2015 г., 13:12 GMT+4" datetime="2015-10-11T09:12:25Z" is="relative-time">on 11 Oct 2015</time>.</span>\
   </p>\
   <div class="file-box blob-wrapper" id="<%= sha %>" repo="<%= full_name() %>"></div>\
- </div>'),
+</div>'),
          templateHelpers: function(){
            return {
 			 sha: this.model.get("sha"),

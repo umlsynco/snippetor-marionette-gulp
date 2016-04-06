@@ -29,17 +29,23 @@ define(['App', 'backbone', 'marionette', 'views/PageWrapperView'],
 		className: 'list-group sp-repos-top',
         childViewContainer: 'div.sp-active-repos-top',
         childView: repoItemView,
-		template : _.template('<div class="sp-active-repos-top"></div><h3 class="entry-title public sp-active-repo-item"><a href="/github.com/search" class="reponav-tab " aria-selected="false" role="tab">\
+		template : _.template('<div class="sp-active-repos-top"></div><h3 class="entry-title public sp-active-repo-item sp-navigator"><a href="/github.com/search" class="reponav-tab " aria-selected="false" role="tab">\
                     <svg aria-hidden="true" class="octicon octicon-diff-added" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 1H1C0.45 1 0 1.45 0 2v12c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V2c0-0.55-0.45-1-1-1z m0 13H1V2h12v12zM6 9H3V7h3V4h2v3h3v2H8v3H6V9z"></path></svg>\
                     <strong itemprop="name">Add</strong></a></h3><br>'),
 		ui : {
-		  "new_repo": "A.reponav-tab"
+		  "new_repo": "A.reponav-tab",
+          "navigate" : "h3.sp-navigator"
 		},
 	    events: {
-			"click @ui.new_repo": "onNewRepo"
+			"click @ui.new_repo": "onNewRepo",
+            "click @ui.navigate" : "onNavigate"
 		},
         onNewRepo: function() {
             // route to the new repo select
+        },
+        onNavigate: function(e) {
+            e.preventDefault();
+            App.appRouter.navigate("/github.com/search", {trigger: true});
         }
     });
 

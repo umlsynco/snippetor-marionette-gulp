@@ -16,6 +16,7 @@ define( [ 'marionette',
               <li id="tab-tree" class="active"><a data-target="#tree" data-toggle="tab">Tree <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-code"><a data-target="#code" data-toggle="tab">Code <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-profile"><a data-target="#profile" data-toggle="tab">Profile <i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\
@@ -23,6 +24,7 @@ define( [ 'marionette',
               <div class="tab-pane active" id="tree"></div>\
               <div class="tab-pane" id="code"></div>\
               <div class="tab-pane" id="search"></div>\
+              <div class="tab-pane" id="search-repo"></div>\
               <div class="tab-pane" id="snippets"></div>\
               <div class="tab-pane" id="profile"></div>\
             </div>'),
@@ -59,8 +61,10 @@ define( [ 'marionette',
 
                 if (!containter) return containter;
 
-                if (childView.model.get("type") == "repo-search_TODO") {
-                    return containter.children("div#tree");
+                if (childView.model.get("type") == "repo-search") {
+                    $("ul#sp-content-tabs>li#tab-search-repo>a").trigger("click");
+                    containter.children("div#search-repo").empty();
+                    return containter.children("div#search-repo");
                 }
                 else if (childView.model.get("type") == "user-info") {
                     $("ul#sp-content-tabs>li#tab-profile>a").trigger("click");
