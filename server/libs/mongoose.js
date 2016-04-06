@@ -53,6 +53,14 @@ var GithubRepo = new Schema({
         type: String,
         required: true
     },
+    branch: {
+        type: String,
+        required: true
+    },
+    gid: { // Github repo id, to be able to handle repo name change in the future
+        type: Number,
+        required: true
+    },
     dataProvider: {
         type: String,
         enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],

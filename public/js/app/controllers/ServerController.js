@@ -3,31 +3,50 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
 
     // Repository Models
     var repositoryModel = Backbone.Model.extend({
-       rootUrl: SERVER_API_URL + "repos" 
+       urlRoot: SERVER_API_URL + "repos"
     });
 
-    var repositoryModel = Backbone.Collection.extend({
-       onAdd: {
-       }
+    var repositoryCollection = Backbone.Collection.extend({
+       url: SERVER_API_URL + "repos",
+       model: repositoryModel
     });
 
     //
     // User model
     //
     var userModel = Backbone.Model.extend({
-       rootUrl: SERVER_API_URL + "repos" 
+       rootUrl: SERVER_API_URL + "user" 
     });
 
     //
     // user repo search model
     //
     var userRepoModel = Backbone.Model.extend({
-       rootUrl: SERVER_API_URL + "repos" 
+       rootUrl: SERVER_API_URL + "user/repos" 
     });
     
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
         },
+        getRepoModel(data, callback) {
+            var collection = new repositoryCollection();
+            collection
+            .fetch({data: data})
+            .then(function(models) {
+              var item = null;
+              if (!models) 
+                callback("SOMETHING WRONG WITH GETTING SERVER API !!!", null);
+
+              if (models.length == 0) {
+                // Create a new repository model but do not save it
+                item = new repositoryModel(data);
+              }
+              else {
+                item = new repositoryModel(models[0]);
+              }
+              callback(null, item);
+            });
+        }
 /*        // User:
         user: {
            getUserInfo: function(name) {

@@ -13,6 +13,9 @@ define(['App', 'backbone', 'marionette', 'github-api'],
         getAPI: function() {
             return github;
         },
+        //
+        // Get current user repositories if user == null
+        //
         getUserRepositories: function(user, callback) {
             // Get current user or concreate user
    			var user = (user ? github.getUser(user) : github.getUser());
@@ -27,9 +30,13 @@ define(['App', 'backbone', 'marionette', 'github-api'],
                  callback(err, null);
                }
 		    });
-        }, // user repositories
+        },
+        //
+        // Make query for the github repository search
+        //
         searchRepositories: function(query, callback) {
-	        var gs = this.github.getSearch(query);
+	        var gs = github.getSearch(query),
+            that = this;
 			gs.repositories({}, function(error, repos) {
 		  	  if (!error) {
                 that.search_repositories.reset();
@@ -40,6 +47,12 @@ define(['App', 'backbone', 'marionette', 'github-api'],
                 callback(err, null);
               }
 			});
+        },
+        //
+        // Load content by data
+        //
+        loadContent: function(data, callback) {
+            
         }
         
     });

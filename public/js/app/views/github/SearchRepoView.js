@@ -1,12 +1,19 @@
-define( [ 'marionette'], function(Marionette) {
+define( ['App', 'marionette'], function(App, Marionette) {
 	
+    
+      var serverAPI = null;
 	  // GitHub Repository item description:
 	
       var repoItem = Marionette.ItemView.extend({
          template: _.template('\
 			    <li class="repo-list-item <%= getPrivate() %> source">\
                     <div class="repo-list-stats">\
-                          <%= getLanguage() %>\
+                        <%= getLanguage() %>\
+                        <a class="repo-list-stat-item tooltipped tooltipped-s" href="/github.com/snippets?repo=<%= full_name %>/" aria-label="Snippets" id="repo-snippets-count">\
+                          <svg aria-hidden="true" class="octicon octicon-git-branch" height="16" role="img" version="1.1" viewBox="0 0 10 16" width="10">\
+                          <path d="M10 5c0-1.11-0.89-2-2-2s-2 0.89-2 2c0 0.73 0.41 1.38 1 1.72v0.3c-0.02 0.52-0.23 0.98-0.63 1.38s-0.86 0.61-1.38 0.63c-0.83 0.02-1.48 0.16-2 0.45V4.72c0.59-0.34 1-0.98 1-1.72 0-1.11-0.89-2-2-2S0 1.89 0 3c0 0.73 0.41 1.38 1 1.72v6.56C0.41 11.63 0 12.27 0 13c0 1.11 0.89 2 2 2s2-0.89 2-2c0-0.53-0.2-1-0.53-1.36 0.09-0.06 0.48-0.41 0.59-0.47 0.25-0.11 0.56-0.17 0.94-0.17 1.05-0.05 1.95-0.45 2.75-1.25s1.2-1.98 1.25-3.02h-0.02c0.61-0.36 1.02-1 1.02-1.73zM2 1.8c0.66 0 1.2 0.55 1.2 1.2s-0.55 1.2-1.2 1.2-1.2-0.55-1.2-1.2 0.55-1.2 1.2-1.2z m0 12.41c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z m6-8c-0.66 0-1.2-0.55-1.2-1.2s0.55-1.2 1.2-1.2 1.2 0.55 1.2 1.2-0.55 1.2-1.2 1.2z"></path></svg>\
+                          ...\
+                        </a>\
                         <a class="repo-list-stat-item tooltipped tooltipped-s" href="https://github.com/<%= full_name %>/stargazers" aria-label="Stargazers">\
                           <svg aria-hidden="true" class="octicon octicon-star" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14">\
                           <path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>\
@@ -43,6 +50,34 @@ define( [ 'marionette'], function(Marionette) {
 				return  (this["language"] != null ? this["language"] : '');
 			 }
            }
+         },
+         events: {
+             "click h3.repo-list-name>a": "OnSelectRepo"
+         },
+         snippet_repo_model: null,
+         OnSelectRepo: function(e) {
+             e.preventDefault();
+             App.appRouter.navigate("/github.com/" + this.model.get("full_name"),
+               {trigger: true, selected_repo: {github: this.model, server: this.snippet_repo_model}});
+
+             // Save selected model
+             if (this.snippet_repo_model && !this.snippet_repo_model.has("_id")) {
+                 this.snippet_repo_model.save({wait:true});
+             }
+         },
+         onRender: function() {
+             var that = this;
+             serverAPI.getRepoModel({
+                gid: this.model.get("id"), // github id
+                repository: this.model.get("full_name"), // repository full name
+                branch: this.model.get("default_branch") // default branch
+            },
+            function(err, model) {
+                    if (model && model.has("count")) {
+                       that.$el.find("#repo-snippets-count").append(model.get("count"));
+                    }
+                    that.snippet_repo_model = model;
+            });
          }
     });
           
@@ -52,9 +87,12 @@ define( [ 'marionette'], function(Marionette) {
 		  childViewContainer: "ul.repo-list",
 		  initialize: function(options) {
 			  this.github = options.githubAPI;
+              this.github_api = options.githubAPI2;
+              
+              serverAPI = options.serverAPI;
+              
 			  this.collection = new Backbone.Collection;
 			  var that = this;
-			  var user = this.github.getUser();
 
               // Parse query
 			  var req = "";
@@ -69,17 +107,17 @@ define( [ 'marionette'], function(Marionette) {
 
 
 if (req == "") {
-			  user.repos({type:'all'}, function(err, repo) {
-				  if (!err)
-				    that.collection.add(repo);
-		      });
+	this.github_api.getUserRepositories(function(error, repos) {
+				  if (!error)
+				    that.collection.add(repos.models);
+    });
+
 }
 else {
-	var gs = this.github.getSearch(req);
-			gs.repositories({}, function(error, repos) {
+	this.github_api.searchRepositories(req, function(error, repos) {
 				  if (!error)
-				    that.collection.add(repos.items);
-			});
+				    that.collection.add(repos.models);
+    });
 }
 
 		  },

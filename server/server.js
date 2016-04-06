@@ -184,7 +184,7 @@ server.configure(function () {
         //
         getRepoById: function(id) {
             return new Promise(function(resolve, reject) {
-                models.GithubRepoModel.findOne(id, function(error, realRepo) {
+                models.GithubRepoModel.findById(id, function(error, realRepo) {
                     if (error) {
                         log.info(error);
                         reject({message: "Invalid repo", code: 500});
@@ -195,6 +195,43 @@ server.configure(function () {
                 });
             });
         },
+        getRepo: function(descr) {
+            return new Promise(function(resolve, reject) {
+                models.GithubRepoModel.findOne(descr, function(error, realRepo) {
+                    if (error) {
+                        log.info(error);
+                        reject({message: "Invalid repo", code: 500});
+                    }
+                    else {
+                        if (realRepo == null)
+                          resolve([]);
+                        else
+                          resolve([realRepo]);
+                    }
+                });
+            });
+        },
+        createRepo: function(descr) {
+            return new Promise(function(resolve, reject) {
+                  var newRepo = models.GithubRepoModel({
+                    repository: descr.repository,
+                    dataProvider: "GitHub",
+                    gid: descr.gid,
+                    branch: descr.branch,
+                    count: 0
+                  });
+
+                  newRepo.save(function(error, realRepo) {
+                    if (error) {
+                        log.info(error);
+                        reject({message: "Invalid repo", code: 500});
+                    }
+                    else {
+                        resolve(realRepo);
+                    }
+                });
+            });
+        },        
         findOrCreateRepo: function(repo) {
             var promise = new Promise(function(resolve, reject){
               models.GithubRepoModel.findOne({"repository": repo.full_name}, function (err, repos) {
@@ -366,7 +403,20 @@ log.info("SAVE NEW COMMENT ITEM !!!");
     });
 
     server.get('/api/repos/:id', function(req, res) {
-        dbAPI.getRepoById(req.params.id).then(function(repo) {
+        console.log(req.params.id);
+        dbAPI.getRepoById(req.params.id).then(function(foundRepo) {
+            console.log(foundRepo.id);
+            res.send(foundRepo);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
+    });
+
+    server.get('/api/repos', function(req, res) {
+        console.log(req.query);
+        dbAPI.getRepo(req.query).then(function(repo) {
             console.log(repo);
             res.send(repo);
         },
@@ -376,6 +426,16 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
+    server.post('/api/repos', function(req, res) {
+        dbAPI.createRepo(req.body).then(function(repo) {
+            console.log(repo);
+            res.send(repo);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
+    });
 
     server.get('/api/snippets', function(req, res) {
         dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {

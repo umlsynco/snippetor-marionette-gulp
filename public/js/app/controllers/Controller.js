@@ -10,6 +10,8 @@ define(['App', 'backbone', 'marionette',
 
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
     var snippetorAPI = new HistoryController;
+    
+    var serverAPI = new ServerController;
 
     //
     // Github API
@@ -18,7 +20,7 @@ define(['App', 'backbone', 'marionette',
     var githubAPI = new GithubController;
 
     // Initialize PAGES
-    var pageAPI = new PageController({githubAPI: githubAPI.getAPI(), snippetorAPI: snippetorAPI});
+    var pageAPI = new PageController({githubAPI: githubAPI.getAPI(), githubAPI2: githubAPI, snippetorAPI: snippetorAPI, serverAPI: serverAPI});
 
     // Cache of the different pages which were requested
     App.rootLayout.mainRegion.show(pageAPI.getView());

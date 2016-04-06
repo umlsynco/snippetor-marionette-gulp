@@ -1,24 +1,15 @@
-define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Marionette, App, user_profile) {
-
+define( ['marionette', 'App', 'text!templates/user_profile.html'], function(Marionette, App, user_profile) {
+      var serverAPI = null;
       // GitHub Repository item description:
       var repositoryShortItem = Marionette.ItemView.extend({
-         template: _.template('<span class="css-truncate css-truncate-target"><a href="/github.com/<%= getRepo() %>/<%= getType() %>/master/<%= path %>" gtype="<%= type %>" class="sp-item js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>'),
-         ui : {
-             "item": "A.sp-repo-item"
-         },
-         events: {
-             "click @ui.item" : "onNavigate"
-         },
-         onNavigate: function(e) {
-             e.preventDefault();
-             //App.appRouter.navigate(this.ui.item.attr("href"), {trigger: true});
-         }
+         template: _.template('<span class="css-truncate css-truncate-target">\
+         <a href="/github.com/<%= getRepo() %>/<%= getType() %>/master/<%= path %>" gtype="<%= type %>" class="sp-item js-directory-link js-navigation-open" id="<%= sha %>" title="<%= getTitle() %>"><%= getTitle() %></a></span>'),
       });
 
       var  repoListView  = Marionette.ItemView.extend({
           className: "public source",
           tagName: "li",
-          template: _.template('<a href="/github.com/<%=full_name%>" class="mini-repo-list-item css-truncate">\
+          template: _.template('<a href="#" id="sp-repo-item" class="mini-repo-list-item css-truncate">\
         <svg aria-hidden="true" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
       <span class="repo-and-owner css-truncate-target">\
 <span class="repo" title="node-github"><%=full_name%></span>\
@@ -28,7 +19,38 @@ define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Mar
         <svg aria-label="stars" class="octicon octicon-star" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>\
       </span>\
       <span class="repo-description css-truncate-target"><%=description%></span>\
-    </a>')
+    </a>'),
+         ui : {
+             "item": "a#sp-repo-item"
+         },
+         events: {
+             "click @ui.item" : "onNavigate"
+         },
+         onNavigate: function(e) {
+             e.preventDefault();
+             App.appRouter.navigate("/github.com/" + this.model.get("full_name"),
+               {trigger: true, selected_repo: {github: this.model, server: this.snippet_repo_model}});
+
+             // Save selected model
+             if (this.snippet_repo_model && !this.snippet_repo_model.has("_id")) {
+                 this.snippet_repo_model.save({wait:true});
+             }
+         },
+         snippet_repo_model: null,
+         onRender: function() {
+             var that = this;
+             serverAPI.getRepoModel({
+                gid: this.model.get("id"), // github id
+                repository: this.model.get("full_name"), // repository full name
+                branch: this.model.get("default_branch") // default branch
+            },
+            function(err, model) {
+                    if (model && model.has("count")) {
+                       that.$el.find("#repo-snippets-count").append(model.get("count"));
+                    }
+                    that.snippet_repo_model = model;
+            });
+         }
       });
     
     var miniRepoList = Marionette.CompositeView.extend({
@@ -75,6 +97,7 @@ define( [ 'marionette', 'App', 'text!templates/user_profile.html'], function(Mar
           },
           initialize: function(options) {
               this.github = options.githubAPI;
+              serverAPI = options.serverAPI;
           },
           onRender: function() {
               var that = this;
