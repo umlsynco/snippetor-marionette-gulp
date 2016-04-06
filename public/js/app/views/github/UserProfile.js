@@ -28,13 +28,14 @@ define( ['marionette', 'App', 'text!templates/user_profile.html'], function(Mari
          },
          onNavigate: function(e) {
              e.preventDefault();
-             App.appRouter.navigate("/github.com/" + this.model.get("full_name"),
-               {trigger: true, selected_repo: {github: this.model, server: this.snippet_repo_model}});
+             App.appRouter.navigate("/github.com/" + this.model.get("full_name"), {trigger: true});
 
              // Save selected model
              if (this.snippet_repo_model && !this.snippet_repo_model.has("_id")) {
                  this.snippet_repo_model.save({wait:true});
              }
+             
+             App.vent.trigger("repo:select", {github: this.model, server: this.snippet_repo_model});
          },
          snippet_repo_model: null,
          onRender: function() {

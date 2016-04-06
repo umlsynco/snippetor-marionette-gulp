@@ -2,11 +2,13 @@ define(['App', 'backbone', 'marionette',
         'views/WelcomeView', 'views/HeaderView', 
         'controllers/HistoryController', 'controllers/PageController',
         'controllers/GithubController', 'controllers/ServerController',
+        'controllers/ActiveRepoController',
         'metisMenu'],
     function (App, Backbone, Marionette,
               WelcomeView, HeaderView,
               HistoryController, PageController,
-              GithubController, ServerController) {
+              GithubController, ServerController,
+              ActiveRepoController) {
 
     // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
     var snippetorAPI = new HistoryController;
@@ -22,8 +24,11 @@ define(['App', 'backbone', 'marionette',
     // Initialize PAGES
     var pageAPI = new PageController({githubAPI: githubAPI.getAPI(), githubAPI2: githubAPI, snippetorAPI: snippetorAPI, serverAPI: serverAPI});
 
+    var activeRepoCtl = new ActiveRepoController({githubAPI: githubAPI.getAPI(), githubAPI2: githubAPI, snippetorAPI: snippetorAPI, serverAPI: serverAPI});
+
     // Cache of the different pages which were requested
     App.rootLayout.mainRegion.show(pageAPI.getView());
+    App.rootLayout.activeReposRegion.show(activeRepoCtl.getView());
 
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {

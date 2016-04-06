@@ -5,7 +5,8 @@ define(['jquery', 'backbone', 'marionette', 'underscore', 'layouts/RootLayoutVie
         App.rootLayout = new RootLayoutView({
             regions: {
                 headerRegion:"#wrapper",
-                mainRegion:"#page-wrapper"
+                activeReposRegion: "DIV#snipettor-active-repos",
+                mainRegion:"#snippetor-page-scroller"
             }
         });
 
