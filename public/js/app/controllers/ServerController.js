@@ -46,6 +46,13 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
               }
               callback(null, item);
             });
+        },
+        //
+        // Get an opened working snippet
+        // OR create a new model
+        //
+        getWorkingSnippet: function() {
+            return new Backbone.Model({type:"new-snippet"});
         }
 /*        // User:
         user: {

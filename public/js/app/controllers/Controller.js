@@ -10,10 +10,12 @@ define(['App', 'backbone', 'marionette',
               GithubController, ServerController,
               ActiveRepoController) {
 
-    // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
-    var snippetorAPI = new HistoryController;
-    
+    // Server API
     var serverAPI = new ServerController;
+
+    // Initialize LEFT-SIDE HISTORY VIEW & CONTROLLER
+    var snippetorAPI = new HistoryController({backend: serverAPI});
+
 
     //
     // Github API

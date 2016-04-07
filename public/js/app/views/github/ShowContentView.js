@@ -166,7 +166,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
 
                        that.historyItem = that.snippetor.getHistoryItem(model);
                        // Get Active snippets for current content
-                       that.snippets = that.snippetor.getWorkingSnippets(model);
+                       that.snippets = that.snippetor.getWorkingComments(model);
                        if (that.snippets) {
                            that.snippets.each(function(item) {
                                var line = item.get("linenum");

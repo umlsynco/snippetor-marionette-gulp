@@ -128,7 +128,7 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
               });
 //              this.collection = this.snippetor.getHistoryList();
               
-			  this.model = new Backbone.Model({type:"new-snippet"});
+			  this.model = this.snippetor.getWorkingSnippet(); // return opened snippet reference or create an new model
 		  },
           onRender: function() {
               this.$el.find("button.sp-submit-all").prop("disabled", this.all_items.collection.length == 0);

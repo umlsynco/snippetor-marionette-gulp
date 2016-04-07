@@ -146,6 +146,7 @@ define(['App', 'backbone', 'marionette',
     return Backbone.Marionette.Controller.extend({
         initialize:function (options) {
            // left side history view
+           this.server = options.backend;
            this.view = new historyListView({collection:historyList});
         },
         //
@@ -161,9 +162,9 @@ define(['App', 'backbone', 'marionette',
 			return nextPrevController;
 		},
         //
-        // Get working snippets for the current history item
+        // Get working comments for the current history item
         //
-        getWorkingSnippets: function(model) {
+        getWorkingComments: function(model) {
             var data = model.attributes;
             // TODO: Merge all places of the snippet
             var wms = historyList.where({repo: data.repo, branch: data.branch, path: data.path});
@@ -174,6 +175,14 @@ define(['App', 'backbone', 'marionette',
                 }
             }
         },
+        //
+        // This is the right place to keep
+        // opened snippet model, or request a new one
+        //
+        getWorkingSnippet: function() {
+            return this.server.getWorkingSnippet();
+        },
+        
         //
         // Find current history item
         //

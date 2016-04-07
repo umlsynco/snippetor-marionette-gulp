@@ -15,6 +15,7 @@ var config = require('./libs/config');
 
 var models = require('./libs/mongoose');
 var mongoose = require('mongoose');
+var userModel = models.GithubUserModel;
 
 // SERVER CONFIGURATION
 // ====================
@@ -87,10 +88,6 @@ server.configure(function () {
     });
 
     //
-    // Repository API
-    //
-
-    //
     // @name: PLANT UML 
     // @description: plantuml text -> png converter
     //
@@ -102,42 +99,6 @@ server.configure(function () {
  
       decode.out.pipe(gen.in);
       gen.out.pipe(res);
-    });
-
-    // User rest API
-    // You could ask about user status only, if available !!!!
-    // {
-    //   name: username,
-    //   repositories: [{
-    //     full_name: "user/repo",
-    //     snippets_count: 2,
-    //     user_snippets_count: 0
-    //   }],
-    //   id: 123,
-    // }
-    server.get('/api/users/:name', function(req, res) {
-      // 1. Find user in the list of users
-      models.GithubUserModel.findById(req.params.name, function (err, user) {
-        if(!user) {
-            res.statusCode = 404;
-            return res.send({ error: 'Not found' });
-        }
-        if (!err) {
-            return res.send({ status: 'OK', user:user });
-        } else {
-            res.statusCode = 500;
-            log.error('Internal error(%d): %s',res.statusCode, err.message);
-            return res.send({ error: 'Server error' });
-        }
-      });
-      // 2. Get repository id's which affected user + count of snippets
-      // 3. Prepare results: user + repos [{name, user_data, common_data}]
-      res.send('This is not implemented now');
-    });
-
-    // Ask more details about repo
-    server.get('/api/repo/:id', function(req, res) {
-      res.send('This is not implemented now');
     });
 
     //
@@ -275,6 +236,12 @@ server.configure(function () {
           return promise;
         },
         //
+        // Comments API
+        //
+        createComment: function(descr) {
+        },
+
+        //
         // Snippet API
         //
         createSnippet: function(data, userModel) {
@@ -290,17 +257,18 @@ server.configure(function () {
                 updatedAt: new Date(),
                 ccount: data.comments.length
             });
-                newSnippet.save(function(err, snippet) {
-                    if (err) {
-                        log.info(err);
-                      reject({message: "Failed to create snippet", staus: 500});
-                    }
-                    else {
-                        log.info("DONE SNIPPET");
-                      resolve(snippet);
-                    }
-                });
-            });
+
+            newSnippet.save(function(err, snippet) {
+              if (err) {
+                log.info(err);
+                reject({message: "Failed to create snippet", staus: 500});
+              }
+              else {
+                log.info("DONE SNIPPET");
+                resolve(snippet);
+              }
+            }); // save
+          }); // Promise
         },
         listSnippet: function(options) {
           options = options || {};
@@ -349,52 +317,37 @@ server.configure(function () {
                }); //exec
            });
         },
-        createComment: function(repoModel, snippetModel, data) {
+        createComment: function(data) {
           return new Promise(function(resolve, reject){
-              console.log(repoModel._id);
-              console.log(snippetModel._id);
-              log.info("CREATE NEW COMMENT ITEM !!! " + data);
                var newComment = models.CommentItemModel({
-                  repository: repoModel._id,
+                  repository: data.repo_id,
                   line: data.line || 1,
 	              comment: data.comment || "",
 	              path: data.path || "",
-                  sha: 'alskdaskldkaljdkladsjkl'
+                  sha: data.sha || '0'
                 });
-log.info("SAVE NEW COMMENT ITEM !!!");
+
                 newComment.save(function(err, nextComment) {
-              log.info("SAVE DONE !!");      
                     if (err) {
-                        log.info("SAVE ERROR" + err);
-                        log.info(err);
                         reject({message: "Failed to create snippet comment", staus: 500});
                     }
                     else {
-                        log.info("DONE COMMENT RAW");
-                      var newRaw = models.RawSnippetsModel({
-                          commentId: nextComment._id,
-                          snippetId: snippetModel._id //require('mongoose').Schema.Types.ObjectId(snippetModel)
-                      });
-                      newRaw.save(function(err, item) {
-                          if (err) {
-                              log.info("SAVE RAW FAILED !!!");
-                              reject({message: "Failed to map snippet on comment", staus: 500});
-                          }
-                          else {
-                              log.info("DONE COMMENT RAW MAP");
                             resolve(nextComment);
-                          }
-                      });  // on save mapping
                     }
                 });// on save comment
-            });
-        },
+            }); // Promise
+        }, // createComment
     };
 
+    /////////////////////////////////////////// COMMENTS API ///////////
+
+    //
+    // GET comment by ID
+    //
     server.get('/api/comments/:id', function(req, res) {
-        dbAPI.listComments(req.params.id).then(function(comments) {
-            console.log(comments);
-            res.send(comments);
+        dbAPI.getComment(req.params.id).then(function(comment) {
+            console.log(comment);
+            res.send(comment);
         },
         function(err) {
           log.info("ERROR: " + err);
@@ -402,6 +355,39 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
+    //
+    // UPDATE an existing comment
+    //
+    server.put('/api/comments/:id', function(req, res) {
+        dbAPI.createComment(req.body).then(function(comment) {
+            console.log(comment);
+            res.send(comment);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
+    });
+
+    //
+    // POST new comment
+    //
+    server.post('/api/comments', function(req, res) {
+        dbAPI.createComment(req.body).then(function(comment) {
+            console.log(comment);
+            res.send(comment);
+        },
+        function(err) {
+          log.info("ERROR: " + err);
+          res.send(err);
+        });
+    });
+
+    ///////////////////////////////////////// REPOSITORY API ///////////
+    
+    //
+    // GET repo by ID
+    //
     server.get('/api/repos/:id', function(req, res) {
         console.log(req.params.id);
         dbAPI.getRepoById(req.params.id).then(function(foundRepo) {
@@ -414,6 +400,9 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
+    //
+    // GET list of repositories according to the "query"
+    //
     server.get('/api/repos', function(req, res) {
         console.log(req.query);
         dbAPI.getRepo(req.query).then(function(repo) {
@@ -426,6 +415,9 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
+    //
+    // POST a new repository with unique [full_name, branch, github-id]
+    //
     server.post('/api/repos', function(req, res) {
         dbAPI.createRepo(req.body).then(function(repo) {
             console.log(repo);
@@ -437,6 +429,13 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
+    /////////////////////////////////////////// SNIPPETS API ///////////
+
+    //
+    // GET snippets according to the query:
+    // - for current user only
+    // TODO: make more complex search by repo, user etc.
+    //
     server.get('/api/snippets', function(req, res) {
         dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
                log.info("GOT USER PROMISE DONE");
@@ -452,7 +451,18 @@ log.info("SAVE NEW COMMENT ITEM !!!");
            });
     });
 
-    // Create
+    //
+    // POST new snippet
+    // { title: "visible title",
+    //   description: "detailed description",
+    //   hashtags: [tags],
+    //   repositories: [Object._id],  // list of the affected repositories
+    //   comments: [Object._id], // list of the affected comments
+    //   createdAt: Date,
+    //   modifiedAt: Date,
+    //  }
+    //
+    //
     server.post('/api/snippets', function(req, res) {
         console.log(req.body);
         var data = req.body;
@@ -506,15 +516,23 @@ log.info("SAVE NEW COMMENT ITEM !!!");
         });
     });
 
-    // Get
+    //
+    // GET snippet details by id
+    //
     server.get('/api/snippets/:id', function(req, res) {
       res.send('This is not implemented now');
     });
-    // Update
+    
+    //
+    // UPDATE - update an existing snippet
+    //
     server.put('/api/snippets/:id', function (req, res){
       res.send('This is not implemented now');    
     });
-    // Delete
+
+    //
+    // DELETE snipppet by id
+    //
     server.delete('/api/snippets/:id', function (req, res){
       res.send('This is not implemented now');
     });
