@@ -2,6 +2,7 @@ define(['App', 'backbone', 'marionette', 'views/PageWrapperView'],
     function (App, Backbone, Marionette, PageWrapperView) {
     // List of the route requests
     var working_repos = new Backbone.Collection;
+    var working_srv_repos = new Backbone.Collection;
 
 	var repoItemView = Marionette.CompositeView.extend({
 		tagName: 'h3',
@@ -60,6 +61,7 @@ define(['App', 'backbone', 'marionette', 'views/PageWrapperView'],
 
             // trigger open manually
             working_repos.add(repo_data.github);
+            working_srv_repos.add(repo_data.server);
         }); // repo:select
     }); // addInitializer
 
@@ -81,6 +83,11 @@ define(['App', 'backbone', 'marionette', 'views/PageWrapperView'],
         //
         getView: function() {
 			return this.active_repos_view;
+        },
+        getRepoRef: function(full_name) {
+            var rs = working_srv_repos.where({repository: full_name});
+            if (rs.length == 0) return '';
+            return rs[0].get("_id");
         }
     }); // Controller
 }); // define

@@ -238,8 +238,7 @@ server.configure(function () {
         //
         // Comments API
         //
-        createComment: function(descr) {
-        },
+
 
         //
         // Snippet API
@@ -273,7 +272,12 @@ server.configure(function () {
         listSnippet: function(options) {
           options = options || {};
           return new Promise(function(resolve, reject){
-              models.SnippetItemModel.find(options, function(err, data) {
+              models
+              .SnippetItemModel
+              .find(options)
+              .populate("comments")
+              .populate("repositories")
+              .exec(function(err, data) {
                   if (err) {
                       reject({message: "Failed to find snippets"});
                   }
@@ -320,7 +324,7 @@ server.configure(function () {
         createComment: function(data) {
           return new Promise(function(resolve, reject){
                var newComment = models.CommentItemModel({
-                  repository: data.repo_id,
+                  repository: data.repository,
                   line: data.line || 1,
 	              comment: data.comment || "",
 	              path: data.path || "",
@@ -329,6 +333,7 @@ server.configure(function () {
 
                 newComment.save(function(err, nextComment) {
                     if (err) {
+                        console.log("ERROR: " + err);
                         reject({message: "Failed to create snippet comment", staus: 500});
                     }
                     else {
@@ -373,6 +378,8 @@ server.configure(function () {
     // POST new comment
     //
     server.post('/api/comments', function(req, res) {
+        console.log("/api/comments:" + req.body);
+        console.log(req.body);
         dbAPI.createComment(req.body).then(function(comment) {
             console.log(comment);
             res.send(comment);
@@ -466,54 +473,33 @@ server.configure(function () {
     server.post('/api/snippets', function(req, res) {
         console.log(req.body);
         var data = req.body;
-        var comments = data.comments;
-        
-        if (!data.repos || data.repos.length == 0) {
-            res.send({error: "Invalid parameter", status: 400});
-            return;
+
+        // Validate that comment and repos are not empty        
+        if (!data.repos || data.repos.length == 0 ||
+          !data.comments || data.comments.length == 0) {
+          res.send({error: "Invalid parameter", status: 400});
+          return;
         }
-        var repoPromises = data.repos.map(dbAPI.findOrCreateRepo);
         
-        Promise.all(repoPromises).then( function(affectedRespoitories) {
-            log.info("GOT REPO PROMISE DONE");
-            dbAPI.getUserById({name: "umlsynco"})
-            .then(function(realUser) {
-               log.info("GOT USER PROMISE DONE");
-               dbAPI.createSnippet(data, realUser).then(function(snippet) {
-                   log.info("GOT SNIPPET PROMISE DONE");
-                  Promise.all(comments.map(function(item) {
-                     if (item.repoId < affectedRespoitories.length) {
-                         log.info("SAVE: {" + affectedRespoitories[item.repoId]._id + ", " + snippet._id + ", " + item + "}");
-                       return dbAPI.createComment(affectedRespoitories[item.repoId], snippet, item);
-                     }
-                     else {
-                         throw("Unexpected comment item");
-                     }
-                   }))
-                  .then(function(allComments) {
-                      res.send({status:"OK", repos:affectedRespoitories, user:realUser, snippet:snippet, comments: allComments});
-                  },
-                  function(err) {
-                      console.log(err);
-                      log.info("Failed to save all comments:"  + err);
-                      res.send({error: "Failed to save all comments:"  +err, status: 400});
-                  });
-                  
-               },
-               function(error) {
-                   log.info("GOT SNIPPET PROMISE FAILED");
-                   res.send({error: "Failed to create snippet", status: 400});
-               });
-           },
-           function(err) {
-               log.info("GOT USER PROMISE FAILED: " + err);
-               res.send({error: "Failed to create current user", status: 400});
-           });
-          },
-          function(err) {
-              log.info("GOT REPO PROMISE FAILED");
-            res.send(err);
-        });
+        dbAPI
+        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .then(function(realUser) {
+          log.info("GOT USER PROMISE DONE");
+          dbAPI
+          .createSnippet(data, realUser)
+          .then(
+            function(snippet) {
+              res.send(snippet);
+            },
+            function(error) {
+              log.info("GOT SNIPPET PROMISE FAILED");
+              res.send({error: "Failed to create snippet", status: 400});
+            });
+        }, // user success
+        function(err) { // user error
+          log.info("GOT USER PROMISE FAILED: " + err);
+          res.send({error: "Failed to get current user", status: 400});
+        }); // got user complete
     });
 
     //

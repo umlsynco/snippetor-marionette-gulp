@@ -4,6 +4,8 @@ define(['App', 'backbone', 'marionette',
         'views/HistoryView'],
     function (App, Backbone, Marionette, SnippetHistoryController, SnippetNextPrevController, historyListView) {
 
+    var serverAPI = null;
+
     //
     // History model item (left side history item)
     //
@@ -59,19 +61,29 @@ define(['App', 'backbone', 'marionette',
                 return;
             }
             if (wms[0]) {
+                //
+                // Make comment model, which we could save on server
+                //
+                var newComment = serverAPI.getCommentModel({comment: data.comment, linenum: data.linenum, path: data.path, repository: wms[0].get("repo_ref")});
+
                 if (wms[0].comments) {
                     var hasActive = wms[0].comments.where({active:true});
                     if (hasActive.length == 0) {
-                      wms[0].comments.add({comment: data.comment, linenum: data.linenum});
+                      // add to the end of comment list
+                      wms[0].comments.add(newComment);
                     }
                     else {
+                      // insert right after active comment
                       var insertAt = wms[0].comments.indexOf(hasActive[0]);
-                      wms[0].comments.add({comment: data.comment, linenum: data.linenum}, {at: insertAt+1});
+                      wms[0].comments.add(newComment, {at: insertAt+1});
                     }
                 }
                 else {
+                  // MAy be this code will never be called, 
+                  // because comments should be setup
+                  // in the history item model initializer
                   var cms = wms[0].get("comments") || [];
-                  cms.push({comment: data.comment, linenum: data.linenum});
+                  cms.push(newComment);
                   wms[0].set("comments", cms);
                 }
             }
@@ -147,6 +159,7 @@ define(['App', 'backbone', 'marionette',
         initialize:function (options) {
            // left side history view
            this.server = options.backend;
+           serverAPI = options.backend;
            this.view = new historyListView({collection:historyList});
         },
         //

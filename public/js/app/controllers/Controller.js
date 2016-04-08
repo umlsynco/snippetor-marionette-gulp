@@ -115,7 +115,7 @@ define(['App', 'backbone', 'marionette',
                splitter = "/";
            }
 
-           pageAPI.request({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null});
+           pageAPI.request({type:"show-blob", repo: user+ "/" + repo, branch:branch, path: path, sha:null, repo_ref: activeRepoCtl.getRepoRef(user+ "/" + repo)});
            // TBD: do nothing if repo was loaded before
            // serviceAPI.loadRepo({repo: user+ "/" + repo, branch : branch});
         },

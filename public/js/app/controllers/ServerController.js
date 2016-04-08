@@ -10,6 +10,15 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
        url: SERVER_API_URL + "repos",
        model: repositoryModel
     });
+    
+    var serverComment = Backbone.Model.extend({
+       urlRoot: SERVER_API_URL + "comments"
+    });
+
+    var commentsCollection = Backbone.Collection.extend({
+       url: SERVER_API_URL + "comments",
+       model: serverComment
+    });
 
     //
     // User model
@@ -53,6 +62,39 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         //
         getWorkingSnippet: function() {
             return new Backbone.Model({type:"new-snippet"});
+        },
+        //
+        // 
+        //
+        getCommentModel: function(data) {
+          return new serverComment({comment: data.comment, linenum: data.linenum, line: data.linenum, path: data.path, sha: data.sha, repository: data.repository});
+        },
+        //
+        // There are several options for comments:
+        // 1 Commit a new comment => post create
+        // 2 Commit an existing comment:
+        // 2.1 nothing changed => do nothing, return
+        // 2.2 ajax put an update
+        //
+        commitComment: function(commentModel, historyItem) {
+            return new Promise(function(resolve, reject) {
+                var save_options = {wait:true, patch: false};
+
+                // update model if it was fetched
+                if (!commentModel.isNew()) {
+                    save_options.patch = true;
+                }
+
+                // trigger post or update
+                commentModel.save({
+                  succes:function(saved_model) {
+                      resolve(saved_mode._id);
+                  },
+                  error: function(error_msg) {
+                      reject(error_msg);
+                  },
+                  save_options});
+               }); // save
         }
 /*        // User:
         user: {

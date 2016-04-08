@@ -87,6 +87,7 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
               var list = this.snippetor.getHistoryList();
               var repos  = [];
               var nextSnippet = [];
+              var that = this;
 
               list.each(function(model) {
                   var next = {full_name: model.get("repo"), branch: model.get("branch"), data_provider: "GitHub"};
@@ -103,10 +104,22 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
                       idx = repos.length - 1;
                   }
                   model.comments.each(function(comment) {
+                      // @param comment - snippet comment
+                      // @param model - history item model 
+                      // TBD ? where is repo_id ????
+                      that.server.commitComment(comment, model);
+
                       nextSnippet.push({comment: comment.get("comment"), line: comment.get("linenum"), path: model.get("path"), repoId: idx});
                   });
               });
-              var result = JSON.stringify({title:this.ui.title.val(), tags: this.ui.hashtags.val(), description: this.ui.description.val(), repos: repos, comments: nextSnippet});
+
+              var result = JSON.stringify({
+                  title:this.ui.title.val(),
+                  tags: this.ui.hashtags.val(),
+                  description: this.ui.description.val(),
+                  repos: repos,
+                  comments: nextSnippet
+              });
 
               $.ajax({
                   url: "/api/snippets",
@@ -121,14 +134,17 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
 //              this.github = options.githubAPI;
 //              cachedGithub = this.github;
 			  this.snippetor = options.snippetorAPI;
+              this.server = options.serverAPI;
+
               this.all_items = this.snippetor.getNextPrevController();
               var that = this;
               this.all_items.collection.on("add remove", function(model, action) {
                 that.$el.find("button.sp-submit-all").prop("disabled", model.collection.length == 0);
               });
 //              this.collection = this.snippetor.getHistoryList();
-              
-			  this.model = this.snippetor.getWorkingSnippet(); // return opened snippet reference or create an new model
+
+              // return opened snippet reference or create an new model
+			  this.model = this.server.getWorkingSnippet();
 		  },
           onRender: function() {
               this.$el.find("button.sp-submit-all").prop("disabled", this.all_items.collection.length == 0);

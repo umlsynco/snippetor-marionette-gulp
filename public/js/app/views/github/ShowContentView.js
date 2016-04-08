@@ -138,7 +138,7 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                      if (data) {
                        // Report history item if it was not report before
                        if (!model.get("ref")) {
-                         App.vent.trigger("history:report", {path: model.get("path"), sha: "", branch: model.get("branch"), repo:model.get("repo")});
+                         App.vent.trigger("history:report", {path: model.get("path"), sha: "", branch: model.get("branch"), repo_ref:model.get("repo_ref"), repo:model.get("repo")});
                        }    
                          
                        ////////////////////////////////////
