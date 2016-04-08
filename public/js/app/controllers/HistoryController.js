@@ -104,7 +104,7 @@ define(['App', 'backbone', 'marionette',
                },
                request: {
                    type:"show-blob",
-                   ref: model.id,
+                   ref: model.cid,
                    repo: model.get("repo"),
                    branch:model.get("branch"),
                    path: model.get("path"),
