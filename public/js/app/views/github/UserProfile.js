@@ -46,21 +46,24 @@ define(
           serverAPI.getRepoModel(
               {
                 gid : this.model.get("id"), // github id
-                repository : this.model.get("full_name"), // repository full name
+                repository :
+                    this.model.get("full_name"), // repository full name
                 branch : this.model.get("default_branch") // default branch
               },
               function(err, model) {
                 if (model && model.has("count")) {
-                  that.$el.find("#repo-snippets-count").append(model.get("count"));
+                  that.$el.find("#repo-snippets-count")
+                      .append(model.get("count"));
                 }
                 that.snippet_repo_model = model;
-          }); // getRepoModel
+              }); // getRepoModel
         }
       });
 
       var miniRepoList = Marionette.CompositeView.extend({
         className : "boxed-group flush",
-        template : _.template('<h3>Popular repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
+        template : _.template(
+            '<h3>Popular repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
         childView : repoListView,
         childViewContainer : "ul.mini-repo-list"
       });

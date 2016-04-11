@@ -1,27 +1,36 @@
-define(['jquery', 'backbone', 'marionette', 'underscore', 'layouts/RootLayoutView'],
-    function ($, Backbone, Marionette, _, RootLayoutView) {
-        var App = new Backbone.Marionette.Application();
+define([
+  'jquery',
+  'backbone',
+  'marionette',
+  'underscore',
+  'layouts/RootLayoutView'
+],
+       function($, Backbone, Marionette, _, RootLayoutView) {
+         var App = new Backbone.Marionette.Application();
 
-        App.rootLayout = new RootLayoutView({
-            regions: {
-                headerRegion:"#wrapper",
-                activeReposRegion: "DIV#snipettor-active-repos",
-                mainRegion:"#snippetor-page-scroller"
-            }
-        });
+         App.rootLayout = new RootLayoutView({
+           regions : {
+             headerRegion : "#wrapper",
+             activeReposRegion : "DIV#snipettor-active-repos",
+             mainRegion : "#snippetor-page-scroller"
+           }
+         });
 
-        function isMobile() {
-            var ua = (navigator.userAgent || navigator.vendor || window.opera, window, window.document);
-            return (/iPhone|iPod|iPad|Android|BlackBerry|Opera Mini|IEMobile/).test(ua);
-        }
+         function isMobile() {
+           var ua = (navigator.userAgent || navigator.vendor || window.opera,
+                     window, window.document);
+           return (/iPhone|iPod|iPad|Android|BlackBerry|Opera Mini|IEMobile/)
+               .test(ua);
+         }
 
-        App.static = {};
+         App.static = {};
 
-        App.static.mobile = isMobile();
+         App.static.mobile = isMobile();
 
-        App.on('start', function (options) {
-            if (Backbone.history) Backbone.history.start({pushState: true});
-        });
+         App.on('start', function(options) {
+           if (Backbone.history)
+             Backbone.history.start({pushState : true});
+         });
 
-        return App;
-    });
+         return App;
+       });
