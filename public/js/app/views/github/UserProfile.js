@@ -108,6 +108,12 @@ define(
           this.github = options.githubAPI;
           serverAPI = options.serverAPI;
         },
+        //
+        // Load user information
+        // on view render event
+        // There is no way to attach view to the region
+        // if region was no created in DOM
+        //
         onRender : function() {
           var that = this;
           var user = this.github.getUser();
@@ -122,19 +128,6 @@ define(
                   {collection : new Backbone.Collection(data2)}));
             });
           });
-
-          //
-          // Get user's snippets repository
-          //
-
-          // Get snippets repositories ?
-          /*              this.$el.find("a.sp-routing").click(function(e) {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            App.appRouter.navigate($(this).attr("href"),
-             {trigger: true});
-                        });
-          */
         },
         template : _.template(user_profile)
 

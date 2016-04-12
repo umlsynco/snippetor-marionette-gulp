@@ -15,6 +15,13 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
   var commentsCollection = Backbone.Collection.extend(
       {url : SERVER_API_URL + "comments", model : serverComment});
 
+  // SNIPPETS models
+  var snippetItem =
+      Backbone.Model.extend({urlRoot : SERVER_API_URL + "snippets"});
+
+  var snippetsCollection = Backbone.Collection.extend(
+      {url : SERVER_API_URL + "snippets", model : snippetItem});
+
   //
   // User model
   //
@@ -52,7 +59,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         // OR create a new model
         //
         getWorkingSnippet: function() {
-  return new Backbone.Model({type : "new-snippet"});
+           return new snippetItem({type : "new-snippet"});
         },
         //
         // 
@@ -87,11 +94,51 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     }
 
     // trigger post or update
-    commentModel.save({
-      succes : function(saved_model) { resolve(saved_mode._id); },
-      error : function(error_msg) { reject(error_msg); }, save_options
-    });// save
+    commentModel.save(
+      {},
+      {
+        success : function(saved_model) {
+          resolve(saved_model._id);
+        },
+        error : function(error_msg) {
+          reject(error_msg);
+       }},
+       save_options
+    );// save
   });  // Promise
-        }
+        }, // commitComment
+    commitSnippet: function(snippetModel, comments) {
+  return new Promise(function(resolve, reject) {
+    var save_options = {
+      wait : true,
+      patch : false
+    };
+
+    var coms = [];
+    for (var i =0; i < comments.length; ++i) {
+        coms.push(comments[i].get("_id"));
+    }
+
+    snippetModel.set({comments:coms});
+
+    // update model if it was fetched
+    if (!snippetModel.isNew()) {
+      save_options.patch = true;
+    }
+
+    // trigger post or update
+    snippetModel.save(
+      {},
+      {
+        success : function(saved_model) {
+          resolve(saved_model._id);
+        },
+        error : function(error_msg) {
+          reject(error_msg);
+       }},
+       save_options
+    );// save
+  });  // Promise
+        } // commitComment
 }); // return Controller
 }); // define

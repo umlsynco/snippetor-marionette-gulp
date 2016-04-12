@@ -254,13 +254,16 @@ server.configure(function () {
                 visibility: 'public',
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                ccount: data.comments.length
+                ccount: data.comments.length,
+                repositories: data.repos,
+                comments: data.comments
             });
 
-            newSnippet.save(function(err, snippet) {
+            newSnippet
+              .save(function(err, snippet) {
               if (err) {
                 log.info(err);
-                reject({message: "Failed to create snippet", staus: 500});
+                reject({message: "Failed to create snippet: ", staus: 500});
               }
               else {
                 log.info("DONE SNIPPET");

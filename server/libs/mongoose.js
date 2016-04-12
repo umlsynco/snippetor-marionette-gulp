@@ -116,8 +116,8 @@ var SnippetItem = new Schema({
 	userId: { type: Schema.Types.ObjectId, ref: 'github_user', required: true }, // Github Oauth user ID
 	description: { type: String, required: true }, // Detailed description of the snippet
 	tags: { type: String, required: true }, // Hash tags ???
-    comments: [Schema.Types.ObjectId], // list of comments
-    repositories: [Schema.Types.ObjectId], // list of repositories
+    comments: [{type: Schema.Types.ObjectId, ref: 'comment'}], // list of comments
+    repositories: [{type:Schema.Types.ObjectId, ref: 'github_repo'}], // list of repositories
     visibility: {
         type: String,
         enum: ['public', 'private', "draft"],
