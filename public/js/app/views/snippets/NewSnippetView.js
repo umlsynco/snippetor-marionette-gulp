@@ -132,22 +132,28 @@ this.model.set({title:this.ui.title.val(), tags: this.ui.hashtags.val(), descrip
                   var itemFunc = listOfPromistFuncs.shift();
                   var promise = itemFunc();
                   promise.then(
-                    function() {
+                    function(data) {
                         // success
                         if (listOfPromistFuncs.length == 0) {
-                            doneCallback("SUCCESSS !!!");
+                            doneCallback(null, data);
                         }
                         else {
                           commitHandler(listOfPromistFuncs, doneCallback);
                         }
                     },
-                    function() {
-                        doneCallback("COMMIT FAILED !!!");
+                    function(err) {
+                        doneCallback("Save failed: " + err, null);
                     });
               };
 
-              commitHandler(arrayOfPromiseCallmethod, function(msg) {
-                  alert("DONE: " + msg);
+              commitHandler(arrayOfPromiseCallmethod, function(error, data) {
+                  if (!error) {
+                      App.appRouter.navigate("/github.com/snippets", {trigger:true});
+                  }
+                  else {
+                     // Keep state and try again
+                     alert("FAILED: " + msg);
+                  }
               });
 
       /*        var result = JSON.stringify({

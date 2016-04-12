@@ -278,8 +278,6 @@ server.configure(function () {
               models
               .SnippetItemModel
               .find(options)
-              .populate("comments")
-              .populate("repositories")
               .exec(function(err, data) {
                   if (err) {
                       reject({message: "Failed to find snippets"});
@@ -290,9 +288,14 @@ server.configure(function () {
               });
           });
         },
-        getSnippetById: function(id) {
+        getSnippetById: function(id, userModel) {
             return new Promise(function(resolve, reject){
-                models.SnippetItemModel.findOne(id, function(err, snippetItem) {
+                models
+                .SnippetItemModel
+                .findById(id)
+                .populate("comments")
+                .populate("repositories")
+                .exec(function(err, snippetItem) {
                     if (err) {
                         log.info(err);
                       reject({message: "Failed to find snippet", staus: 500});
@@ -304,25 +307,23 @@ server.configure(function () {
                 });
             });
         },
-        //
-        // Create user comment
-        //
-        listComments: function(snippetModelId) {
-           return new Promise(function(resolve, reject){
-               models.RawSnippetsModel
-               .find({snippetId: snippetModelId})
-               .populate("commentId")
-               .exec(function(err, snippets) {
-                     if (err) {
-                         log.info("ERROR: " + err);
-                         reject(err);
-                     }
-                     else {
-                         log.info("FOUND: " + snippets);
-                         resolve(snippets);
-                     }
-               }); //exec
-           });
+        deleteSnippetById: function(id, userModel) {
+            return new Promise(function(resolve, reject){
+                models
+                .SnippetItemModel
+                .findById(id)
+                .remove()
+                .exec(function(err) {
+                    if (err) {
+                      log.info(err);
+                      reject({message: "Failed to find snippet", staus: 500});
+                    }
+                    else {
+                        log.info("REMOVED SNIPPET");
+                      resolve({});
+                    }
+                });
+            });
         },
         createComment: function(data) {
           return new Promise(function(resolve, reject){
@@ -353,14 +354,7 @@ server.configure(function () {
     // GET comment by ID
     //
     server.get('/api/comments/:id', function(req, res) {
-        dbAPI.getComment(req.params.id).then(function(comment) {
-            console.log(comment);
-            res.send(comment);
-        },
-        function(err) {
-          log.info("ERROR: " + err);
-          res.send(err);
-        });
+        res.send('Not implemented: use GET /api/snippets/:id');
     });
 
     //
@@ -509,7 +503,26 @@ server.configure(function () {
     // GET snippet details by id
     //
     server.get('/api/snippets/:id', function(req, res) {
-      res.send('This is not implemented now');
+        dbAPI
+        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .then(function(realUser) {
+          log.info("GOT USER PROMISE DONE");
+          dbAPI
+          .getSnippetById(req.params.id, realUser)
+          .then(
+            function(snippet) {
+              res.send(snippet);
+            },
+            function(error) {
+              log.info("GOT SNIPPET PROMISE FAILED");
+              res.send({error: "Failed to create snippet", status: 400});
+            });
+        }, // user success
+        function(err) { // user error
+          log.info("GOT USER PROMISE FAILED: " + err);
+          res.send({error: "Failed to get current user", status: 400});
+        }); // got user complete
+
     });
     
     //
@@ -523,7 +536,25 @@ server.configure(function () {
     // DELETE snipppet by id
     //
     server.delete('/api/snippets/:id', function (req, res){
-      res.send('This is not implemented now');
+        dbAPI
+        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .then(function(realUser) {
+          log.info("GOT USER PROMISE DONE");
+          dbAPI
+          .deleteSnippetById(req.params.id, realUser)
+          .then(
+            function(result) {
+              res.send(result);
+            },
+            function(error) {
+              log.info("REMOVE SNIPPET FAILED");
+              res.send({error: "Failed to remove snippet", status: 400});
+            });
+        }, // user success
+        function(err) { // user error
+          log.info("GOT USER PROMISE FAILED: " + err);
+          res.send({error: "Failed to get current user capabilities", status: 400});
+        }); // got user complete
     });
 
     // FrontEnd files mappings

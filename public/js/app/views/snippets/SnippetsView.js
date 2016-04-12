@@ -13,7 +13,6 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
     </label>\
   <div class="table-list-cell table-list-cell-type">\
     <a aria-label="Start to view snipppet" class="tooltipped tooltipped-n">\
-      <i class="fa fa-play fa-fw"></i><br>\
 </a><a href="/github.com/snippets/<%= _id %>" aria-label="Like it!" class="tooltipped tooltipped-n">\
       <i class="fa fa-star fa-fw"></i>133<br>\
 </a><a href="/github.com/snippets/<%= _id %>" aria-label="Remove snipppet" class="tooltipped tooltipped-n">\
@@ -37,7 +36,7 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
       </span>\
       <span class="issue-meta-section css-truncate issue-milestone">\
       </span>\
-      <span class="issue-meta-section task-progress"><svg aria-hidden="true" class="octicon octicon-checklist" height="16" role="img" version="1.1" viewBox="0 0 16 16" width="16"><path d="M16 8.5L10 14.5 7 11.5l1.5-1.5 1.5 1.5 4.5-4.5 1.5 1.5zM5.7 12.2l0.8 0.8H2c-0.55 0-1-0.45-1-1V3c0-0.55 0.45-1 1-1h7c0.55 0 1 0.45 1 1v6.5l-0.8-0.8c-0.39-0.39-1.03-0.39-1.42 0L5.7 10.8c-0.39 0.39-0.39 1.02 0 1.41zM4 4h5v-1H4v1z m0 2h5v-1H4v1z m0 2h3v-1H4v1z m-1 1h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z"></path></svg><span class="task-progress-counts">1 of 3</span><br><span class="progress-bar"><span class="progress" style="width: 33%"></span></span></span>\
+      <span class="issue-meta-section task-progress"><svg aria-hidden="true" class="octicon octicon-checklist" height="16" role="img" version="1.1" viewBox="0 0 16 16" width="16"><path d="M16 8.5L10 14.5 7 11.5l1.5-1.5 1.5 1.5 4.5-4.5 1.5 1.5zM5.7 12.2l0.8 0.8H2c-0.55 0-1-0.45-1-1V3c0-0.55 0.45-1 1-1h7c0.55 0 1 0.45 1 1v6.5l-0.8-0.8c-0.39-0.39-1.03-0.39-1.42 0L5.7 10.8c-0.39 0.39-0.39 1.02 0 1.41zM4 4h5v-1H4v1z m0 2h5v-1H4v1z m0 2h3v-1H4v1z m-1 1h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z"></path></svg><span class="task-progress-counts">1 of 3</span><br><span class="progress-bar"><span class="progress" style="width: 33%"></span></span><br><h3><i class="fa fa-play fa-fw"></i></h3></span>\
     </div>\
   </div>\
   <div class="table-list-cell table-list-cell-avatar">\
@@ -65,15 +64,21 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
              play: "i.fa-play",
              fork: "i.fa-code-fork",
              trash: "i.fa-trash",
-             star: "i.fa-star"
+             star: "i.fa-star",
+             checkbox: "input[type=checkbox]"
          },
          events: {
              "click @ui.play": "onPlay",
              "click @ui.star": "onStar",
              "click @ui.fork": "onFork",
-             "click @ui.trash": "onSnippetRemove"
+             "click @ui.trash": "onSnippetRemove",
+             "click @ui.checkbox": "OnChecked"
          },
-         onSnippetRemove: function() {
+         OnChecked: function() {
+             this.model.set({selected: this.ui.checkbox.is(":checked")});
+         },
+         onSnippetRemove: function(e) {
+             e.preventDefault();
              this.model.collection.remove(this.model);
          },
          onStar: function() {
@@ -84,37 +89,26 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
          onPlay: function() {
              
              var snid = this.model.get("_id");
-             this.model.comments = new (Backbone.Collection.extend({
-                 url: "/api/comments/" + snid + "/",
-             }));
+             this.model.set({id: snid});
              
-             this.model.repos = new (Backbone.Collection.extend({
-                 url: "/api/repos/",
-                 model : Backbone.Model.extend({
-                     urlRoot: function() {
-                         return "/api/repos/" + this.model.get("_id");
-                     }
-                 })
-             }));
-             
-             var repoCollection = this.model.repos;
-             this.model.comments.fetch().always(function(data, status) {
+             this.model.fetch().always(function(data, status) {
                  if (status == "success" && snippetorAPI) {
+                     // RESET CURRENT HISTORY STATUS
                      snippetorAPI.getHistoryList().reset();
-                     _.each(data, function(item, idx) {
-                         var repo = new (Backbone.Model.extend({
-                            urlRoot: function() {
-                              return "/api/repos/" + item.commentId.repository;
-                            }
-                         })) ({ _id: item.commentId.repository});
-
-                         repo.fetch()
-                         .always(function(repoItem, success) {
-                             if (success == "success") {
-                               var hm = snippetorAPI.addHistory({repo: repoItem.repository, branch: "master", path: item.commentId.path, sha:""});
-                               hm.comments.add({linenum: item.commentId.line, comment: item.commentId.comment});
+                     
+                     _.each(data.comments, function(item, idx) {
+                         var working_repo = null;
+                         for (var r=0; r < data.repositories.length; ++r) {
+                             if (data.repositories[r]._id == item.repository) {
+                                 working_repo = data.repositories[r];
+                                 break;
                              }
-                         });
+                         }
+                         if (working_repo) {
+                           var hm = snippetorAPI.addHistory({repo: working_repo.repository, branch: working_repo.branch, path: item.path, sha: item.sha});
+                           item.linenum = item.line;
+                           hm.comments.add(item);
+                         }
                    });
                  }
              });
@@ -130,11 +124,22 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
               snippetorAPI = options.snippetorAPI;
 			  this.collection = new (Backbone.Collection.extend({url: "/api/snippets",
                   model: Backbone.Model.extend({
+                      rootUrl: "/api/snippets",
                       defaults: {ccount: 0}})}));
               this.collection.fetch();
 		  },
-          template: _.template(templateSnippets)
-
+          template: _.template(templateSnippets),
+          events: {
+              "click a.snippets-remove": "removeSelected"
+          },
+          removeSelected: function(e) {
+              e.preventDefault();
+              var removeItems = this.collection.where({selected: true});
+              _.each(removeItems, function(item) {
+                   item.set({id: item.get("_id")});
+                   item.destroy();
+               });
+          }
       });
 });
 
