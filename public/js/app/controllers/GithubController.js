@@ -28,6 +28,7 @@ define([ 'App', 'backbone', 'marionette', 'github-api' ],
     getUserRepositories : function(user, callback) {
       // Get current user or concreate user
       var user = (user ? github.getUser(user) : github.getUser());
+      var that = this;
       // request
       user.repos({type : 'all'}, function(err, repo) {
         if (!err) {

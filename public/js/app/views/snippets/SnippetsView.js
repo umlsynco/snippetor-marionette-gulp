@@ -1,6 +1,7 @@
 define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, templateSnippets) {
 
       var snippetorAPI = null;
+      var serverAPI = null;
 	
 	  // GitHub Repository item description:
  	
@@ -91,27 +92,30 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
              var snid = this.model.get("_id");
              this.model.set({id: snid});
              
-             this.model.fetch().always(function(data, status) {
-                 if (status == "success" && snippetorAPI) {
+             this.model.fetch({
+                 success: function(dataModel, status) {
+                 if (dataModel && snippetorAPI) {
                      // RESET CURRENT HISTORY STATUS
                      snippetorAPI.getHistoryList().reset();
                      
-                     _.each(data.comments, function(item, idx) {
-                         var working_repo = null;
-                         for (var r=0; r < data.repositories.length; ++r) {
-                             if (data.repositories[r]._id == item.repository) {
-                                 working_repo = data.repositories[r];
-                                 break;
-                             }
-                         }
+                     dataModel.comments.each(function(item, idx) {
+                         var working_repo = dataModel.repos.where({_id: item.get("repository")});
+                         working_repo = (working_repo.length == 0) ? null : working_repo[0];
+
                          if (working_repo) {
-                           var hm = snippetorAPI.addHistory({repo: working_repo.repository, branch: working_repo.branch, path: item.path, sha: item.sha});
-                           item.linenum = item.line;
+                           var hm = snippetorAPI.addHistory({
+                               repo: working_repo.get("repository"),
+                               branch: working_repo.get("branch"),
+                               path: item.get("path"),
+                               sha: item.get("sha"),
+                               repo_ref: item.get("repository")});
+                           item.set({linenum: item.get("line"), id: item.get("_id"), repo_ref: item.get("repository")});
                            hm.comments.add(item);
                          }
                    });
                  }
-             });
+             }});
+             serverAPI.resetWorkingSnippet(this.model);
          }
     });
           
@@ -122,10 +126,10 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
 		  initialize: function(options) {
 			  this.snippets = options.snippetorAPI;
               snippetorAPI = options.snippetorAPI;
-			  this.collection = new (Backbone.Collection.extend({url: "/api/snippets",
-                  model: Backbone.Model.extend({
-                      rootUrl: "/api/snippets",
-                      defaults: {ccount: 0}})}));
+              serverAPI = options.serverAPI;
+
+			  this.collection = serverAPI.getSnippets();
+              // latest modified for current user
               this.collection.fetch();
 		  },
           template: _.template(templateSnippets),

@@ -69,7 +69,9 @@ define([
                var newComment = serverAPI.getCommentModel({
                  comment : data.comment,
                  linenum : data.linenum,
+                 line : data.linenum,
                  path : data.path,
+                 sha : data.sha,
                  repository : wms[0].get("repo_ref")
                });
 

@@ -1,77 +1,6 @@
 define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], function(Marionette, base64, App, templateNewSnippet) {
-      /*var cachedGithub = null;
-  	  var ContentView  = Marionette.ItemView.extend({
-		 tagName: "pre",
-		 className: "prettyprint linenums:1",
-         template: _.template('<code class="html"><%= getContent() %></code>'),
-         templateHelpers: function(){
-		   var content = this.options.content;
-           return {
-             getContent: function(){
-                if (!content) return;
-				var res = content.replace(/\</g, "&lt;");
-				res = res.replace(/\>/g, "&gt;");
-				return res;
-			 }
-		   };
-		 },
-		 ui: {
-			 code: "code.html"
-		 },
-		 onRender: function() {
-			 prettyPrint();
-		 }
-      });
-
-      var codeSearchItem = Marionette.LayoutView.extend({
-         template: _.template('\
-<div class="code-list-item code-list-item-public repo-specific">\
-  <span class="language"><%= getLanguage() %></span>\
-  <p class="title">\
-      <a  class="sp-github-blob-id" sha="<%= sha %>" repo="<%= full_name() %>" href="/github.com/<%= full_name() %>/blob/master/<%= path %>"><%= path %></a> <br>\
-      <span class="text-small text-muted match-count">Showing the top three matches.</span>\
-      <span class="text-small text-muted updated-at">Last indexed <time title="11 окт. 2015 г., 13:12 GMT+4" datetime="2015-10-11T09:12:25Z" is="relative-time">on 11 Oct 2015</time>.</span>\
-  </p>\
-  <div class="file-box blob-wrapper" id="<%= sha %>" repo="<%= full_name() %>"></div>\
- </div><br>'),
-         templateHelpers: function(){
-           return {
-			 sha: this.model.get("sha"),
-             full_name: function(){ 
-               return this["repo"];
-             },
-             getLanguage: function() {
-				return  (this["language"]  ? this["language"] : '');
-			 }
-           }
-         },
-         regions: {
-			 "content": "DIV.file-box"
-		 },
-		 onRender: function(options) {
-			 // Request code
-			 var repo = cachedGithub.getRepo(this.model.get("repo"));
-			 var that = this;
-			 repo.contents(this.model.get("branch"), this.model.get("path"), function(err, data) {
-               if (data && data.encoding == "base64") {
-                 var content = base64.decode(data.content);
-                 that.content.show(new ContentView({content: content}));
-               }
-			 });
-
-             this.$el.find("a.sp-github-blob-id").click(function(e) {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  App.appRouter.navigate($(this).attr("href"), {trigger: true});
-             });
-		 }
-    });
-
-	*/
       return Marionette.ItemView.extend({
 		  className: "issues-listing",
-//		  childView: codeSearchItem,
-//		  childViewContainer: "DIV.code-list",
           ui: {
               save: "button.sp-submit-all",
               title: "input#issue_title",
@@ -95,7 +24,7 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
               list.each(function(model) {
                   var repo_ref = model.get("repo_ref");
 
-rref.push(model.get("repo_ref"));
+                  rref.push(model.get("repo_ref"));
 
                   var next = {full_name: model.get("repo"), branch: model.get("branch"), data_provider: "GitHub"};
                   var idx = -1;
@@ -152,7 +81,7 @@ this.model.set({title:this.ui.title.val(), tags: this.ui.hashtags.val(), descrip
                   }
                   else {
                      // Keep state and try again
-                     alert("FAILED: " + msg);
+                     alert("FAILED: " + error);
                   }
               });
 
@@ -191,8 +120,16 @@ this.model.set({title:this.ui.title.val(), tags: this.ui.hashtags.val(), descrip
 		  },
           onRender: function() {
               this.$el.find("button.sp-submit-all").prop("disabled", this.all_items.collection.length == 0);
+              if (this.model.get("tags"))
+              this.$el.find("input#issue_hashtag").attr("value", this.model.get("tags"));
+              if (this.model.get("name"))
+              this.$el.find("input#issue_title").attr("value", this.model.get("name"));
+              if (this.model.get("description"))
+              this.$el.find("textarea#issue_body").text(this.model.get("description"));
           },
-          template: _.template(templateNewSnippet)
+          template: function() {
+              return _.template(templateNewSnippet);
+          }
 
       });
 });

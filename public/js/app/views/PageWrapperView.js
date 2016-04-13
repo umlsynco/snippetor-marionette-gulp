@@ -1,10 +1,10 @@
-define( [ 'marionette',
+define( [ 'App', 'marionette',
           "views/github/SearchRepoView", "views/github/SearchCodeInRepo", // search views
           "views/github/ListRootView", // "views/github/ListBranchRootView", "views/github/ListSubTreeView", // Tree views
           "views/github/ShowContentView",
           "views/github/UserProfile",
           "views/snippets/SnippetsView", "views/snippets/NewSnippetView"], // content view
-    function(Marionette,
+    function(App, Marionette,
              gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView, // GitHub related views
              gUserProfile, // Github User information
              SnippetsView, NewSnippetView) { // Snippetor's views
@@ -29,6 +29,9 @@ define( [ 'marionette',
               <div class="tab-pane" id="profile"></div>\
             </div>'),
             getChildView: function(model) {
+                // work-around for snippets switch
+                this.activeModel = model;
+
                 if (model.get("type") == "repo-search") {
                     return gSearchRepoView;
                 }
@@ -50,7 +53,6 @@ define( [ 'marionette',
                 else if (model.get("type") == "new-snippet") {
                     return NewSnippetView;
                 }
-
                 return gSearchRepoView;
             },
             // Contain all childs
@@ -98,7 +100,6 @@ define( [ 'marionette',
                     containter.children("div#snippets").append("<br><br>");
                     return containter.children("div#snippets");
                 }
-
                 return containter;
             },
             collectionEvents: {
@@ -111,6 +112,13 @@ define( [ 'marionette',
                 var $t = $("DIV#page-wrapper").children("DIV").children("DIV");
                 $t.hide();
                 view.$el.show();
+                this.$el.find("ul#sp-content-tabs>li#tab-snippets>a").click(function() {
+                  if ($("div#snippets").hasClass("active")) {
+                    if ($("div#snippets>div.issues-listing").length > 0) {
+                      App.appRouter.navigate("/github.com/snippets", {trigger: true});
+                    }
+                  }
+                });
             }
         });
     });

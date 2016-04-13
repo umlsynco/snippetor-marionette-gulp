@@ -17,10 +17,39 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
 
   // SNIPPETS models
   var snippetItem =
-      Backbone.Model.extend({urlRoot : SERVER_API_URL + "snippets"});
+      Backbone.Model.extend({
+          defaults: {
+              type : "new-snippet"
+          },
+          urlRoot : SERVER_API_URL + "snippets",
+          comments: [],
+          repositories: [],
+          parse : function(response, options){
+             if (options.collection) return response;
+             // models of comments
+             this.comments = new commentsCollection(response.comments);
+             this.repos = new repositoryCollection(response.repositories);
+             // clean current model
+             response.comments = [];
+             response.repos = [];
+             return response;
+          } // parse
+          });
 
   var snippetsCollection = Backbone.Collection.extend(
-      {url : SERVER_API_URL + "snippets", model : snippetItem});
+      {url : SERVER_API_URL + "snippets",
+       model : snippetItem,
+       limit: 13,
+       hasNextPage: false,
+       hasNext: function() { return false; },
+
+       parse : function(response, options) {
+          this.hasNextPage = response.hasNext || false;
+          this.page = response.page;
+          this.limit = response.limit; // Changed on the nearest supported limit
+          return response.snippets;
+       }
+       });
 
   //
   // User model
@@ -54,12 +83,18 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     callback(null, item);
             });
         },
+        working_snippet: null,
+        resetWorkingSnippet: function(ws) {
+            this.working_snippet = ws;
+        },
         //
         // Get an opened working snippet
         // OR create a new model
         //
         getWorkingSnippet: function() {
-           return new snippetItem({type : "new-snippet"});
+            if (!this.working_snippet)
+              this.working_snippet = new snippetItem();
+           return this.working_snippet;
         },
         //
         // 
@@ -83,14 +118,16 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         //
         commitComment: function(commentModel, historyItem) {
   return new Promise(function(resolve, reject) {
+    // update model if it was fetched
     var save_options = {
       wait : true,
-      patch : false
+      patch : !commentModel.isNew()
     };
 
-    // update model if it was fetched
-    if (!commentModel.isNew()) {
-      save_options.patch = true;
+    // Nothing to update
+    if (save_options.patch && !commentModel.hasChanged("comment") && !commentModel.hasChanged("line")) {
+      resolve(commentModel);
+      return;
     }
 
     // trigger post or update
@@ -109,6 +146,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         }, // commitComment
     commitSnippet: function(snippetModel, comments) {
   return new Promise(function(resolve, reject) {
+      
     var save_options = {
       wait : true,
       patch : false
@@ -139,6 +177,16 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
        save_options
     );// save
   });  // Promise
-        } // commitComment
+        }, // commitSnippet
+        //
+        // Get snippets:
+        // @param data - fetch data
+        //    user - user name, by default it is current user
+        //    repo - repository name
+        //    regexp - regexp for title and description
+        //
+        getSnippets: function() {
+            return (new snippetsCollection());
+        }
 }); // return Controller
 }); // define
