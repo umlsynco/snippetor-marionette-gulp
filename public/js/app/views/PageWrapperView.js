@@ -17,8 +17,8 @@ define( [ 'App', 'marionette',
               <li id="tab-code"><a data-target="#code" data-toggle="tab">Code <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
-              <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
-              <li id="tab-profile"><a data-target="#profile" data-toggle="tab">Profile <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab" data-route="/github.com/snippets">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-profile"><a data-target="#profile" data-toggle="tab" data-route="/github.com/umlsynco">Profile <i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\
             <div class="tab-content">\
               <div class="tab-pane active" id="tree"></div>\
@@ -112,6 +112,16 @@ define( [ 'App', 'marionette',
                 var $t = $("DIV#page-wrapper").children("DIV").children("DIV");
                 $t.hide();
                 view.$el.show();
+
+                this.$el.find("ul#sp-content-tabs>li>a").click(function() {
+                    var $this = $(this);
+                    // There is no loaded content
+                    if ($("div" + $this.attr("data-target")).children().length == 0
+                      && $this.attr("data-route")) {
+                        App.appRouter.navigate($this.attr("data-route"), {trigger: true});
+                    }
+                });
+                
                 this.$el.find("ul#sp-content-tabs>li#tab-snippets>a").click(function() {
                   if ($("div#snippets").hasClass("active")) {
                     if ($("div#snippets>div.issues-listing").length > 0) {

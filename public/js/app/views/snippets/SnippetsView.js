@@ -16,8 +16,6 @@ define( [ 'App', 'marionette', 'text!templates/snippets.html'], function(App, Ma
     <a aria-label="Start to view snipppet" class="tooltipped tooltipped-n">\
 </a><a href="/github.com/snippets/<%= _id %>" aria-label="Like it!" class="tooltipped tooltipped-n">\
       <i class="fa fa-star fa-fw"></i>133<br>\
-</a><a href="/github.com/snippets/<%= _id %>" aria-label="Remove snipppet" class="tooltipped tooltipped-n">\
-      <i class="fa fa-trash fa-fw"></i><br>\
 </a><a href="/github.com/snippets/<%= _id %>" aria-label="Fork snipppet" class="tooltipped tooltipped-n">\
       <i class="fa fa-code-fork fa-fw"></i>4<br>\
 </a>\
