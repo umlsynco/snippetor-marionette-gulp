@@ -13,7 +13,20 @@ define( [ 'marionette', 'base-64', 'App', 'text!templates/new_snippet.html'], fu
           },
           onSave: function(e) {
               e.preventDefault();
-              var list = this.snippetor.getHistoryList();
+              
+              App.vent.trigger("snippet:save", this.model,
+                {title:this.ui.title.val(), hashtags: this.ui.hashtags.val(), description: this.ui.description.val()},
+                // On Complete Callback
+                function(error, data) {
+                  if (!error) {
+                      App.appRouter.navigate("/github.com/snippets", {trigger:true});
+                  }
+                  else {
+                     // Keep state and try again
+                     alert("FAILED: " + error);
+                  }
+              });
+/*              var list = this.snippetor.getHistoryList();
               var repos  = [];
               var rref = [];
               var nextSnippet = [];
@@ -83,22 +96,6 @@ this.model.set({title:this.ui.title.val(), tags: this.ui.hashtags.val(), descrip
                      // Keep state and try again
                      alert("FAILED: " + error);
                   }
-              });
-
-      /*        var result = JSON.stringify({
-                  title:this.ui.title.val(),
-                  tags: this.ui.hashtags.val(),
-                  description: this.ui.description.val(),
-                  repos: repos,
-                  comments: nextSnippet
-              });
-
-              $.ajax({
-                  url: "/api/snippets",
-                  type: "POST",
-                  data: {title:this.ui.title.val(), tags: this.ui.hashtags.val(), description: this.ui.description.val(), repos: repos, comments: nextSnippet},
-                  success: function(bxzzz) {alert(bxzzz);},
-                  dataType: "JSON"
               });*/
           },
 		  initialize: function(options) {

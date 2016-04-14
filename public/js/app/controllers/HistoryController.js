@@ -2,11 +2,11 @@ define([
   'App',
   'backbone',
   'marionette',
-  'controllers/SnippetHistoryController',
+  //'controllers/SnippetHistoryController',
   'controllers/SnippetNextPrevController',
   'views/HistoryView'
 ],
-       function(App, Backbone, Marionette, SnippetHistoryController,
+       function(App, Backbone, Marionette, // SnippetHistoryController,
                 SnippetNextPrevController, historyListView) {
 
          var serverAPI = null;

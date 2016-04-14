@@ -55,6 +55,16 @@ define([ 'App', 'backbone', 'marionette', 'github-api' ],
         }
       });
     },
+    getRepositoryInfo: function(full_name) {
+        return new Promise(function(resolve, reject) {
+          var splitted = full_name.split("/");
+          var repo = github.getRepo(splitted[0], splitted[1]);
+          repo.show(function(err, repository) {
+              if (err) reject(err)
+              else resolve(repository);
+          });
+      });
+    },
     //
     // Load content by data
     //

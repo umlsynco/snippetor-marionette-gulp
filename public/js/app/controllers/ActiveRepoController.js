@@ -84,6 +84,29 @@ define(
           if (rs.length == 0)
             return '';
           return rs[0].get("_id");
+        },
+        reset: function() {
+              working_srv_repos.reset();
+              working_repos.reset();
+        },
+        addSnippetRepo: function(github_repo, server_repo) {
+            if (server_repo && github_repo) {
+              working_srv_repos.add(server_repo);
+              working_repos.add(github_repo);
+              return;
+            }
+            if (server_repo) {
+                this
+                .options
+                .githubAPI2
+                .getRepositoryInfo(server_repo.get("repository"))
+                .then(function(repo) {
+                    working_repos.add(repo);
+                },
+                function(err) {
+                    alert("FAILED TO GET GITHUB REPOSITORY INFO: " + server_repo.get("repository"));
+                });
+            }
         }
       }); // Controller
     });   // define

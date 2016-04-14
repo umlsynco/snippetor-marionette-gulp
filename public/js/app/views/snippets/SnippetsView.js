@@ -1,4 +1,4 @@
-define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, templateSnippets) {
+define( [ 'App', 'marionette', 'text!templates/snippets.html'], function(App, Marionette, templateSnippets) {
 
       var snippetorAPI = null;
       var serverAPI = null;
@@ -88,34 +88,7 @@ define( [ 'marionette', 'text!templates/snippets.html'], function(Marionette, te
          onFork: function() {
          },
          onPlay: function() {
-             
-             var snid = this.model.get("_id");
-             this.model.set({id: snid});
-             
-             this.model.fetch({
-                 success: function(dataModel, status) {
-                 if (dataModel && snippetorAPI) {
-                     // RESET CURRENT HISTORY STATUS
-                     snippetorAPI.getHistoryList().reset();
-                     
-                     dataModel.comments.each(function(item, idx) {
-                         var working_repo = dataModel.repos.where({_id: item.get("repository")});
-                         working_repo = (working_repo.length == 0) ? null : working_repo[0];
-
-                         if (working_repo) {
-                           var hm = snippetorAPI.addHistory({
-                               repo: working_repo.get("repository"),
-                               branch: working_repo.get("branch"),
-                               path: item.get("path"),
-                               sha: item.get("sha"),
-                               repo_ref: item.get("repository")});
-                           item.set({linenum: item.get("line"), id: item.get("_id"), repo_ref: item.get("repository")});
-                           hm.comments.add(item);
-                         }
-                   });
-                 }
-             }});
-             serverAPI.resetWorkingSnippet(this.model);
+           App.vent.trigger("snippet:open", this.model);
          }
     });
           

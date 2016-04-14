@@ -10,11 +10,12 @@ define(
       'controllers/GithubController',
       'controllers/ServerController',
       'controllers/ActiveRepoController',
+      'controllers/SnippetController',
       'metisMenu'
     ],
     function(App, Backbone, Marionette, WelcomeView, HeaderView,
              HistoryController, PageController, GithubController,
-             ServerController, ActiveRepoController) {
+             ServerController, ActiveRepoController, SnippetController) {
 
       // Server API
       var serverAPI = new ServerController;
@@ -41,6 +42,13 @@ define(
         githubAPI2 : githubAPI,
         snippetorAPI : snippetorAPI,
         serverAPI : serverAPI
+      });
+      
+      var snippetController = new SnippetController({
+          server: serverAPI,
+          history: snippetorAPI,
+          github: githubAPI,
+          active_repo_ctl: activeRepoCtl
       });
 
       // Cache of the different pages which were requested
