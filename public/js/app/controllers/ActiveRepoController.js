@@ -96,16 +96,18 @@ define(
               return;
             }
             if (server_repo) {
-                this
-                .options
-                .githubAPI2
-                .getRepositoryInfo(server_repo.get("repository"))
-                .then(function(repo) {
-                    working_repos.add(repo);
-                },
-                function(err) {
-                    alert("FAILED TO GET GITHUB REPOSITORY INFO: " + server_repo.get("repository"));
-                });
+              working_srv_repos.add(server_repo);
+              this
+              .options
+              .githubAPI2
+              .getRepositoryInfo(server_repo.get("repository"))
+              .then(function(repo) {
+                repo.repo_ref = server_repo.get("_id");
+                working_repos.add(repo);
+              },
+              function(err) {
+                alert("FAILED TO GET GITHUB REPOSITORY INFO: " + server_repo.get("repository"));
+              });
             }
         }
       }); // Controller

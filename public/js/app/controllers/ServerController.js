@@ -135,7 +135,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
       {},
       {
         success : function(saved_model) {
-          resolve(saved_model._id);
+          resolve(saved_model);
         },
         error : function(error_msg) {
           reject(error_msg);
