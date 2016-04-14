@@ -19,7 +19,6 @@ define([ 'App', 'backbone', 'marionette', 'github-api' ],
     initialize : function(options) {
       this.user_repositories = new Backbone.Collection();
       this.search_repositories = new Backbone.Collection();
-
     },
     getAPI : function() { return github; },
     //
@@ -55,6 +54,10 @@ define([ 'App', 'backbone', 'marionette', 'github-api' ],
         }
       });
     },
+    //
+    // Get repository info by name
+    // Uses to load repo information from github for snippet
+    //
     getRepositoryInfo: function(full_name) {
         return new Promise(function(resolve, reject) {
           var splitted = full_name.split("/");

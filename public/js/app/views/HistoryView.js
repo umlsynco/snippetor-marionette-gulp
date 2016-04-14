@@ -6,13 +6,19 @@ define(['App', 'backbone', 'marionette'],
 		tagName: 'li',
 		className: 'list-group-item',
 		template : _.template('<p>\
-		  <span class="text-small text-muted match-count"><%= comment %></span><a class="right"><i>:<%= linenum %></i><i class="fa fa-remove fa-fw"></i></a></p>'),
+		  <span id="name" class="text-small text-muted match-count"><%= comment %></span><a id="linenum" class="right"><i>:<%= linenum %></i><i class="fa fa-remove fa-fw"></i></a></p>'),
         events: {
             "click i.fa-remove": "removeItem",
             "click span.text-small": "onSelect"
         },
         modelEvents: {
-            "change:active": "ChangeColor"
+            "change:active": "ChangeColor",
+            "change:comment": "ChangeView",
+            "change:linenum": "ChangeView",
+        },
+        ChangeView: function() {
+            this.$el.find("span#name").text(this.model.get("comment"));
+            this.$el.find("a#linenum").text(this.model.get("linenum"));
         },
         ChangeColor: function() {
             if (this.model.get("active")) {
