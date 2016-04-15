@@ -32,16 +32,10 @@ var DataProvider = new Schema({
 );
 
 var GithubUser = new Schema({
-    name: { type: String, required: true, unique: true },
-    dataProvider: {
-        type: String,
-        enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
-        required: true
-    }},
-    {
-        versionKey: false
-    }
-);
+  oauthID: Number,
+  name: String,
+  created: Date
+});
 
 //
 // Repository naming user/repo for github
@@ -82,7 +76,7 @@ var GithubRepo = new Schema({
 var GithubUserRefs = new Schema({
     user: {
         type: Schema.Types.ObjectId,
-        ref: 'github_user',
+        ref: 'User',
         required: true
     },
     repository : {
@@ -113,7 +107,7 @@ var CommentItem = new Schema({
 var SnippetItem = new Schema({
 	name: { type: String, required: true }, // Unique filename
 	version: { type: String, required: true }, // version controle, to check diff etc
-	userId: { type: Schema.Types.ObjectId, ref: 'github_user', required: true }, // Github Oauth user ID
+	userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Github Oauth user ID
 	description: { type: String, required: true }, // Detailed description of the snippet
 	tags: { type: String, required: true }, // Hash tags ???
     comments: [{type: Schema.Types.ObjectId, ref: 'comment'}], // list of comments
@@ -133,7 +127,7 @@ var rawSnippets = new Schema({
 	commentId: {type: Schema.Types.ObjectId, ref: 'comment', required: true}  // Unique comment for this snippet
 });
 
-module.exports.GithubUserModel = mongoose.model('github_user', GithubUser);
+module.exports.GithubUserModel = mongoose.model('User', GithubUser);
 module.exports.GithubRepoModel = mongoose.model('github_repo', GithubRepo);
 module.exports.CommentItemModel = mongoose.model('comment', CommentItem);
 module.exports.SnippetItemModel = mongoose.model('snippet', SnippetItem);

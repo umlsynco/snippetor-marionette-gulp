@@ -21,7 +21,9 @@
     "express": "3.x",
     "winston": "~2.2.0",
     "nconf": "~0.8.4",
-    "mongoose": "~4.4.5"
+    "mongoose": "~4.4.5",
+    "passport-github2": "~0.1.10",
+    "passport": "~0.3.2"
   },
   "main": "./server/server",
   "keywords": [

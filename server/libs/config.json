@@ -2,5 +2,10 @@
     "port" : 8001,
     "mongoose": {
         "uri": "mongodb://localhost/test3"
+    },
+    "github" :{
+      "clientID" : "",
+      "clientSecret" : "",
+      "callbackURL" : "http://localhost:8001/auth/github/callback"
     }
 }

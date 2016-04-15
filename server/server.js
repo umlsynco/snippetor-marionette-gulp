@@ -17,6 +17,34 @@ var models = require('./libs/mongoose');
 var mongoose = require('mongoose');
 var userModel = models.GithubUserModel;
 
+var passport = require('passport');
+var GithubStrategy = require('passport-github2').Strategy;
+
+var fileSystem = require('fs');
+
+// serialize and deserialize
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+
+passport.use(new GithubStrategy({
+  clientID: config.get("github:clientID"),
+  clientSecret: config.get("github:clientSecret"),
+  callbackURL: config.get("github:callbackURL")
+},
+function(accessToken, refreshToken, profile, done) {
+  process.nextTick(function () {
+    return done(null, profile);
+  });
+}
+));
+
+
+
 // SERVER CONFIGURATION
 // ====================
 server.configure(function () {
@@ -30,10 +58,47 @@ server.configure(function () {
     server.use(express.bodyParser());
     // PUT and DELETE methods support
     server.use(express.methodOverride());
+    
+    server.use(passport.initialize());
+    server.use(passport.session());
+
     // routing ???
     server.use(server.router);
     // static paths
     server.use(express.static(path.join(__dirname, "public")));
+
+    server.get('/bublik.gif', function(req, response) {
+        setTimeout(function(){
+          var filePath = path.join(__dirname, 'test.gif');
+          var stat = fileSystem.statSync(filePath);
+
+          response.setHeader('Cache-Control', 'public, max-age=' + 1000);
+          response.writeHead(200, {
+            'Content-Type': 'image/gif',
+            'Content-Length': stat.size
+         });
+
+
+
+         var readStream = fileSystem.createReadStream(filePath);
+         // We replaced all the event handlers with a simple call to readStream.pipe()
+         readStream.pipe(response);
+         
+     }, 5000);
+    });
+
+    server.get('/auth/github',
+      passport.authenticate('github'),
+      function(req, res){});
+    server.get('/auth/github/callback',
+      passport.authenticate('github', { failureRedirect: '/' }),
+      function(req, res) {
+        res.redirect('/github.com/search');
+      });
+    server.get('/logout', function(req, res){
+      req.logout();
+      res.redirect('/');
+    });
 
     // 
     //  List of the available API
