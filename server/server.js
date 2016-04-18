@@ -20,14 +20,20 @@ var userModel = models.GithubUserModel;
 var passport = require('passport');
 var GithubStrategy = require('passport-github2').Strategy;
 
+var flash    = require('connect-flash');
+
 var fileSystem = require('fs');
 
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
+    console.log("SERIALIZE: ");
+    log.info(user);
   done(null, user);
 });
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
+passport.deserializeUser(function(user, done) {
+    console.log("DE-SERIALIZE: " + user);
+    log.info(user);
+  done(null, user);
 });
 
 
@@ -37,13 +43,24 @@ passport.use(new GithubStrategy({
   callbackURL: config.get("github:callbackURL")
 },
 function(accessToken, refreshToken, profile, done) {
-  process.nextTick(function () {
-    return done(null, profile);
-  });
+    log.info("<<<<<<<<<<<<<<<<<< ASK PROFILE");
+    log.info(profile);
+    log.info("<<<<<<<<<<<<<<<<<< ASK PROFILE DONE");
+
+    process.nextTick(function () {
+      return done(null, profile);
+    });
 }
 ));
 
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', 'localhost:8001');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
 
+    next();
+}
 
 // SERVER CONFIGURATION
 // ====================
@@ -54,53 +71,79 @@ server.configure(function () {
     server.use(express.favicon());
     // console output of the all status requests
     server.use(express.logger('dev'));
-    // parse JSON in request
-    server.use(express.bodyParser());
+
+    //server.use(allowCrossDomain);
+
     // PUT and DELETE methods support
     server.use(express.methodOverride());
-    
+
+    // parse JSON in request
+    server.use(express.bodyParser());
+    // cookie parser   
+    server.use(express.cookieParser());
+    // Express js session
+    server.use(express.session({ secret: 'my_precious',  key: 'session'}));//, store: require('mongoose-session')(mongoose)})); //resave: false, saveUninitialized: true, 
+
+    // Passport js initialization
     server.use(passport.initialize());
     server.use(passport.session());
 
-    // routing ???
+    server.use(flash()); // use connect-flash for flash messages stored in session
+
+    server.use(express.errorHandler({
+
+        dumpExceptions:true,
+
+        showStack:true
+
+    }));
+
+    // routing
     server.use(server.router);
-    // static paths
-    server.use(express.static(path.join(__dirname, "public")));
-
-    server.get('/bublik.gif', function(req, response) {
-        setTimeout(function(){
-          var filePath = path.join(__dirname, 'test.gif');
-          var stat = fileSystem.statSync(filePath);
-
-          response.setHeader('Cache-Control', 'public, max-age=' + 1000);
-          response.writeHead(200, {
-            'Content-Type': 'image/gif',
-            'Content-Length': stat.size
-         });
+}); // server.configure 
 
 
+function ensureAuthenticated(req, res, next) {
+  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+  console.log(req.session);
+  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+  if (req.isAuthenticated())
+    return next();
+  else {
+      console.log("ERROR");
+      res.send({error: "Authentication required", status: 400});
+  }
+}
 
-         var readStream = fileSystem.createReadStream(filePath);
-         // We replaced all the event handlers with a simple call to readStream.pipe()
-         readStream.pipe(response);
-         
-     }, 5000);
-    });
-
-    server.get('/auth/github',
-      passport.authenticate('github'),
-      function(req, res){});
-    server.get('/auth/github/callback',
-      passport.authenticate('github', { failureRedirect: '/' }),
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    //                               PASSPORT JS
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    server.get('/auth/github', passport.authenticate('github'), function(req, res){
+           console.log("AUTH GITHUB!!!: " + user);
+        });
+    server.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
       function(req, res) {
-        res.redirect('/github.com/search');
+console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+         log.info(req.user);
+         log.info(req.session);
+console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        res.header('Access-Control-Allow-Credentials', 'true');
+        console.log("USER: " + req.user);
+        log.info("USER: " +req.user);
+        // res.redirect('/github.com/' + req.user.username);
+        res.redirect('/github.com/snippets');
       });
     server.get('/logout', function(req, res){
       req.logout();
       res.redirect('/');
     });
 
-    // 
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    //                               SERVER API
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    //
     //  List of the available API
     //
     //
@@ -180,24 +223,6 @@ server.configure(function () {
                     if (error) {
                         log.info(error);
                         reject({message: "Invalid user", code: 500});
-                    }
-                    else {
-                        resolve(realUser);
-                    }
-                });
-            });
-        },
-        createUser: function(userName) {
-            return new Promise(function(resolve, reject) {
-                var newUser = models.GithubUserModel({
-                  name: userName,
-                  dataProvider: "GitHub"
-                });
-
-                newUser.save(function(err, realUser) {
-                    log.info("GOT SAVE USER DONE QQQQ: " + err);
-                    if (err) {
-                        reject({message: "Failed to create user: " + userName, code:404});
                     }
                     else {
                         resolve(realUser);
@@ -487,6 +512,8 @@ server.configure(function () {
     //
     // GET list of repositories according to the "query"
     //
+    server.get('/api/repos', ensureAuthenticated);
+
     server.get('/api/repos', function(req, res) {
         console.log(req.query);
         dbAPI.getRepo(req.query).then(function(repo) {
@@ -520,19 +547,20 @@ server.configure(function () {
     // - for current user only
     // TODO: make more complex search by repo, user etc.
     //
+    server.get('/api/snippets', ensureAuthenticated);
     server.get('/api/snippets', function(req, res) {
-        dbAPI.getUserById({name: "umlsynco"}).then(function(realUser) {
-               log.info("GOT USER PROMISE DONE");
-               dbAPI.listSnippet({userId: realUser._id}).then(function(snippets) {
-                   res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
-               },
-               function(err) {
-                   res.send("Failed to get user snippets:" + err);
-               });
-           },
-           function(realError) {
-               res.send("Failed to get current user");
-           });
+        if (!req.isAuthenticated()) {
+          res.send({error: "Authentication required", status: 400});
+          return;
+        }         
+
+        log.info("GOT USER PROMISE DONE" + req.user);
+        dbAPI.listSnippet({userId: req.user.id}).then(function(snippets) {
+          res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
+        },
+        function(err) {
+           res.send("Failed to get user snippets:" + err);
+        });
     });
 
     //
@@ -548,6 +576,10 @@ server.configure(function () {
     //
     //
     server.post('/api/snippets', function(req, res) {
+        if (!req.isAuthenticated()) {
+          res.send({error: "Authentication required", status: 400});
+          return;
+        } 
         console.log(req.body);
         var data = req.body;
 
@@ -559,30 +591,25 @@ server.configure(function () {
         }
         
         dbAPI
-        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
-        .then(function(realUser) {
-          log.info("GOT USER PROMISE DONE");
-          dbAPI
-          .createSnippet(data, realUser)
-          .then(
+        .createSnippet(data, req.user)
+        .then(
             function(snippet) {
               res.send(snippet);
             },
             function(error) {
               log.info("GOT SNIPPET PROMISE FAILED");
               res.send({error: "Failed to create snippet", status: 400});
-            });
-        }, // user success
-        function(err) { // user error
-          log.info("GOT USER PROMISE FAILED: " + err);
-          res.send({error: "Failed to get current user", status: 400});
-        }); // got user complete
+        }); // on create snippet
     });
 
     //
     // GET snippet details by id
     //
     server.get('/api/snippets/:id', function(req, res) {
+        if (!req.isAuthenticated()) {
+          res.send({error: "Authentication required", status: 400});
+          return;
+        }
         dbAPI
         .getUserById({name: "umlsynco"}) // <-- TODO: get current user
         .then(function(realUser) {
@@ -665,6 +692,15 @@ server.configure(function () {
         }); // got user complete
     });
 
+    server.get("/", function(req, res) {
+      console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGEEEEEEEEEEEEEETTTTTTTTTTTTT RRRRRRRRRRRRRRROOOOOOOOOOOOOTTTTTTTTT");
+      if (req.isAuthenticated()) {
+         res.redirect('/github.com/' + req.user.username);
+      }
+      else
+        res.redirect('/index.html');
+    });
+
     // FrontEnd files mappings
     // TODO: Add browserify
     server.all("/*", function(req,res,next){
@@ -674,18 +710,7 @@ server.configure(function () {
       });
     });
 
-
-
-    server.use(express.errorHandler({
-
-        dumpExceptions:true,
-
-        showStack:true
-
-    }));
-
-    server.use(server.router);
-});
+    //server.use(server.router);
 
 // Start servier 
 // ======
