@@ -24,10 +24,17 @@ var fileSystem = require('fs');
 
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
-  done(null, user);
+	log.info("SERL : " + user);
+	done(null, user._id);
 });
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
+passport.deserializeUser(function(id, done) {
+	log.info("DES: " + id);
+		userModel.findById(id, function(err, realUser) {
+			if (err) {
+				log.info("DES ERR: " + err);
+			}
+          done(err, realUser);
+	  });
 });
 
 
@@ -38,7 +45,34 @@ passport.use(new GithubStrategy({
 },
 function(accessToken, refreshToken, profile, done) {
   process.nextTick(function () {
-    return done(null, profile);
+    var searchQuery = {
+      displayName: profile.displayName,
+      username: profile.username,
+      gid: profile.id // github id
+    };
+
+    var updates = {
+      displayName: profile.displayName,
+      username: profile.username,
+      gid: profile.id, // github id
+      provider: profile.provider,
+      accessToken:accessToken
+	};
+
+    var options = {
+      upsert: true
+    };
+
+    // update the user if s/he exists or add a new user
+    userModel.findOneAndUpdate(searchQuery, updates, options, function(err, user) {
+      if(err) {
+		  log.info("ERROR:" + err);
+        return done(err);
+      } else {
+		  log.info("USER: " +  user._id );
+        return done(null, user);
+      }
+    });
   });
 }
 ));
@@ -93,7 +127,8 @@ server.configure(function () {
     server.get('/auth/github/callback',
       passport.authenticate('github', { failureRedirect: '/' }),
       function(req, res) {
-        res.redirect('/github.com/search');
+		  log.info(req.user.accessToken);
+        res.redirect('/github.com/' + req.user.username);
       });
     server.get('/logout', function(req, res){
       req.logout();
