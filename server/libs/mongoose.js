@@ -32,9 +32,12 @@ var DataProvider = new Schema({
 );
 
 var GithubUser = new Schema({
-  oauthID: Number,
-  name: String,
-  created: Date
+	username: String,
+	gid: Number,
+	provider: String,
+	disaplyName:String,
+	accessToken: String
+//    created_at: Date
 });
 
 //

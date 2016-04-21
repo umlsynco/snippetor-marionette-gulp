@@ -26,14 +26,17 @@ var fileSystem = require('fs');
 
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
-    console.log("SERIALIZE: " + user.id);
-  done(null, user.id);
+	log.info("SERL : " + user);
+	done(null, user._id);
 });
 passport.deserializeUser(function(id, done) {
-    console.log("DE-SERIALIZE: " + id);
-    userModel.findById(id, function(err, data) {
-      done(err, data);
-    });
+	log.info("DES: " + id);
+		userModel.findById(id, function(err, realUser) {
+			if (err) {
+				log.info("DES ERR: " + err);
+			}
+          done(err, realUser);
+	  });
 });
 
 
@@ -43,17 +46,20 @@ passport.use(new GithubStrategy({
   callbackURL: config.get("github:callbackURL")
 },
 function(accessToken, refreshToken, profile, done) {
-console.log("PROFILE: ");
-log.info(profile);
-
+  process.nextTick(function () {
     var searchQuery = {
-      name: profile.displayName
+      displayName: profile.displayName,
+      username: profile.username,
+      gid: profile.id // github id
     };
 
     var updates = {
-      name: profile.displayName,
-      someID: profile.id
-    };
+      displayName: profile.displayName,
+      username: profile.username,
+      gid: profile.id, // github id
+      provider: profile.provider,
+      accessToken:accessToken
+	};
 
     var options = {
       upsert: true
@@ -62,12 +68,14 @@ log.info(profile);
     // update the user if s/he exists or add a new user
     userModel.findOneAndUpdate(searchQuery, updates, options, function(err, user) {
       if(err) {
+   	    log.info("ERROR:" + err);
         return done(err);
       } else {
+		  log.info("USER: " +  user._id );
         return done(null, user);
       }
     });
-
+  });
 }
 ));
 
@@ -141,14 +149,9 @@ function ensureAuthenticated(req, res, next) {
         });
     server.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
       function(req, res) {
-console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-         log.info(req.user);
-         log.info(req.session);
-console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         res.header('Access-Control-Allow-Credentials', 'true');
-        console.log("USER: " + req.user);
-        log.info("USER: " +req.session.passport.user);
-        // res.redirect('/github.com/' + req.session.passport.user.username);
+		log.info(req.user.accessToken);
+        res.redirect('/github.com/' + req.user.username);
         //  res.redirect('/github.com/snippets');
       });
     server.get('/logout', function(req, res){
