@@ -27,16 +27,17 @@ var fileSystem = require('fs');
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
 	log.info("SERL : " + user);
-	done(null, user._id);
+	done(null, user.id);
 });
-passport.deserializeUser(function(id, done) {
-	log.info("DES: " + id);
-		userModel.findById(id, function(err, realUser) {
+passport.deserializeUser(function(user, done) {
+	log.info("DES: " + user);
+   
+	userModel.findById(user, function(err, realUser) {
 			if (err) {
 				log.info("DES ERR: " + err);
 			}
           done(err, realUser);
-	  });
+	});
 });
 
 
@@ -108,7 +109,7 @@ server.configure(function () {
     // cookie parser   
     server.use(express.cookieParser());
     // Express js session
-    server.use(express.session({ secret: 'my_precious',  key: 'session'}));//, store: require('mongoose-session')(mongoose)})); //resave: false, saveUninitialized: true, 
+    server.use(express.session({ secret: 'my_precious',  key: 'session-sp', resave: false, saveUninitialized: true, store: require('mongoose-session')(mongoose)})); //
 
     // Passport js initialization
     server.use(passport.initialize());
@@ -133,9 +134,10 @@ function ensureAuthenticated(req, res, next) {
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   console.log(req.session);
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-  if (req.isAuthenticated())
+  if (req.isAuthenticated()) {
+    res.header('Access-Control-Allow-Credentials', 'true');
     return next();
-  else {
+  } else {
       console.log("ERROR");
       res.send({error: "Authentication required", status: 400});
   }
@@ -152,7 +154,6 @@ function ensureAuthenticated(req, res, next) {
         res.header('Access-Control-Allow-Credentials', 'true');
 		log.info(req.user.accessToken);
         res.redirect('/github.com/' + req.user.username);
-        //  res.redirect('/github.com/snippets');
       });
     server.get('/logout', function(req, res){
       req.logout();
@@ -746,14 +747,7 @@ function ensureAuthenticated(req, res, next) {
 
     server.get("/js/app/access_token.js", ensureAuthenticated);
     server.get("/js/app/access_token.js", function(req, res) {
-         dbAPI
-        .getUserById(req.session.passport.user.id)
-        .then(function(realUser) {
-            res.send("define([], function() { return " + realUser.accessToken + "});");
-        },
-        function(err) {
-            res.send({error: err});
-        });
+      res.send("define([], function() { return '" + req.user.accessToken + "'});");
     });
 
     // FrontEnd files mappings
