@@ -26,14 +26,14 @@ var fileSystem = require('fs');
 
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
-    console.log("SERIALIZE: ");
-    log.info(user);
-  done(null, user);
+    console.log("SERIALIZE: " + user.id);
+  done(null, user.id);
 });
-passport.deserializeUser(function(user, done) {
-    console.log("DE-SERIALIZE: " + user);
-    log.info(user);
-  done(null, user);
+passport.deserializeUser(function(id, done) {
+    console.log("DE-SERIALIZE: " + id);
+    userModel.findById(id, function(err, data) {
+      done(err, data);
+    });
 });
 
 
@@ -43,13 +43,31 @@ passport.use(new GithubStrategy({
   callbackURL: config.get("github:callbackURL")
 },
 function(accessToken, refreshToken, profile, done) {
-    log.info("<<<<<<<<<<<<<<<<<< ASK PROFILE");
-    log.info(profile);
-    log.info("<<<<<<<<<<<<<<<<<< ASK PROFILE DONE");
+console.log("PROFILE: ");
+log.info(profile);
 
-    process.nextTick(function () {
-      return done(null, profile);
+    var searchQuery = {
+      name: profile.displayName
+    };
+
+    var updates = {
+      name: profile.displayName,
+      someID: profile.id
+    };
+
+    var options = {
+      upsert: true
+    };
+
+    // update the user if s/he exists or add a new user
+    userModel.findOneAndUpdate(searchQuery, updates, options, function(err, user) {
+      if(err) {
+        return done(err);
+      } else {
+        return done(null, user);
+      }
     });
+
 }
 ));
 
@@ -129,9 +147,9 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         res.header('Access-Control-Allow-Credentials', 'true');
         console.log("USER: " + req.user);
-        log.info("USER: " +req.user);
-        // res.redirect('/github.com/' + req.user.username);
-        res.redirect('/github.com/snippets');
+        log.info("USER: " +req.session.passport.user);
+        // res.redirect('/github.com/' + req.session.passport.user.username);
+        //  res.redirect('/github.com/snippets');
       });
     server.get('/logout', function(req, res){
       req.logout();
@@ -219,12 +237,14 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         //
         getUserById: function(id) {
             return new Promise(function(resolve, reject) {
-                models.GithubUserModel.findOne(id, function(error, realUser) {
+                models.GithubUserModel.findById(id, function(error, realUser) {
                     if (error) {
                         log.info(error);
                         reject({message: "Invalid user", code: 500});
                     }
                     else {
+                        log.info("GGGGGGGOOOOOOOOOOOT USER !!!");
+                        log.info(realUser);
                         resolve(realUser);
                     }
                 });
@@ -465,6 +485,7 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // UPDATE an existing comment
     //
+    server.put('/api/comments/:id', ensureAuthenticated);
     server.put('/api/comments/:id', function(req, res) {
         dbAPI.updateComment(req.body).then(function(response) {
             console.log(response);
@@ -479,6 +500,7 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // POST new comment
     //
+    server.post('/api/comments', ensureAuthenticated);
     server.post('/api/comments', function(req, res) {
         console.log("/api/comments:" + req.body);
         console.log(req.body);
@@ -497,6 +519,7 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // GET repo by ID
     //
+    server.get('/api/repos/:id', ensureAuthenticated);
     server.get('/api/repos/:id', function(req, res) {
         console.log(req.params.id);
         dbAPI.getRepoById(req.params.id).then(function(foundRepo) {
@@ -513,7 +536,6 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     // GET list of repositories according to the "query"
     //
     server.get('/api/repos', ensureAuthenticated);
-
     server.get('/api/repos', function(req, res) {
         console.log(req.query);
         dbAPI.getRepo(req.query).then(function(repo) {
@@ -529,6 +551,7 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // POST a new repository with unique [full_name, branch, github-id]
     //
+    server.post('/api/repos', ensureAuthenticated);
     server.post('/api/repos', function(req, res) {
         dbAPI.createRepo(req.body).then(function(repo) {
             console.log(repo);
@@ -549,17 +572,28 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     server.get('/api/snippets', ensureAuthenticated);
     server.get('/api/snippets', function(req, res) {
-        if (!req.isAuthenticated()) {
-          res.send({error: "Authentication required", status: 400});
-          return;
-        }         
 
-        log.info("GOT USER PROMISE DONE" + req.user);
-        dbAPI.listSnippet({userId: req.user.id}).then(function(snippets) {
-          res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
+        log.info("GOT USER PROMISE DONE" + req.session.passport.user);
+        log.info(req.user);
+        
+
+        dbAPI
+        .getUserById(req.session.passport.user.id)
+        .then(function(realUser) {
+            if (!realUser) {
+                log.info("GOT REAL USER NULL");
+                res.send("Failed to get user credentials:" + err);
+                return;
+            }
+            log.info("GOT REAL USER");
+          dbAPI.listSnippet({userId: realUser._id}).then(function(snippets) {
+            res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
+          },
+          function(err) {
+             res.send("Failed to get user snippets:" + err);
+          });
         },
         function(err) {
-           res.send("Failed to get user snippets:" + err);
         });
     });
 
@@ -575,11 +609,8 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //  }
     //
     //
+    server.post('/api/snippets', ensureAuthenticated);
     server.post('/api/snippets', function(req, res) {
-        if (!req.isAuthenticated()) {
-          res.send({error: "Authentication required", status: 400});
-          return;
-        } 
         console.log(req.body);
         var data = req.body;
 
@@ -590,30 +621,43 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
           return;
         }
         
+        console.log("POST !!!!");
+        log.info(req.session.passport.user);
+        
         dbAPI
-        .createSnippet(data, req.user)
-        .then(
+        .getUserById(req.session.passport.user.id)
+        .then(function(realUser) {
+            log.info(realUser._id);
+            log.info(req.session.passport.user);
+
+          dbAPI
+          .createSnippet(data, req.user)
+          .then(
             function(snippet) {
               res.send(snippet);
             },
             function(error) {
               log.info("GOT SNIPPET PROMISE FAILED");
               res.send({error: "Failed to create snippet", status: 400});
-        }); // on create snippet
+          }); // on create snippet
+        },
+        function(error) {
+              log.info("FAILED TO GET USER INFORMATION");
+              res.send({error: "Failed to check credentials snippet", status: 400});
+        });
     });
 
     //
     // GET snippet details by id
     //
+    server.get('/api/snippets/:id', ensureAuthenticated);
     server.get('/api/snippets/:id', function(req, res) {
-        if (!req.isAuthenticated()) {
-          res.send({error: "Authentication required", status: 400});
-          return;
-        }
         dbAPI
-        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .getUserById(req.session.passport.user.id) // <-- TODO: get current user
         .then(function(realUser) {
           log.info("GOT USER PROMISE DONE");
+          log.info(req.session.passport.user);
+          log.info(realUser._id);
           dbAPI
           .getSnippetById(req.params.id, realUser)
           .then(
@@ -635,6 +679,7 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // UPDATE - update an existing snippet
     //
+    server.put('/api/snippets/:id', ensureAuthenticated);
     server.put('/api/snippets/:id', function (req, res){
         console.log(req.body);
         var data = req.body;
@@ -647,9 +692,8 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         }
         
         dbAPI
-        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .getUserById(req.session.passport.user.id) // <-- TODO: get current user
         .then(function(realUser) {
-          log.info("GOT USER PROMISE DONE");
           dbAPI
           .updateSnippet(data, realUser)
           .then(
@@ -657,12 +701,10 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
               res.send(data);
             },
             function(error) {
-              log.info("GOT SNIPPET PROMISE FAILED");
               res.send({error: "Failed to create snippet", status: 400});
             });
         }, // user success
         function(err) { // user error
-          log.info("GOT USER PROMISE FAILED: " + err);
           res.send({error: "Failed to get current user", status: 400});
         }); // got user complete   
     });
@@ -670,9 +712,10 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     //
     // DELETE snipppet by id
     //
+    server.delete('/api/snippets/:id', ensureAuthenticated);
     server.delete('/api/snippets/:id', function (req, res){
         dbAPI
-        .getUserById({name: "umlsynco"}) // <-- TODO: get current user
+        .getUserById(req.session.passport.user.id)
         .then(function(realUser) {
           log.info("GOT USER PROMISE DONE");
           dbAPI
@@ -682,23 +725,32 @@ console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
               res.send(result);
             },
             function(error) {
-              log.info("REMOVE SNIPPET FAILED");
               res.send({error: "Failed to remove snippet", status: 400});
             });
         }, // user success
         function(err) { // user error
-          log.info("GOT USER PROMISE FAILED: " + err);
           res.send({error: "Failed to get current user capabilities", status: 400});
         }); // got user complete
     });
 
     server.get("/", function(req, res) {
-      console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGEEEEEEEEEEEEEETTTTTTTTTTTTT RRRRRRRRRRRRRRROOOOOOOOOOOOOTTTTTTTTT");
       if (req.isAuthenticated()) {
          res.redirect('/github.com/' + req.user.username);
       }
       else
         res.redirect('/index.html');
+    });
+
+    server.get("/js/app/access_token.js", ensureAuthenticated);
+    server.get("/js/app/access_token.js", function(req, res) {
+         dbAPI
+        .getUserById(req.session.passport.user.id)
+        .then(function(realUser) {
+            res.send("define([], function() { return " + realUser.accessToken + "});");
+        },
+        function(err) {
+            res.send({error: err});
+        });
     });
 
     // FrontEnd files mappings

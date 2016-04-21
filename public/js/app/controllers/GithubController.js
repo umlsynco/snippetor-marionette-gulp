@@ -4,13 +4,13 @@
 // providers
 //
 //
-define([ 'App', 'backbone', 'marionette', 'github-api' ],
-   function(App, Backbone, Marionette, GitHubApi) {
+define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
+   function(App, Backbone, Marionette, GitHubApi, access_token) {
   //
   // Github JS-API
   //
   var github = new Github(
-      {token : "", auth : "oauth"});
+      {token : access_token, auth : "oauth"});
   //
   // Github API controller-wrapper
   // - uses to cache requests to the github

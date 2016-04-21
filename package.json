@@ -23,7 +23,10 @@
     "nconf": "~0.8.4",
     "mongoose": "~4.4.5",
     "passport-github2": "~0.1.10",
-    "passport": "~0.3.2"
+    "passport": "~0.3.2",
+    "mongoose-session": "0.0.4",
+    "connect-mongo": "~1.1.0",
+    "connect-flash": "~0.1.1"
   },
   "main": "./server/server",
   "keywords": [
