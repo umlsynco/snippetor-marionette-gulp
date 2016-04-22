@@ -1,4 +1,4 @@
-define( [ 'App', 'marionette', 'text!templates/snippets.html'], function(App, Marionette, templateSnippets) {
+define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets.html'], function(App, Marionette, PreventNavigation, templateSnippets) {
 
       var snippetorAPI = null;
       var serverAPI = null;
@@ -104,6 +104,10 @@ define( [ 'App', 'marionette', 'text!templates/snippets.html'], function(App, Ma
               this.collection.fetch();
 		  },
           template: _.template(templateSnippets),
+          behaviors: {
+              PreventNavigation: {
+              }
+          },
           events: {
               "click a.snippets-remove": "removeSelected"
           },

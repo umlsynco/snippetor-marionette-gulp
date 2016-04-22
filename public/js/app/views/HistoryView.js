@@ -130,19 +130,18 @@ define(['App', 'backbone', 'marionette'],
             <i class="fa fa-trash fw"></i>&nbsp&nbsp&nbsp&nbsp&nbsp\
             <i class="fa fa-close fw"></i>\
         </a></li>\
-        <li><a href="#"><i class="fa fa-code-fork fw"></i> Fork snippet</a></li>\
-        <li><a href="#"><i class="fa fa-star fw"></i> Star snippet</a></li>\
-        <li><a href="#"><i class="fa fa-user fw"></i> More user\'s snippets </a></li>\
-        <li><a href="#"><i class="fa fa-eye-open fw"></i> Watch </a></li>\
-        <li><a href="#"><i class="fa fa-question fw"></i> Questions ???</a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-code-fork fw"></i> Fork snippet</a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-star fw"></i> Star snippet</a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-user fw"></i> More user\'s snippets </a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-eye-open fw"></i> Watch </a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-question fw"></i> Questions ???</a></li>\
     </ul>\
   </div>\
   <br><ul class="history-list"></ul>'),
         childViewContainer: "ul.history-list",
         ui: {
             save: "i.fa-save",
-            star: "i.fa-star",
-            fork: "i.fa-code-fork",
+            do_action: "i.fa"
         },
 		childView: historyItem,
         'collectionEvents': {
@@ -150,7 +149,43 @@ define(['App', 'backbone', 'marionette'],
           'remove': 'onRemove'
         },
         events: {
-            "click @ui.save": "onSave"
+            "click @ui.save": "onSave",
+            "click i.fa" : "OnAction",
+            "click button" : "OnButton",
+            "click a.sp-menu-item" : "OnTextMenu"
+        },
+        showType: function(ifa) {
+            if (ifa.hasClass("fa-user")) {
+                // show user for current snippet
+                App.trigger("snippet:user", {});
+            }
+            else if (ifa.hasClass("fa-star")) {
+                App.trigger("snippet:star", {});
+            }
+            else if (ifa.hasClass("fa-code-fork")) {
+                App.trigger("snippet:fork", {});
+            }
+            else if (ifa.hasClass("fa-eye-open")) {
+                App.trigger("snippet:watch", {});
+            }
+            else if (ifa.hasClass("fa-question")) {
+                App.trigger("snippet:question", {});
+            }
+            else if (ifa.hasClass("fa-save")) {
+                App.appRouter.navigate("/github.com/snippets/save", {trigger: true});
+            }
+            else if (ifa.hasClass("fa-repeat")) {
+                App.trigger("snippet:reload", {});
+            }
+        },
+        OnTextMenu: function(e) {
+            this.showType($(e.target).children("i.fa"));
+        },
+        OnButton: function(e) {
+            this.showType($(e.target).children("i.fa"));
+        },
+        OnAction: function(e) {
+            this.showType($(e.target));
         },
         onAdd: function(newModel) {
               if (ActiveItem) {
@@ -164,9 +199,6 @@ define(['App', 'backbone', 'marionette'],
                 ActiveItem.set("active", false);
                 ActiveItem = null;
             }
-        },
-        onSave: function() {
-            App.appRouter.navigate("/github.com/snippets/save", {trigger: true});
         }
 	});
 

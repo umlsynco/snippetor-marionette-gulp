@@ -6,6 +6,12 @@ define([
   'layouts/RootLayoutView'
 ],
        function($, Backbone, Marionette, _, RootLayoutView) {
+
+         window.Behaviors = window.Behaviors || {};
+
+         Marionette.Behaviors.behaviorsLookup = function() {
+           return window.Behaviors;
+         };
          var App = new Backbone.Marionette.Application();
 
          App.rootLayout = new RootLayoutView({

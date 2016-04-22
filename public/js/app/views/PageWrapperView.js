@@ -64,38 +64,38 @@ define( [ 'App', 'marionette',
                 if (!containter) return containter;
 
                 if (childView.model.get("type") == "repo-search") {
-                    $("ul#sp-content-tabs>li#tab-search-repo>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-search-repo>a").trigger("click", {skip:true});
                     containter.children("div#search-repo").empty();
                     return containter.children("div#search-repo");
                 }
                 else if (childView.model.get("type") == "user-info") {
-                    $("ul#sp-content-tabs>li#tab-profile>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-profile>a").trigger("click", {skip:true});
                     containter.children("div#profile").empty();
                     return containter.children("div#profile");
                 }
                 else if (childView.model.get("type") == "tree-root") {
-                    $("ul#sp-content-tabs>li#tab-tree>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-tree>a").trigger("click", {skip:true});
                     containter.children("div#tree").empty();
                     return containter.children("div#tree");
                 }
                 else if (childView.model.get("type") == "show-blob") {
-                    $("ul#sp-content-tabs>li#tab-code>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-code>a").trigger("click", {skip:true});
                     containter.children("div#code").empty();
                     return containter.children("div#code");
                 }
                 else if (childView.model.get("type") == "code-search") {
-                    $("ul#sp-content-tabs>li#tab-search>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-search>a").trigger("click", {skip:true});
                     containter.children("div#search").empty();
                     return containter.children("div#search");
                 }
                 else if (childView.model.get("type") == "snippets") {
-                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click", {skip:true});
                     containter.children("div#snippets").empty();
                     containter.children("div#snippets").append("<br><br>");
                     return containter.children("div#snippets");
                 }
                 else if (childView.model.get("type") == "new-snippet") {
-                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click");
+                    $("ul#sp-content-tabs>li#tab-snippets>a").trigger("click", {skip:true});
                     containter.children("div#snippets").empty();
                     containter.children("div#snippets").append("<br><br>");
                     return containter.children("div#snippets");
@@ -113,7 +113,8 @@ define( [ 'App', 'marionette',
                 $t.hide();
                 view.$el.show();
 
-                this.$el.find("ul#sp-content-tabs>li>a").click(function() {
+                this.$el.find("ul#sp-content-tabs>li>a").click(function(e) {
+                    if (e && e.data && e.skip) return;
                     var $this = $(this);
                     // There is no loaded content
                     if ($("div" + $this.attr("data-target")).children().length == 0
@@ -122,7 +123,8 @@ define( [ 'App', 'marionette',
                     }
                 });
                 
-                this.$el.find("ul#sp-content-tabs>li#tab-snippets>a").click(function() {
+                this.$el.find("ul#sp-content-tabs>li#tab-snippets>a").click(function(e) {
+                  if (e && e.data && e.skip) return;
                   if ($("div#snippets").hasClass("active")) {
                     if ($("div#snippets>div.issues-listing").length > 0) {
                       App.appRouter.navigate("/github.com/snippets", {trigger: true});

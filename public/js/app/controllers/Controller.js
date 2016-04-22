@@ -170,6 +170,8 @@ define(
         //
         // Create new snippet
         //
-        newSnippetForm : function() { pageAPI.request({type : "new-snippet"}); }
+        newSnippetForm : function() {
+             pageAPI.request({type : "new-snippet"});
+        }
       }); // Controller
     });   // define

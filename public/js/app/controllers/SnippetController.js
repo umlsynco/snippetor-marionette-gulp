@@ -18,10 +18,21 @@ define([
                App.vent.on("snippet:open", _.bind(that.openSnippet, that));
                App.vent.on("snippet:reload", _.bind(that.reloadSnippet, that));
                App.vent.on("snippet:save", _.bind(that.saveSnippet, that));
+               App.vent.on("snippet:user", _.bind(that.userSnippet, that));
                App.vent.on("snippet:remove", _.bind(that.removeSnippet, that));
                App.vent.on("snippet:fork", _.bind(that.forkSnippet, that));
+               App.vent.on("snippet:watch", _.bind(that.watchSnippet, that));
                App.vent.on("snippet:star", _.bind(that.starSnippet, that));
              });     // addInitializer
+           },
+           //
+           // Show snippet's user profile
+           //
+           userSnippet: function() {
+             var snippet = this.server.getWorkingSnippet();
+             if (snippet) {
+                 
+             }
            },
            //
            // map snippet data structure to the framework's history
@@ -63,6 +74,7 @@ define([
            // reload current snippet
            //
            reloadSnippet : function() {
+               
            },
            //
            //
@@ -163,7 +175,7 @@ define([
                this.active_repo_ctl.reset();
              }
            },
-           
-
+           watchSnippet: function() {
+           }
          }); // Controller
        });   // define
