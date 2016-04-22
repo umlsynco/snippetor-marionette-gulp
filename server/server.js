@@ -22,17 +22,19 @@ var GithubStrategy = require('passport-github2').Strategy;
 
 var flash    = require('connect-flash');
 
-var fileSystem = require('fs');
+var MongoStore = require('connect-mongo')(express);
+var mongoose = require('mongoose');
+
 
 // serialize and deserialize
 passport.serializeUser(function(user, done) {
 	log.info("SERL : " + user);
 	done(null, user.id);
 });
-passport.deserializeUser(function(user, done) {
-	log.info("DES: " + user);
+passport.deserializeUser(function(id, done) {
+	log.info("DES: " + id);
    
-	userModel.findById(user, function(err, realUser) {
+	userModel.findById(id, function(err, realUser) {
 			if (err) {
 				log.info("DES ERR: " + err);
 			}
@@ -54,6 +56,9 @@ function(accessToken, refreshToken, profile, done) {
       gid: profile.id // github id
     };
 
+    log.info("PROFILE IIIIIIIIIIIIIIIIID = " + profile.id);
+    log.info("TOKEN !!! = " + accessToken);
+
     var updates = {
       displayName: profile.displayName,
       username: profile.username,
@@ -68,11 +73,11 @@ function(accessToken, refreshToken, profile, done) {
 
     // update the user if s/he exists or add a new user
     userModel.findOneAndUpdate(searchQuery, updates, options, function(err, user) {
-      if(err) {
+      if(err || !user) {
    	    log.info("ERROR:" + err);
         return done(err);
       } else {
-		  log.info("USER: " +  user._id );
+		  log.info("USER: " +  (user ? user._id : " NEW USER !!!"));
         return done(null, user);
       }
     });
@@ -104,12 +109,13 @@ server.configure(function () {
     // PUT and DELETE methods support
     server.use(express.methodOverride());
 
+    // cookie parser   
+    // server.use(express.cookieParser());
+    // Express js session
+    server.use(express.session({ secret: 'my_precious',  key: 'session-sp2', store: new MongoStore({ mongooseConnection: mongoose.connection })})); //, resave: true, saveUninitialized: true}));
+    
     // parse JSON in request
     server.use(express.bodyParser());
-    // cookie parser   
-    server.use(express.cookieParser());
-    // Express js session
-    server.use(express.session({ secret: 'my_precious',  key: 'session-sp', resave: false, saveUninitialized: true, store: require('mongoose-session')(mongoose)})); //
 
     // Passport js initialization
     server.use(passport.initialize());
@@ -118,11 +124,8 @@ server.configure(function () {
     server.use(flash()); // use connect-flash for flash messages stored in session
 
     server.use(express.errorHandler({
-
         dumpExceptions:true,
-
         showStack:true
-
     }));
 
     // routing
@@ -135,7 +138,7 @@ function ensureAuthenticated(req, res, next) {
   console.log(req.session);
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   if (req.isAuthenticated()) {
-    res.header('Access-Control-Allow-Credentials', 'true');
+    //res.header('Access-Control-Allow-Credentials', 'true');
     return next();
   } else {
       console.log("ERROR");
@@ -146,13 +149,10 @@ function ensureAuthenticated(req, res, next) {
     //////////////////////////////////////////////////////////////////////////////////////////////
     //                               PASSPORT JS
     //////////////////////////////////////////////////////////////////////////////////////////////
-    server.get('/auth/github', passport.authenticate('github'), function(req, res){
-           console.log("AUTH GITHUB!!!: " + user);
-        });
+    server.get('/auth/github', passport.authenticate('github'), function(req, res){});
     server.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
       function(req, res) {
         res.header('Access-Control-Allow-Credentials', 'true');
-		log.info(req.user.accessToken);
         res.redirect('/github.com/' + req.user.username);
       });
     server.get('/logout', function(req, res){
@@ -311,11 +311,11 @@ function ensureAuthenticated(req, res, next) {
         //
         // Snippet API
         //
-        createSnippet: function(data, userModel) {
+        createSnippet: function(data, userModelId) {
             return new Promise(function(resolve, reject){
             var newSnippet = models.SnippetItemModel({
                 name: data.title,
-                userId: userModel._id, // Github Oauth user ID
+                userId: userModelId, // Github Oauth user ID
 	            description: data.description,
 	            tags: data.tags,
                 version: '1.0',
@@ -340,14 +340,14 @@ function ensureAuthenticated(req, res, next) {
             }); // save
           }); // Promise
         },
-        updateSnippet: function(data, userModel) {
+        updateSnippet: function(data, userModelId) {
           return new Promise(function(resolve, reject){
                var newComment =
                  models
                 .SnippetItemModel
                 .update({_id: data._id}, {
                   name: data.title,
-                  userId: userModel._id, // Github Oauth user ID
+                  userId: userModelId, // Github Oauth user ID
 	              description: data.description,
   	              tags: data.tags,
                   updatedAt: new Date(),
@@ -523,8 +523,7 @@ function ensureAuthenticated(req, res, next) {
     //
     // GET repo by ID
     //
-    server.get('/api/repos/:id', ensureAuthenticated);
-    server.get('/api/repos/:id', function(req, res) {
+    server.get('/api/repos/:id', ensureAuthenticated, function(req, res) {
         console.log(req.params.id);
         dbAPI.getRepoById(req.params.id).then(function(foundRepo) {
             console.log(foundRepo.id);
@@ -539,8 +538,7 @@ function ensureAuthenticated(req, res, next) {
     //
     // GET list of repositories according to the "query"
     //
-    server.get('/api/repos', ensureAuthenticated);
-    server.get('/api/repos', function(req, res) {
+    server.get('/api/repos', ensureAuthenticated, function(req, res) {
         console.log(req.query);
         dbAPI.getRepo(req.query).then(function(repo) {
             console.log(repo);
@@ -574,23 +572,13 @@ function ensureAuthenticated(req, res, next) {
     // - for current user only
     // TODO: make more complex search by repo, user etc.
     //
-    server.get('/api/snippets', ensureAuthenticated);
-    server.get('/api/snippets', function(req, res) {
+    server.get('/api/snippets', ensureAuthenticated, function(req, res) {
 
-        log.info("GOT USER PROMISE DONE" + req.session.passport.user);
-        log.info(req.user);
-        
+        //log.info("GOT USER PROMISE DONE" + req.session.);
+        log.info("_ID: " + req.user._id);
+        log.info("ID:" + req.user.id);
 
-        dbAPI
-        .getUserById(req.session.passport.user.id)
-        .then(function(realUser) {
-            if (!realUser) {
-                log.info("GOT REAL USER NULL");
-                res.send("Failed to get user credentials:" + err);
-                return;
-            }
-            log.info("GOT REAL USER");
-          dbAPI.listSnippet({userId: realUser._id}).then(function(snippets) {
+        dbAPI.listSnippet({userId: req.user.id}).then(function(snippets) {
             res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
           },
           function(err) {
@@ -598,8 +586,8 @@ function ensureAuthenticated(req, res, next) {
           });
         },
         function(err) {
-        });
-    });
+        }
+    ); // server get
 
     //
     // POST new snippet
@@ -613,8 +601,7 @@ function ensureAuthenticated(req, res, next) {
     //  }
     //
     //
-    server.post('/api/snippets', ensureAuthenticated);
-    server.post('/api/snippets', function(req, res) {
+    server.post('/api/snippets', ensureAuthenticated, function(req, res) {
         console.log(req.body);
         var data = req.body;
 
@@ -625,66 +612,38 @@ function ensureAuthenticated(req, res, next) {
           return;
         }
         
-        console.log("POST !!!!");
-        log.info(req.session.passport.user);
-        
-        dbAPI
-        .getUserById(req.session.passport.user.id)
-        .then(function(realUser) {
-            log.info(realUser._id);
-            log.info(req.session.passport.user);
-
-          dbAPI
-          .createSnippet(data, req.user)
-          .then(
-            function(snippet) {
-              res.send(snippet);
-            },
-            function(error) {
-              log.info("GOT SNIPPET PROMISE FAILED");
-              res.send({error: "Failed to create snippet", status: 400});
-          }); // on create snippet
-        },
-        function(error) {
-              log.info("FAILED TO GET USER INFORMATION");
-              res.send({error: "Failed to check credentials snippet", status: 400});
-        });
+       dbAPI
+       .createSnippet(data, req.user.id)
+       .then(
+         function(snippet) {
+           res.send(snippet);
+         },
+         function(error) {
+           log.info("GOT SNIPPET PROMISE FAILED");
+           res.send({error: "Failed to create snippet", status: 400});
+        }); // on create snippet
     });
 
     //
     // GET snippet details by id
     //
-    server.get('/api/snippets/:id', ensureAuthenticated);
-    server.get('/api/snippets/:id', function(req, res) {
-        dbAPI
-        .getUserById(req.session.passport.user.id) // <-- TODO: get current user
-        .then(function(realUser) {
-          log.info("GOT USER PROMISE DONE");
-          log.info(req.session.passport.user);
-          log.info(realUser._id);
-          dbAPI
-          .getSnippetById(req.params.id, realUser)
-          .then(
-            function(snippet) {
-              res.send(snippet);
-            },
-            function(error) {
-              log.info("GOT SNIPPET PROMISE FAILED");
-              res.send({error: "Failed to create snippet", status: 400});
-            });
-        }, // user success
-        function(err) { // user error
-          log.info("GOT USER PROMISE FAILED: " + err);
-          res.send({error: "Failed to get current user", status: 400});
-        }); // got user complete
-
+    server.get('/api/snippets/:id', ensureAuthenticated, function(req, res) {
+      dbAPI
+      .getSnippetById(req.params.id, req.user.id)
+      .then(
+        function(snippet) {
+          res.send(snippet);
+        },
+        function(error) {
+          log.info("GOT SNIPPET PROMISE FAILED");
+          res.send({error: "Failed to create snippet", status: 400});
+        });
     });
     
     //
     // UPDATE - update an existing snippet
     //
-    server.put('/api/snippets/:id', ensureAuthenticated);
-    server.put('/api/snippets/:id', function (req, res){
+    server.put('/api/snippets/:id', ensureAuthenticated, function (req, res){
         console.log(req.body);
         var data = req.body;
 
@@ -694,48 +653,32 @@ function ensureAuthenticated(req, res, next) {
           res.send({error: "Invalid parameter", status: 400});
           return;
         }
-        
+
         dbAPI
-        .getUserById(req.session.passport.user.id) // <-- TODO: get current user
-        .then(function(realUser) {
-          dbAPI
-          .updateSnippet(data, realUser)
-          .then(
-            function(data) {
-              res.send(data);
-            },
-            function(error) {
-              res.send({error: "Failed to create snippet", status: 400});
-            });
-        }, // user success
-        function(err) { // user error
-          res.send({error: "Failed to get current user", status: 400});
-        }); // got user complete   
-    });
+        .updateSnippet(data, req.user.id)
+        .then(
+          function(data) {
+            res.send(data);
+          },
+          function(error) {
+            res.send({error: "Failed to create snippet", status: 400});
+          });
+    }); // PUT
 
     //
     // DELETE snipppet by id
     //
-    server.delete('/api/snippets/:id', ensureAuthenticated);
-    server.delete('/api/snippets/:id', function (req, res){
-        dbAPI
-        .getUserById(req.session.passport.user.id)
-        .then(function(realUser) {
-          log.info("GOT USER PROMISE DONE");
-          dbAPI
-          .deleteSnippetById(req.params.id, realUser)
-          .then(
-            function(result) {
-              res.send(result);
-            },
-            function(error) {
-              res.send({error: "Failed to remove snippet", status: 400});
-            });
-        }, // user success
-        function(err) { // user error
-          res.send({error: "Failed to get current user capabilities", status: 400});
+    server.delete('/api/snippets/:id', ensureAuthenticated, function (req, res){
+      dbAPI
+      .deleteSnippetById(req.params.id, req.user.id)
+      .then(
+        function(result) {
+          res.send(result);
+        },
+        function(error) {
+          res.send({error: "Failed to remove snippet", status: 400});
         }); // got user complete
-    });
+    }); // DELETE
 
     server.get("/", function(req, res) {
       if (req.isAuthenticated()) {
