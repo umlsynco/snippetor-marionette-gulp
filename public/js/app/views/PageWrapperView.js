@@ -16,7 +16,7 @@ define( [ 'App', 'marionette',
               <li id="tab-tree" class="active"><a data-target="#tree" data-toggle="tab">Tree <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-code"><a data-target="#code" data-toggle="tab">Code <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
-              <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab" data-route="/github.com/search"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab" data-route="/github.com/snippets">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-profile"><a data-target="#profile" data-toggle="tab" data-route="/github.com/umlsynco">Profile <i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\

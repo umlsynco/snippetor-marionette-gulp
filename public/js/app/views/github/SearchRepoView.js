@@ -1,4 +1,4 @@
-define( ['App', 'marionette'], function(App, Marionette) {
+define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette, PreventSubmission) {
 	
     
       var serverAPI = null;
@@ -124,6 +124,10 @@ else {
 }
 
 		  },
+          behaviors: {
+              PreventSubmission: {
+              }
+          },
           template: _.template('<div class="filter-bar">\
      <ul class="repo_filterer">\
         <li><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".following">Watching</a></li>\
@@ -132,11 +136,11 @@ else {
         <li class="all_repos"><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".all">All</a></li>\
       </ul>\
 \
-      <form accept-charset="UTF-8" action="/search" class="repo-search" method="get" role="search"><div style="margin:0;padding:0;display:inline">\
+      <form accept-charset="UTF-8" action="/github.com/search" class="sp-submission" method="get" role="search"><div style="margin:0;padding:0;display:inline">\
         <input name="utf8" value="✓" type="hidden"></div>\
         <input name="user" value="umlsynco" type="hidden">\
         <input id="your-repos-filter" name="q" class="filter_input js-filterable-field" placeholder="Find a repository…" tabindex="2" aria-label="Filter your repositories by name" type="text">\
-        <input id="custom-repos-search" value="Search" class="btn">\
+        <input id="custom-repos-search" value="Search" type="submit" class="btn">\
       </form></div>\
       <ul class="repo-list js-repo-list" data-filterable-for="your-repos-filter" data-filterable-type="substring"></ul>')
 

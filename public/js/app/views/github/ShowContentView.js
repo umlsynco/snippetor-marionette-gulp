@@ -1,4 +1,4 @@
-define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
+define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Marionette, base64, App, PreventSubmission) {
 
    var BubbleView  = Marionette.ItemView.extend({
        template: _.template('\
@@ -75,9 +75,6 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
        },
        onClose: function() {
            this.$el.remove();
-/*           if (this.options.commentItem) {
-               this.options.commentItem.set("active", false);
-           }*/
        },
        onPrev: function() {
            this.options.controller.stepPrev(
@@ -300,11 +297,15 @@ define( [ 'marionette', 'base-64', 'App'], function(Marionette, base64, App) {
                   App.appRouter.navigate($(this).attr("href"), {trigger: true});
               });
           },
+          behaviors: {
+            PreventSubmission: {
+            }
+          },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
     <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
     <div class="input-group custom-search-form right" style="padding-right:0px; margin-top: -5px;">\
-    <form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search" method="get" role="search">\
+    <form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search sp-submission" method="get" role="search">\
       <div class="input-group">\
          <input name="utf8" value="✓" type="hidden">\
          <input name="user" value="umlsynco" type="hidden">\

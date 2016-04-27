@@ -1,4 +1,4 @@
-define( [ 'marionette', 'hljs', 'App'], function(Marionette, hljs, App) {
+define( [ 'marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionette, hljs, App, PreventSubmission) {
 	
 	  var cachedGithub = null, searchData = "";
 	  // GitHub Repository item description:
@@ -105,7 +105,7 @@ define( [ 'marionette', 'hljs', 'App'], function(Marionette, hljs, App) {
 			  // TODO: HACK provide to the concreate child view !!
 			  searchData = req;
 
-              var search = Github.getSearch(req + "+repo:"+this.model.get("user")+"/"+this.model.get("repo")+"+filename:"+req);
+              var search = Github.getSearch(req + "+repo:"+this.model.get("user")+"/"+this.model.get("repo"));
 
   		      search.code({}, function(error, data) {
 			        if (data) {
@@ -115,16 +115,13 @@ define( [ 'marionette', 'hljs', 'App'], function(Marionette, hljs, App) {
 					}
 		      });
 		  },
-          onRender: function() {
-              var that = this;
-              this.$el.find("#search_form").submit(function(e) {
-                  e.preventDefault();
-                  App.appRouter.navigate("/github.com/" + that.model.get("user") + "/" + that.model.get("repo") + "/search?" +$(this).serialize(), {trigger: true});
-              });
+          behaviors: {
+              PreventSubmission: {
+              }
           },
           template: _.template('<div class="column three-fourths codesearch-results">\
     <div class="codesearch-head">\
-      <form accept-charset="UTF-8" action="/github.com/<%= user %>/<%= repo %>/search" class="flex-table search-form-fluid" id="search_form" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"></div>\
+      <form accept-charset="UTF-8" action="/github.com/<%= user %>/<%= repo %>/search" class="flex-table search-form-fluid sp-submission" id="search_form" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"></div>\
         <div class="flex-table-item flex-table-item-primary">\
           <input class="input-block" name="q" value="<%= req %>" tabindex="2" autocapitalize="off" autofocus="" type="text">\
           <input id="type_value" name="type" value="Code" type="hidden">\

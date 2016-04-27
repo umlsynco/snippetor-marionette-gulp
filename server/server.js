@@ -375,6 +375,7 @@ function ensureAuthenticated(req, res, next) {
               models
               .SnippetItemModel
               .find(options)
+              .populate("userId")
               .sort({updatedAt: 'desc'})
               .exec(function(err, data) {
                   if (err) {
