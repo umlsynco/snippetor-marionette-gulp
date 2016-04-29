@@ -254,6 +254,21 @@ function ensureAuthenticated(req, res, next) {
                 });
             });
         },
+        getUserByName: function(name) {
+            return new Promise(function(resolve, reject) {
+                models.GithubUserModel.findOne({username: name}, function(error, realUser) {
+                    if (error) {
+                        log.info(error);
+                        reject({message: "Invalid user", code: 500});
+                    }
+                    else {
+                        log.info("GGGGGGGOOOOOOOOOOOT USER !!!");
+                        log.info(realUser);
+                        resolve(realUser);
+                    }
+                });
+            });
+        },
         //
         // Repository APIs
         //
@@ -579,16 +594,32 @@ function ensureAuthenticated(req, res, next) {
         log.info("_ID: " + req.user._id);
         log.info("ID:" + req.user.id);
 
-        dbAPI.listSnippet({userId: req.user.id}).then(function(snippets) {
+function listSnippetsForQuery(query) {
+            dbAPI.listSnippet(query).then(function(snippets) {
             res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
           },
           function(err) {
              res.send("Failed to get user snippets:" + err);
           });
-        },
-        function(err) {
+}
+        
+        if (req.query.user) {
+            dbAPI.getUserByName(req.query.user).then(function(realUser) {
+              if (!realUser) {
+                  res.send("No user found:" + req.query.user);
+                  return;
+              }
+
+              listSnippetsForQuery({userId: realUser._id});
+            },
+            function(error) {
+              res.send("Failed to get user info:" + req.params.user);
+            });
         }
-    ); // server get
+        else {
+            listSnippetsForQuery({});
+        }
+    }); // server get
 
     //
     // POST new snippet

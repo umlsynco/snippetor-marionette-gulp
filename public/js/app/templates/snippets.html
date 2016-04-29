@@ -8,7 +8,7 @@
         <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
           Filters
         </button>
-  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter">
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
     <li><a href="#"><input type="checkbox" value="">   User (user:umlsynco)</a></li>
     <li><a href="#"><input type="checkbox" value="">   Respository (repo:baragoz/diagrams)</a></li>
     <li role="separator" class="divider"></li>
@@ -37,8 +37,22 @@
 
   
   <div class="subnav-links left" role="navigation">
-     <a href="/github.com/snippets" class="js-selected-navigation-item subnav-item sp-snippets-search" data-selected-links="user">Yours</a>
-     <a href="/github.com/snippets?type=global" class="js-selected-navigation-item subnav-item sp-snippets-search" data-selected-links="global">Global</a>
+     <a href="/github.com/snippets" class="js-selected-navigation-item subnav-item sp-snippets-search btn btn-primary" data-selected-links="user">Yours</a>
+     <a href="/github.com/snippets?type=global" class="js-selected-navigation-item subnav-item sp-snippets-search btn" data-selected-links="global">Global</a>
+  </div>
+  <div class="subnav-links left" role="navigation" style="padding-left:40px;">
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter-result" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          Sort: Best matches
+        </button>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter-result">
+    <li><a href="#">Best matches</a></li>
+    <li><a href="#">By modified</a></li>
+    <li><a href="#">By created</a></li>
+    <li><a href="#">By stars</a></li>
+    <li><a href="#">By forks</a></li>
+  </ul>
+  </div>
   </div>
 </div>
 

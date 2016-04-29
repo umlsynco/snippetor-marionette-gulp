@@ -166,7 +166,7 @@ define(
         //
         // Show list of the user snippets
         //
-        showSnippets : function() { pageAPI.request({type : "snippets"}); },
+        showSnippets : function(q) { pageAPI.request({type : "snippets", query:q || ""}); },
         //
         // Create new snippet
         //

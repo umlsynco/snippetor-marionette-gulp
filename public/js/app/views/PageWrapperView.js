@@ -59,6 +59,7 @@ define( [ 'App', 'marionette',
             childViewContainer: "div.tab-content",
             // Wrapp all
             getChildViewContainer: function(containerView, childView) {
+                this.skipClick = true;
                 var containter = Marionette.CompositeView.prototype.getChildViewContainer.apply(this, arguments);
 
                 if (!containter) return containter;
@@ -102,6 +103,7 @@ define( [ 'App', 'marionette',
                 }
                 return containter;
             },
+            skipClick: true,
             collectionEvents: {
                  "add": "modelAdded"
             },
@@ -113,8 +115,15 @@ define( [ 'App', 'marionette',
                 $t.hide();
                 view.$el.show();
 
+                var that = this;
                 this.$el.find("ul#sp-content-tabs>li>a").click(function(e) {
                     if (e && e.data && e.skip) return;
+                    // skip click if data was not rendered yet
+                    if (that.skipClick) {
+                        that.skipClick = false;
+                        return;
+                    }
+                    
                     var $this = $(this);
                     // There is no loaded content
                     if ($("div" + $this.attr("data-target")).children().length == 0
@@ -122,7 +131,7 @@ define( [ 'App', 'marionette',
                         App.appRouter.navigate($this.attr("data-route"), {trigger: true});
                     }
                 });
-                
+/*                
                 this.$el.find("ul#sp-content-tabs>li#tab-snippets>a").click(function(e) {
                   if (e && e.data && e.skip) return;
                   if ($("div#snippets").hasClass("active")) {
@@ -130,7 +139,7 @@ define( [ 'App', 'marionette',
                       App.appRouter.navigate("/github.com/snippets", {trigger: true});
                     }
                   }
-                });
+                });*/
             }
         });
     });

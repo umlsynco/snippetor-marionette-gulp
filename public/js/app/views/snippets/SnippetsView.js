@@ -2,6 +2,35 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
 
       var snippetorAPI = null;
       var serverAPI = null;
+
+      var dateAgo = function(date) {
+          var date_now = new Date();
+          var date_before = new Date(date);
+          
+          var diff = date_now.getFullYear() - date_before.getFullYear();
+
+          if (diff < 0) return date_before;
+
+          if (diff > 0)
+              return " "  + diff + " " + (diff == 1 ? "year ago": "years ago");
+          diff = date_now.getMonth() - date_before.getMonth();
+          if (diff > 0)
+              return " "  + diff + " " + (diff == 1 ? "month ago": "months ago");
+
+          diff = date_now.getDay() - date_before.getDay();
+          if (diff > 0)
+              return " "  + (diff == 1 ? "yesterday": diff + " days ago");
+
+          diff = date_now.getHours() - date_before.getHours();
+          if (diff > 0)
+              return " "  + diff + " " + (diff == 1 ? "hour ago": "hours ago");
+
+          diff = date_now.getMinutes() - date_before.getMinutes();
+          if (diff > 0)
+              return " "  + diff + " " + (diff == 1 ? "minute ago": "minutes ago");
+
+          return "a few minutes ago";
+      };
 	
 	  // GitHub Repository item description:
  	
@@ -13,10 +42,9 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
       <input class="select-toggle-check js-check-all-item js-issues-list-check" name="snippets[]" value="8" type="checkbox">\
     </label>\
   <div class="table-list-cell table-list-cell-type">\
-    <a aria-label="Stars" class="tooltipped tooltipped-n">\
-</a><a aria-label="Like it!" class="tooltipped tooltipped-n">\
+   <a aria-label="Stargizers" class="tooltipped tooltipped-n">\
       <i class="fa fa-star fa-fw"></i>133<br>\
-</a></div>  <div class="table-list-cell table-list-cell-type">\
+   </a></div>  <div class="table-list-cell table-list-cell-type">\
 <a aria-label="Forks" class="tooltipped tooltipped-n">\
       <i class="fa fa-code-fork fa-fw"></i>4<br>\
 </a></div>\
@@ -38,11 +66,21 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
       <%= ccount %>\
     </a>\
   </div>\
+  <div class="table-list-cell snippet-author">\
+    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link " aria-label="User snipppets" class="tooltipped tooltipped-n">\
+      <%= getUserId() %>\
+    </a>\
+  </div>\
   <div class="table-list-cell table-list-cell-avatar">\
   </div>\
-  <div class="table-list-cell snippet-author" aria-label="User snipppets" class="tooltipped tooltipped-n">\
-    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link ">\
-      <%= getUserId() %>\
+  <div class="table-list-cell sp-updated">\
+    <a aria-label="Last modified" class="tooltipped tooltipped-n">\
+      <%= UpdatedAt() %>\
+    </a>\
+  </div>\
+  <div class="table-list-cell sp-created">\
+    <a aria-label="date of creation" class="tooltipped tooltipped-n">\
+      <%= CreatedAt() %>\
     </a>\
   </div>'),
          templateHelpers: function(){
@@ -59,6 +97,12 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
              getUserId: function() {
                  if (this["userId"] && this["userId"].username) return this["userId"].username;
                  return "";
+             },
+             UpdatedAt: function() {
+                 return dateAgo(this["updatedAt"]);
+             },
+             CreatedAt: function() {
+                 return dateAgo(this["updatedAt"]);
              }
            }
          },
@@ -103,9 +147,9 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
               snippetorAPI = options.snippetorAPI;
               serverAPI = options.serverAPI;
 
-			  this.collection = serverAPI.getSnippets();
+			  this.collection = serverAPI.getSnippets({user:"umlsynco"});
               // latest modified for current user
-              this.collection.fetch();
+              this.collection.fetch({data: this.model.get("query")});
 		  },
           template: _.template(templateSnippets),
           behaviors: {
