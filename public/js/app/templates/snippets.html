@@ -1,86 +1,60 @@
-  <div class="context-loader large-format-loader">
-  <p><img alt="" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-128.gif" width="64" height="64"></p>
-  <p>Loading…</p>
-  </div>
-
-    <div class="subnav" data-pjax="">
-        <a id="sp-new-snippet" href="/github.com/snippets/new" class="sp-navigation btn btn-primary right" role="button" tabindex="0" data-hotkey="c">
-          New snippet
-        </a>
+<div class="subnav" data-pjax="">
+  <a id="sp-new-snippet" href="/github.com/snippets/new" class="sp-navigation btn btn-primary right" role="button" tabindex="0" data-hotkey="c">
+    New snippet
+  </a>
 
   <div class="left subnav-spacer-right" role="search">
-      <div class="left select-menu js-menu-container js-select-menu subnav-search-context">
-        <button class="btn select-menu-button js-menu-target" type="button" aria-haspopup="true">
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
           Filters
         </button>
-        <div class="select-menu-modal-holder js-menu-content js-navigation-container" aria-hidden="true">
-          <div class="select-menu-modal">
-            <div class="select-menu-list">
-                <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aopen" class="select-menu-item js-navigation-item">
-                  <div class="select-menu-item-text">
-                    Open issues and pull requests
-                  </div>
-                </a>
-                <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aopen+is%3Aissue+author%3Aumlsynco" class="select-menu-item js-navigation-item">
-                  <div class="select-menu-item-text">
-                    Your issues
-                  </div>
-                </a>
-              <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aopen+is%3Apr+author%3Aumlsynco" class="select-menu-item js-navigation-item">
-                <div class="select-menu-item-text">
-                  Your pull requests
-                </div>
-              </a>
-              <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aopen+assignee%3Aumlsynco" class="select-menu-item js-navigation-item">
-                <div class="select-menu-item-text">
-                  Everything assigned to you
-                </div>
-              </a>
-              <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aopen+mentions%3Aumlsynco" class="select-menu-item js-navigation-item">
-                <div class="select-menu-item-text">
-                  Everything mentioning you
-                </div>
-              </a>
-              <a href="https://help.github.com/articles/searching-issues" class="select-menu-item js-navigation-item" target="_blank">
-                <svg aria-hidden="true" class="octicon octicon-link-external select-menu-item-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M11 10h1v3c0 0.55-0.45 1-1 1H1c-0.55 0-1-0.45-1-1V3c0-0.55 0.45-1 1-1h3v1H1v10h10V10zM6 2l2.25 2.25-3.25 3.25 1.5 1.5 3.25-3.25 2.25 2.25V2H6z"></path></svg>
-                <div class="select-menu-item-text">
-                  <strong>View advanced search syntax</strong>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter">
+    <li><a href="#"><input type="checkbox" value="">   User (user:umlsynco)</a></li>
+    <li><a href="#"><input type="checkbox" value="">   Respository (repo:baragoz/diagrams)</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a href="#"><input type="checkbox" value="">   Modified (modified:*)</a></li>
+    <li><a href="#"><input type="checkbox" value="">   Created at (age:*)</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a href="#"><input type="checkbox" value="">   Is fork (fork: true)</a></li>
+  </ul>
+
       </div>
 
-    <!-- </textarea> --><!-- '"` --><form accept-charset="UTF-8" action="/umlsynco/snippetor-marionette-gulp/issues" class="subnav-search left" data-pjax="true" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"></div>
-      <input name="q" value="is:snippet is:draf " id="js-issues-search" class="subnav-search-input input-contrast" placeholder="Search all issues" aria-label="Search all issues" type="text">
+<form accept-charset="UTF-8" action="/github.com/snippets" class="sp-submission subnav-search left" data-pjax="true" method="get">
+      <div style="margin:0;padding:0;display:inline">
+          <input name="utf8" value="✓" type="hidden">
+          <input name="user" value="all" type="hidden">
+          <input name="repo" value="all" type="hidden">
+          <input name="fork" value="" type="hidden">
+          <input name="createdAt" value="" type="hidden">
+          <input name="modifiedAt" value="" type="hidden">
+      </div>
+      <input name="q" value="search scope" id="js-issues-search" class="subnav-search-input input-contrast" placeholder="Search all issues" aria-label="Search all issues" type="text">
       <svg aria-hidden="true" class="octicon octicon-search subnav-search-icon" height="16" role="img" version="1.1" viewBox="0 0 16 16" width="16"><path d="M15.7 14.3L11.89 10.47c0.7-0.98 1.11-2.17 1.11-3.47 0-3.31-2.69-6-6-6S1 3.69 1 7s2.69 6 6 6c1.3 0 2.48-0.41 3.47-1.11l3.83 3.81c0.19 0.2 0.45 0.3 0.7 0.3s0.52-0.09 0.7-0.3c0.39-0.39 0.39-1.02 0-1.41zM7 11.7c-2.59 0-4.7-2.11-4.7-4.7s2.11-4.7 4.7-4.7 4.7 2.11 4.7 4.7-2.11 4.7-4.7 4.7z"></path></svg>
-</form>  </div>
+</form>
+
+</div>
 
   
-<div class="subnav-links left" role="navigation">
-  <a href="/umlsynco/snippetor-marionette-gulp/labels" class="js-selected-navigation-item subnav-item" data-selected-links="repo_labels /umlsynco/snippetor-marionette-gulp/labels">Yours</a>
-  <a href="/umlsynco/snippetor-marionette-gulp/milestones" class="js-selected-navigation-item subnav-item" data-selected-links="repo_milestones /umlsynco/snippetor-marionette-gulp/milestones">All</a>
+  <div class="subnav-links left" role="navigation">
+     <a href="/github.com/snippets" class="js-selected-navigation-item subnav-item sp-snippets-search" data-selected-links="user">Yours</a>
+     <a href="/github.com/snippets?type=global" class="js-selected-navigation-item subnav-item sp-snippets-search" data-selected-links="global">Global</a>
+  </div>
 </div>
 
-</div>
 
 
-
-    <div class="table-list-header" id="js-issues-toolbar">
-    <label class="table-list-header-select-all">
-      <input class="js-check-all" type="checkbox">
-    </label>
+<div class="table-list-header" id="js-issues-toolbar">
+  <label class="table-list-header-select-all">
+    <input class="js-check-all" type="checkbox">
+  </label>
 
   <div class="table-list-filters">
-    
-<div class="table-list-header-toggle states left">
-    <a class="js-selected-navigation-item subnav-item snippets-remove">
-      <i class="fa fa-trash fw"></i>  Remove
-    </a>
-</div>
-
-
+    <div class="table-list-header-toggle states left">
+      <a class="js-selected-navigation-item subnav-item snippets-remove">
+        <i class="fa fa-trash fw"></i>  Remove
+      </a>
+    </div>
     <div class="table-list-header-toggle right">
       <div class="left select-menu js-menu-container js-select-menu js-load-contents" data-contents-url="/umlsynco/snippetor-marionette-gulp/issues/show_menu_content?partial=issues%2Ffilters%2Fauthors_content&amp;q=is%3Aissue+is%3Aopen">
   <button class="btn-link select-menu-button js-menu-target" type="button" aria-haspopup="true" data-hotkey="u">
@@ -180,7 +154,10 @@
       <div class="table-list-header-toggle right">
         <div class="left select-menu js-menu-container js-select-menu js-load-contents" data-multiple="" data-contents-url="/umlsynco/snippetor-marionette-gulp/issues/show_menu_content?partial=issues%2Ftriage%2Factions_content">
 
-  <!-- </textarea> --><!-- '"` --><form accept-charset="UTF-8" action="/umlsynco/snippetor-marionette-gulp/issues/triage" data-form-nonce="22b7455b24aa4c8e2262fb34e8b218be1a6340c3" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"><input name="_method" value="put" type="hidden"><input name="authenticity_token" value="L7eVnGbyaf5gATMThSN/2AjzhrmVmEtnF+4otmEB+zMXfsQ2VkMDuYtT+YFGtX+PWQpcXf9sB+YTL39veDO3Mg==" type="hidden"></div>
+  <!-- </textarea> --><!-- '"` -->
+  
+  
+  <form accept-charset="UTF-8" action="/umlsynco/snippetor-marionette-gulp/issues/triage" data-form-nonce="22b7455b24aa4c8e2262fb34e8b218be1a6340c3" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"><input name="_method" value="put" type="hidden"><input name="authenticity_token" value="L7eVnGbyaf5gATMThSN/2AjzhrmVmEtnF+4otmEB+zMXfsQ2VkMDuYtT+YFGtX+PWQpcXf9sB+YTL39veDO3Mg==" type="hidden"></div>
     <button class="btn-link select-menu-button js-menu-target" type="button" aria-haspopup="true">
       Mark as
     </button>
@@ -275,12 +252,10 @@
 
 
   <div class="paginate-container">
-
-      
   </div>
 
   <div class="protip">
     <svg aria-hidden="true" class="octicon octicon-light-bulb text-muted" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M5.5 0C2.48 0 0 2.19 0 5c0 0.92 0.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c0.22-1.22 0.66-1.75 2-4 0.45-0.75 1-2.08 1-3C11 2.19 8.52 0 5.5 0z m3.64 7.48c-0.25 0.44-0.47 0.8-0.67 1.11-0.86 1.41-1.25 2.06-1.45 3.23-0.02 0.05-0.02 0.11-0.02 0.17H4c0-0.06 0-0.13-0.02-0.17-0.2-1.17-0.59-1.83-1.45-3.23-0.2-0.31-0.42-0.67-0.67-1.11-0.42-0.7-0.86-1.83-0.86-2.48C1 2.8 3.02 1 5.5 1c1.22 0 2.36 0.42 3.22 1.19 0.83 0.75 1.28 1.75 1.28 2.81 0 0.66-0.44 1.78-0.86 2.48zM3 14h5c-0.23 1.14-1.3 2-2.5 2s-2.27-0.86-2.5-2z"></path></svg>
     <strong>ProTip!</strong>
-    Adding <a href="/umlsynco/snippetor-marionette-gulp/issues?q=is%3Aissue+is%3Aopen+no%3Alabel">no:label</a> will show everything without a label.
+    Adding <a>repo:name</a> will show all snippets for this repository.
   </div>

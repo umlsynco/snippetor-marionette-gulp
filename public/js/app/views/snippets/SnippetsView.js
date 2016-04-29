@@ -13,24 +13,15 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
       <input class="select-toggle-check js-check-all-item js-issues-list-check" name="snippets[]" value="8" type="checkbox">\
     </label>\
   <div class="table-list-cell table-list-cell-type">\
-    <a aria-label="Start to view snipppet" class="tooltipped tooltipped-n">\
-</a><a href="/github.com/snippets/<%= _id %>" aria-label="Like it!" class="tooltipped tooltipped-n">\
+    <a aria-label="Stars" class="tooltipped tooltipped-n">\
+</a><a aria-label="Like it!" class="tooltipped tooltipped-n">\
       <i class="fa fa-star fa-fw"></i>133<br>\
 </a></div>  <div class="table-list-cell table-list-cell-type">\
-<a href="/github.com/snippets/<%= _id %>" aria-label="Fork snipppet" class="tooltipped tooltipped-n">\
+<a aria-label="Forks" class="tooltipped tooltipped-n">\
       <i class="fa fa-code-fork fa-fw"></i>4<br>\
-</a></div>  <div class="table-list-cell table-list-cell-type">\
-</a><a href="/github.com/snippets/<%= _id %>" aria-label="Share snipppet" class="tooltipped tooltipped-n">\
-      <i class="fa fa-share fa-fw"></i><br>\
-</a></div>  <div class="table-list-cell table-list-cell-type">\
-</a><a href="/github.com/snippets/<%= _id %>" aria-label="Follow snipppet" class="tooltipped tooltipped-n">\
-      <i class="fa fa-eye fa-fw"></i>O-O<br>\
-</a></div>  <div class="table-list-cell table-list-cell-type">\
-</a><a href="/github.com/snippets/<%= _id %>" aria-label="Open snipppet" class="tooltipped tooltipped-n">\
-<i class="fa fa-play fa-fw"></i>\
-</a>  </div>\
-  <div class="table-list-cell issue-title">\
-    <a href="/github.com/umlsynco/<%= _id %>" class="issue-title-link js-navigation-open">\
+</a></div>\
+  <div class="table-list-cell snippet-title">\
+    <a href="/github.com/snippets/<%= _id %>" class="issue-title-link js-navigation-open">\
       <%= name %>\
     </a>\
     <div class="issue-meta">\
@@ -41,17 +32,17 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
       </span>\
     </div>\
   </div>\
-  <div class="table-list-cell table-list-cell-avatar">\
-  </div>\
-  <div class="table-list-cell snippet-author">\
-    <a href="/github.com/<%= getUserId() %>" class="muted-link ">\
-      <%= getUserId() %>\
-    </a>\
-  </div>\
-  <div class="table-list-cell issue-comments">\
-    <a href="/umlsynco/snippetor-marionette-gulp/issues/8" class="muted-link ">\
+  <div class="table-list-cell sp-play-comments">\
+    <a id="sp-play-snippet" href="/github.com/snippets/<%= _id %>" aria-label="Play snipppet" class="tooltipped tooltipped-n">\
       <svg aria-hidden="true" class="octicon octicon-comment" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 2H1c-0.55 0-1 0.45-1 1v8c0 0.55 0.45 1 1 1h2v3.5l3.5-3.5h6.5c0.55 0 1-0.45 1-1V3c0-0.55-0.45-1-1-1z m0 9H6L4 13V11H1V3h12v8z"></path></svg>\
       <%= ccount %>\
+    </a>\
+  </div>\
+  <div class="table-list-cell table-list-cell-avatar">\
+  </div>\
+  <div class="table-list-cell snippet-author" aria-label="User snipppets" class="tooltipped tooltipped-n">\
+    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link ">\
+      <%= getUserId() %>\
     </a>\
   </div>'),
          templateHelpers: function(){
@@ -72,7 +63,7 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
            }
          },
          ui : {
-             play: "i.fa-play",
+             play: "a#sp-play-snippet",
              fork: "i.fa-code-fork",
              trash: "i.fa-trash",
              star: "i.fa-star",
@@ -122,7 +113,21 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
               }
           },
           events: {
-              "click a.snippets-remove": "removeSelected"
+              "click a.snippets-remove": "removeSelected",
+              "click a.sp-snippets-search": "searchScope"
+          },
+          searchScope: function(e) {
+              e.preventDefault();
+              var selected_item = $(e.currentTarget);
+              var got_switch = selected_item.attr("data-selected-links");
+              if (got_switch == "user") {
+                  var text = this.$el.find("input#js-issues-search").val();
+                  this.$el.find("input#js-issues-search").val("user:umlsynco " + text);
+              }
+              else if (got_switch == "global") {
+                  var text = this.$el.find("input#js-issues-search").val();
+                  this.$el.find("input#js-issues-search").val("global");
+              }
           },
           removeSelected: function(e) {
               e.preventDefault();
