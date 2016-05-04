@@ -250,6 +250,7 @@ var dbAPI = {
     },
     checkRepoFollowing: function (userId, repoId) {
         return new Promise(function (resolve, reject) {
+            console.log({user: userId, repository: repoId});
             models.GithubUserRefs.findOne({user: userId, repository: repoId},
                 function (err, item) {
                     if (err || !item) {
@@ -280,13 +281,14 @@ var dbAPI = {
                 upsert: true
             };
 
-            // update the user if s/he exists or add a new user
+            // update the user data if it is exist or add a new user data
             models.GithubUserRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
                 if (err || !userRef) {
                     log.info("ERROR:" + err);
                     return reject(err);
                 } else {
                     log.info("USER REF: " + (userRef ? userRef._id : " NEW USER REF!!!"));
+                    console.log(userRef);
                     return resolve(userRef);
                 }
             });
@@ -664,15 +666,13 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
 server.get('/api/repos', ensureAuthenticated, function (req, res) {
     console.log(req.query);
     dbAPI.getRepo(req.query).then(function (foundRepo) {
-            console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        console.log(foundRepo[0].id);
             dbAPI
-                .checkRepoFollowing(req.user.id, foundRepo._id)
+                .checkRepoFollowing(req.user.id, foundRepo[0].id)
                 .then(function (followStatus) {
-                    console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-                    foundRepo.follow = followStatus;
+                    foundRepo[0].follow = followStatus;
                     res.send(foundRepo);
                 }, function (err) {
-                    console.log("YYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
                     res.send(foundRepo);
                 });
         },

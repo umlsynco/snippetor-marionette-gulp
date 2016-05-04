@@ -81,8 +81,10 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
             function(err, model) {
                     if (model && model.has("count")) {
                        that.$el.find("#repo-snippets-count>i.fa").empty().append(model.get("count"));
-                        that.snippet_repo_model = model;
                     }
+                    // we should get repo model anyway,
+                    // but it could be un-saved model
+                    that.snippet_repo_model = model;
             });
          }
     });
