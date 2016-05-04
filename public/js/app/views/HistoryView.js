@@ -177,6 +177,9 @@ define(['App', 'backbone', 'marionette'],
             else if (ifa.hasClass("fa-repeat")) {
                 App.trigger("snippet:reload", {});
             }
+            else if (ifa.hasClass("fa-close")) {
+                App.vent.trigger("snippet:close", {});
+            }
         },
         OnTextMenu: function(e) {
             this.showType($(e.target).children("i.fa"));

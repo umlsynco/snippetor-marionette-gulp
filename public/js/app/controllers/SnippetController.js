@@ -16,6 +16,7 @@ define([
              App.addInitializer(function() {
                // 
                App.vent.on("snippet:open", _.bind(that.openSnippet, that));
+               App.vent.on("snippet:close", _.bind(that.closeSnippet, that));
                App.vent.on("snippet:reload", _.bind(that.reloadSnippet, that));
                App.vent.on("snippet:save", _.bind(that.saveSnippet, that));
                App.vent.on("snippet:user", _.bind(that.userSnippet, that));

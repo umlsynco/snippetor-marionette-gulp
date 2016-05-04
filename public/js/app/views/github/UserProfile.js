@@ -108,6 +108,12 @@ define(
           this.github = options.githubAPI;
           serverAPI = options.serverAPI;
         },
+        events: {
+			"click span.follow": "onFollow"
+		},
+		onFollow: function() {
+			this.serverModel.FollowMe();
+		},
         //
         // Load user information
         // on view render event
@@ -119,7 +125,21 @@ define(
           var user = this.github.getUser();
           var username = this.model.get("user");
           user.show(this.model.get("user"), function(err, data) {
-            that.vcard.show(new VcardView({model : new Backbone.Model(data)}));
+			var model = new Backbone.Model(data)
+
+            that.vcard.show(new VcardView({model : model}));
+
+            //
+            // Ask server about user repositories
+            //
+            that.options.serverAPI
+            .getUserDetails(data)
+            .then(function(srvUserData) {
+                   alert(srvUserData);
+				},
+				function(error) {
+                    alert(error);
+				});
             //
             // Get list of user repositories
             //

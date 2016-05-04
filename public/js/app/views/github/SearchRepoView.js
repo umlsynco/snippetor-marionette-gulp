@@ -55,7 +55,7 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
              "click button#sp-follow-repo": "onRepoFollow"
          },
          onRepoFollow: function() {
-             
+             this.snippet_repo_model && this.snippet_repo_model.follow();
          },
          snippet_repo_model: null,
          //
@@ -81,8 +81,8 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
             function(err, model) {
                     if (model && model.has("count")) {
                        that.$el.find("#repo-snippets-count>i.fa").empty().append(model.get("count"));
+                        that.snippet_repo_model = model;
                     }
-                    that.snippet_repo_model = model;
             });
          }
     });
