@@ -26,8 +26,12 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
                         </a>\
             </td>\
             <td style="background-color:rgba(0, 60, 0, 0.1);">\
-                        <button id="sp-follow-repo" type="button" class="btn btn-success"><i class="fa fa-male fw"></i>&nbsp;&nbsp;Follow</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
-                        <button id="sp-unfollow-repo" type="button" class="hidden btn btn-success left"><i class="fa fa-male fw"></i>&nbsp;&nbsp;Un-Follow</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+                        <button id="sp-follow-repo" type="button" class="btn btn-success">\
+                        <svg aria-label="Repository" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
+                        &nbsp;&nbsp;Follow [ <span></span> ]</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+                        <button id="sp-unfollow-repo" type="button" class="hidden btn btn-success left">\
+                        <svg aria-label="Repository" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
+                        &nbsp;&nbsp;Un-Follow  [ <span></span> ]</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
             </td>\
             <td>\
                         <%= getLanguage() %>\
@@ -100,6 +104,8 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
                          that.$el.find("#sp-follow-repo").addClass("hidden");
                          that.$el.find("#sp-unfollow-repo").removeClass("hidden");
                        }
+                       that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
+                       that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
                     }
                     else {
                        that.$el.find("#sp-follow-repo").addClass("btn btn-default").attr("aria-label", "There is no snippets in this repository.");
@@ -118,11 +124,15 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
                        if (newVal) {
                          that.$el.find("#sp-follow-repo").addClass("hidden");
                          that.$el.find("#sp-unfollow-repo").removeClass("hidden");
+                         model.set("followers", model.get("followers") + 1);
                        }
                        else {
                          that.$el.find("#sp-follow-repo").removeClass("hidden");
                          that.$el.find("#sp-unfollow-repo").addClass("hidden");
+                         model.set("followers", model.get("followers") - 1);
                        }
+                       that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
+                       that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
                     });
             });
          }

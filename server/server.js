@@ -54,9 +54,6 @@ passport.use(new GithubStrategy({
                 gid: profile.id // github id
             };
 
-            log.info("PROFILE IIIIIIIIIIIIIIIIID = " + profile.id);
-            log.info("TOKEN !!! = " + accessToken);
-
             var updates = {
                 displayName: profile.displayName,
                 username: profile.username,
@@ -72,10 +69,8 @@ passport.use(new GithubStrategy({
             // update the user if s/he exists or add a new user
             userModel.findOneAndUpdate(searchQuery, updates, options, function (err, user) {
                 if (err || !user) {
-                    log.info("ERROR:" + err);
                     return done(err);
                 } else {
-                    log.info("USER: " + (user ? user._id : " NEW USER !!!"));
                     return done(null, user);
                 }
             });
@@ -136,14 +131,9 @@ server.configure(function () {
 
 
 function ensureAuthenticated(req, res, next) {
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    console.log(req.session);
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     if (req.isAuthenticated()) {
-        //res.header('Access-Control-Allow-Credentials', 'true');
         return next();
     } else {
-        console.log("ERROR");
         res.send({error: "Authentication required", status: 400});
     }
 }
@@ -236,14 +226,10 @@ var dbAPI = {
 
             followme
                 .save(function (err, snippet) {
-                    if (err) {
-                        log.info(err);
+                    if (err)
                         reject({message: "Failed to create snippet: ", staus: 500});
-                    }
-                    else {
-                        log.info("DONE SNIPPET");
+                    else
                         resolve(snippet);
-                    }
                 }); // save
         });
     },
@@ -252,14 +238,10 @@ var dbAPI = {
             console.log({user: userId, repository: repoId});
             models.GithubUserRefs.findOne({user: userId, repository: repoId},
                 function (err, item) {
-                    if (err || !item) {
+                    if (err || !item)
                         reject();
-                        log.info("NOTHING FOUND: " + err + ":   : " + item);
-                    }
-                    else {
-                        log.info("FOUND FOLLOW: " + item);
+                    else
                         resolve(item.follow);
-                    }
                 });
         });
     },
@@ -284,11 +266,8 @@ var dbAPI = {
             // update the user data if it is exist or add a new user data
             models.GithubUserRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
                 if (err || !userRef) {
-                    log.info("ERROR:" + err);
-                    return reject(err);
+                     return reject(err);
                 } else {
-                    log.info("USER REF: " + (userRef ? userRef._id : " NEW USER REF!!!"));
-                    console.log(userRef);
                     return resolve(userRef);
                 }
             });
@@ -300,13 +279,10 @@ var dbAPI = {
     getRepoById: function (id) {
         return new Promise(function (resolve, reject) {
             models.GithubRepoModel.findById(id, function (error, realRepo) {
-                if (error) {
-                    log.info(error);
+                if (error)
                     reject({message: "Invalid repo", code: 500});
-                }
-                else {
+                else
                     resolve(realRepo);
-                }
             });
         });
     },
@@ -314,7 +290,6 @@ var dbAPI = {
         return new Promise(function (resolve, reject) {
             models.GithubRepoModel.findOne(descr, function (error, realRepo) {
                 if (error) {
-                    log.info(error);
                     reject({message: "Invalid repo", code: 500});
                 }
                 else {
@@ -348,6 +323,20 @@ var dbAPI = {
         });
     },
 
+    increaseSnippetsCount: function(repoId) {
+        console.log("increaseSnippetsCount");
+        dbAPI.getRepoById(repoId).then(function(foundRepo) {
+            foundRepo.count += 1;
+            foundRepo.save();
+        });
+    },
+
+    decreaseSnippetsCount: function(repoId) {
+        dbAPI.getRepoById(repoId).then(function(foundRepo) {
+            foundRepo.count -= 1;
+            foundRepo.save();
+        });
+    },
     //
     // Snippet API
     //
@@ -370,11 +359,10 @@ var dbAPI = {
             newSnippet
                 .save(function (err, snippet) {
                     if (err) {
-                        log.info(err);
                         reject({message: "Failed to create snippet: ", staus: 500});
                     }
                     else {
-                        log.info("DONE SNIPPET");
+                        snippet.repositories.map(dbAPI.increaseSnippetsCount);
                         resolve(snippet);
                     }
                 }); // save
@@ -397,13 +385,9 @@ var dbAPI = {
                         },
                         function (err, affected, resp) {
                             if (err) {
-                                console.log("ERROR: " + err);
                                 reject({message: "Failed to create snippet comment", staus: 500});
                             }
                             else {
-                                console.log("ERR: " + err);
-                                console.log("AFFECTED: " + affected);
-                                console.log("RESP: " + resp);
                                 resolve(affected);
                             }
                         });// on save comment
@@ -440,7 +424,6 @@ var dbAPI = {
                         reject({message: "Failed to find snippet", staus: 500});
                     }
                     else {
-                        log.info("FOUND SNIPPET");
                         resolve(snippetItem);
                     }
                 });
@@ -451,16 +434,17 @@ var dbAPI = {
             models
                 .SnippetItemModel
                 .findById(id)
-                .remove()
-                .exec(function (err) {
-                    if (err) {
-                        log.info(err);
-                        reject({message: "Failed to find snippet", staus: 500});
-                    }
-                    else {
-                        log.info("REMOVED SNIPPET");
-                        resolve({});
-                    }
+                .then(function(foundRepo) {
+                    // Decrease snippets count
+                    foundRepo.repositories.map(dbAPI.decreaseSnippetsCount);
+
+                    // Remove object
+                    foundRepo.remove();
+                    resolve({});
+                },
+                function(err) {
+                    log.info(err);
+                    reject({message: "Failed to find snippet", staus: 500});
                 });
         });
     },
