@@ -654,6 +654,21 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
             dbAPI
             .followRepo(req.user.id, foundRepo.id, req.body.follow)
             .then(function(obj) {
+                // Increase/decrease followers
+                
+// TODO: Compare the previous value with a new one, and do nothing if nothing changed
+console.log("BODU IS: " + req.body.follow);
+var what_is_going_on = 
+(foundRepo.followers == undefined || foundRepo.followers < 0 ? {$set: {followers: 0}} :
+                  {$inc: {followers: (req.body.follow == "true" ? 1 : -1)}});
+
+                  console.log(what_is_going_on);
+
+                models.GithubRepoModel.update(foundRepo, what_is_going_on, {wait:true}, function(err, data) {
+                      console.log(err);
+                      console.log(data);
+                      console.log(foundRepo);
+                      });
                 res.send(obj);
             },
             function(err) {
@@ -694,6 +709,7 @@ server.get('/api/repos', ensureAuthenticated, function (req, res) {
                          gid: foundRepo[0].gid,
                          dataProvider: 'GitHub',
                          repository: foundRepo[0].repository,
+                         followers: foundRepo[0].followers,
                          follow : followStatus
                      };
 

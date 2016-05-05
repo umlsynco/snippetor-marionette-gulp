@@ -65,9 +65,15 @@ var GithubRepo = new Schema({
             enum: ['GitHub', 'GitLab', "Bitbacket", "Localhost"],
             required: true
         },
-        count: {
+        count: { // snippets count
             type: Number,
-            required: true
+            required: true,
+            default: 0
+        },
+        followers: { // number of followers
+            type: Number,
+            required: true,
+            default: 0
         }
     },
     {
