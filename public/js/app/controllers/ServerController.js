@@ -25,11 +25,29 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     var repositoryModel =
         Backbone.Model.extend({urlRoot: SERVER_API_URL + "repos",
             follow: function(option) {
+                var that = this;
                 $.ajax({
                     url: SERVER_API_URL + "repos/" + this.get("_id"),
                     type: 'PUT',
                     dataType: "JSON",
                     data: {"follow": true}
+                }).then(function(data) {
+                    if (data && data.follow != undefined) {
+                        that.set("follow", data.follow);
+                    }
+                });
+            },
+            unfollow: function(option) {
+                var that = this;
+                $.ajax({
+                    url: SERVER_API_URL + "repos/" + this.get("_id"),
+                    type: 'PUT',
+                    dataType: "JSON",
+                    data: {"follow": false}
+                }).then(function(data) {
+                    if (data && data.follow != undefined) {
+                        that.set("follow", data.follow);
+                    }
                 });
             }
         });

@@ -207,7 +207,6 @@ var dbAPI = {
                     reject({message: "Invalid user", code: 500});
                 }
                 else {
-                    log.info("GGGGGGGOOOOOOOOOOOT USER !!!");
                     log.info(realUser);
                     resolve(realUser);
                 }
@@ -278,7 +277,8 @@ var dbAPI = {
             };
 
             var options = {
-                upsert: true
+                upsert: true,
+                new: true
             };
 
             // update the user data if it is exist or add a new user data
@@ -651,8 +651,14 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
     }
 
     dbAPI.getRepoById(req.params.id).then(function (foundRepo) {
-            dbAPI.followRepo(req.user.id, foundRepo.id, req.body.follow);
-            res.send({status: 200, follow: req.body.follow});
+            dbAPI
+            .followRepo(req.user.id, foundRepo.id, req.body.follow)
+            .then(function(obj) {
+                res.send(obj);
+            },
+            function(err) {
+                res.send({status: 500, error: "Failed to setup the 'follow' status: " + err});
+            });
         },
         function (err) {
             log.info("ERROR: " + err);
@@ -666,12 +672,34 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
 server.get('/api/repos', ensureAuthenticated, function (req, res) {
     console.log(req.query);
     dbAPI.getRepo(req.query).then(function (foundRepo) {
+        if (foundRepo == null || foundRepo.length == 0) {
+            // No repo found
+            res.send([]);
+            return;
+        }
+
         console.log(foundRepo[0].id);
             dbAPI
+                // TODO: apply for all found repositories,
+                //       but right now we have a single repo requests only
                 .checkRepoFollowing(req.user.id, foundRepo[0].id)
-                .then(function (followStatus) {
-                    foundRepo[0].follow = followStatus;
-                    res.send(foundRepo);
+                .then(function(followStatus) {
+                     //////////////// WORK AROUND
+                     // It is not possible to extend mongoose object
+                     // therefore we have to clone it directly
+                     var resultRepo = {
+                         _id: foundRepo[0]._id,
+                         count: foundRepo[0].count,
+                         branch: foundRepo[0].branch,
+                         gid: foundRepo[0].gid,
+                         dataProvider: 'GitHub',
+                         repository: foundRepo[0].repository,
+                         follow : followStatus
+                     };
+
+                     var arr = []; arr.push(resultRepo);
+                     ////////////////////////// END-Work around
+                     res.send(arr);
                 }, function (err) {
                     res.send(foundRepo);
                 });

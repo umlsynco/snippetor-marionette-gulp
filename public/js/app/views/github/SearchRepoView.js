@@ -27,6 +27,7 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
             </td>\
             <td style="background-color:rgba(0, 60, 0, 0.1);">\
                         <button id="sp-follow-repo" type="button" class="btn btn-success"><i class="fa fa-male fw"></i>&nbsp;&nbsp;Follow</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+                        <button id="sp-unfollow-repo" type="button" class="hidden btn btn-success left"><i class="fa fa-male fw"></i>&nbsp;&nbsp;Un-Follow</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
             </td>\
             <td>\
                         <%= getLanguage() %>\
@@ -61,10 +62,14 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
          },
          events: {
              "click h3.repo-list-name>a": "OnSelectRepo",
-             "click button#sp-follow-repo": "onRepoFollow"
+             "click button#sp-follow-repo": "onRepoFollow",
+             "click button#sp-unfollow-repo": "onRepoUnfollow"
          },
          onRepoFollow: function() {
              this.snippet_repo_model && this.snippet_repo_model.follow();
+         },
+         onRepoUnfollow: function() {
+             this.snippet_repo_model && this.snippet_repo_model.unfollow();
          },
          snippet_repo_model: null,
          //
@@ -90,10 +95,35 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
             function(err, model) {
                     if (model && model.has("count")) {
                        that.$el.find("#repo-snippets-count>i.fa").empty().append(model.get("count"));
+                       that.$el.find("#sp-follow-repo").addClass("success btn btn-primary");
+                       if (model.get("follow")) {
+                         that.$el.find("#sp-follow-repo").addClass("hidden");
+                         that.$el.find("#sp-unfollow-repo").removeClass("hidden");
+                       }
+                    }
+                    else {
+                       that.$el.find("#sp-follow-repo").addClass("btn btn-default").attr("aria-label", "There is no snippets in this repository.");
                     }
                     // we should get repo model anyway,
                     // but it could be un-saved model
                     that.snippet_repo_model = model;
+                    //
+                    //  FOLLOW / UNFOLLOW behaviour :(
+                    //
+                    that.snippet_repo_model.on("change:follow", function(model, newVal, view) {
+                      if (newVal == undefined) {
+                          that.$el.find("#sp-follow-repo").addClass("disabled");
+                          return;
+                      }
+                       if (newVal) {
+                         that.$el.find("#sp-follow-repo").addClass("hidden");
+                         that.$el.find("#sp-unfollow-repo").removeClass("hidden");
+                       }
+                       else {
+                         that.$el.find("#sp-follow-repo").removeClass("hidden");
+                         that.$el.find("#sp-unfollow-repo").addClass("hidden");
+                       }
+                    });
             });
          }
     });

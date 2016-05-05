@@ -157,7 +157,7 @@ var rawSnippets = new Schema({
 
 module.exports.GithubUserModel = mongoose.model('User', GithubUser);
 module.exports.GithubUserFollow = mongoose.model('UserFollow', GithubUser);
-module.exports.GithubUserRefs = mongoose.model('UserRepoFollow', GithubUser);
+module.exports.GithubUserRefs = mongoose.model('UserRepoFollow', GithubUserRefs);
 module.exports.GithubRepoModel = mongoose.model('github_repo', GithubRepo);
 module.exports.CommentItemModel = mongoose.model('comment', CommentItem);
 module.exports.SnippetItemModel = mongoose.model('snippet', SnippetItem);
