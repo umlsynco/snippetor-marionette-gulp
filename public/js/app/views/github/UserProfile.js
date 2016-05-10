@@ -112,8 +112,9 @@ define(
 			"click span.follow": "onFollow"
 		},
 		onFollow: function() {
-			this.serverModel.FollowMe();
+			this.serverUser.follow();
 		},
+        serverUser: null,
         //
         // Load user information
         // on view render event
@@ -130,16 +131,20 @@ define(
             that.vcard.show(new VcardView({model : model}));
 
             //
-            // Ask server about user repositories
+            // Ask server about user and repositories
             //
-            that.options.serverAPI
+            that
+            .options
+            .serverAPI
             .getUserDetails(data)
             .then(function(srvUserData) {
-                   alert(srvUserData);
+                   that.serverUser = srvUserData;
 				},
 				function(error) {
                     alert(error);
-				});
+				}
+            ); // then
+
             //
             // Get list of user repositories
             //

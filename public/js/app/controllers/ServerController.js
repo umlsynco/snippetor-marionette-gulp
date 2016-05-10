@@ -82,7 +82,34 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
                 response.comments = [];
                 response.repos = [];
                 return response;
-            } // parse
+            }, // parse
+            //
+            // Follow/Unfollow snippet
+            //
+            doFollow: function(options, value) {
+                var that = this;
+                $.ajax({
+                    // it is not possible to PUT user data over
+                    url: SERVER_API_URL + "snippets/" + this.get("_id"),
+                    type: 'PUT',
+                    dataType: "JSON",
+                    data: {"follow": value}
+                }).then(function(data) {
+                    if (data && data.follow != undefined) {
+                        that.set("follow", data.follow);
+                    }
+                });
+            },
+            follow: function(options) {
+                // Do nothing for not save snippet, becase not save snippet doesn't belong to user
+                if (this.has("_id")) {
+                  this.doFollow(options, true);
+                  return;
+                }
+            },
+            unfollow: function(options) {
+                this.doFollow(options, false);
+            }
         });
 
     var snippetsCollection = Backbone.Collection.extend(
@@ -106,7 +133,36 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     //
     // User model
     //
-    var userModel = Backbone.Model.extend({url: SERVER_API_URL + "users"});
+    var userModel = Backbone.Model.extend({url: SERVER_API_URL + "users",
+            doFollow: function(options, value) {
+                var that = this;
+                $.ajax({
+                    url: SERVER_API_URL + "users/" + this.get("_id"),
+                    type: 'PUT',
+                    dataType: "JSON",
+                    data: {"follow": value}
+                }).then(function(data) {
+                    if (data && data.follow != undefined) {
+                        that.set("follow", data.follow);
+                    }
+                });
+            },
+            follow: function(options) {
+                if (this.has("_id")) {
+                  this.doFollow(options, true);
+                  return;
+                }
+
+                var that = this;
+                this.save({wait:true}).then(function(model) {
+                  if (that.has("_id"))
+                    that.doFollow(options, true);
+                });
+            },
+            unfollow: function(options) {
+                this.doFollow(options, false);
+            }
+        });
 
     //
     // user repo search model
@@ -136,8 +192,18 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
                 });
         },
         getUserDetails: function (descr) {
-            var getUser = new userModel;
-            return getUser.fetch({data: {username: descr.login}});
+            return new Promise(function(resolve, reject) {
+               var getUser = new userModel;
+
+               getUser
+               .fetch({data: {username: descr.login}}, {wait: true})
+               .then(function() {
+                     resolve(getUser);
+                   },
+                   function(err) {
+                     reject(getUser);
+                   });
+           });
         },
         working_snippet: null,
         resetWorkingSnippet: function (ws) {

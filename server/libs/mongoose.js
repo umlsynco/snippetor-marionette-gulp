@@ -38,7 +38,9 @@ var GithubUser = new Schema({
     gid: Number,
     provider: String,
     disaplyName: String,
-    accessToken: String
+    accessToken: String,
+    followers: { type: Number, default: 0 }, // Number of followers
+    following: { type: Number, default: 0 }  // Number of following
 //    created_at: Date
 });
 
@@ -87,11 +89,12 @@ var GithubUserFollow = new Schema({
             ref: 'User',
             required: true
         },
-        follow: {
+        follow_user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
-        }
+        },
+        follow: { type: Boolean, default: true }
     },
     {
         versionKey: false
@@ -113,10 +116,13 @@ var GithubUserRefs = new Schema({
             required: true
         },
         count: {
+            // The number of snippets which created user in this repository
+            // (There is no relation to comments count)
             type: Number,
             default: 0
         },
-        follow: { // Is user follow this repository or just contribute into it
+        follow: {
+            // Is user follow this repository or just contribute into it
             type: Boolean,
             default: false
         }
@@ -150,6 +156,9 @@ var SnippetItem = new Schema({
         enum: ['public', 'private', "draft"],
         required: true
     },
+    stars: { type: Number, required: true, default: 0},
+    forks: { type: Number, required: true, default: 0},
+    watches: { type: Number, required: true, default: 0},
     createdAt: Date,
     updatedAt: Date,
     ccount: Number // Number of comments
@@ -162,7 +171,7 @@ var rawSnippets = new Schema({
 
 
 module.exports.GithubUserModel = mongoose.model('User', GithubUser);
-module.exports.GithubUserFollow = mongoose.model('UserFollow', GithubUser);
+module.exports.GithubUserFollow = mongoose.model('UserFollow', GithubUserFollow);
 module.exports.GithubUserRefs = mongoose.model('UserRepoFollow', GithubUserRefs);
 module.exports.GithubRepoModel = mongoose.model('github_repo', GithubRepo);
 module.exports.CommentItemModel = mongoose.model('comment', CommentItem);

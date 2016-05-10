@@ -43,10 +43,13 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
     </label>\
   <div class="table-list-cell table-list-cell-type">\
    <a aria-label="Stargizers" class="tooltipped tooltipped-n">\
-      <i class="fa fa-star fa-fw"></i>133<br>\
+      <i class="fa fa-star fa-fw"></i><%= getStars() %><br>\
    </a></div>  <div class="table-list-cell table-list-cell-type">\
 <a aria-label="Forks" class="tooltipped tooltipped-n">\
-      <i class="fa fa-code-fork fa-fw"></i>4<br>\
+      <i class="fa fa-code-fork fa-fw"></i><%= getForks() %><br>\
+</a></div>  <div class="table-list-cell table-list-cell-type">\
+<a aria-label="Watches" class="tooltipped tooltipped-n">\
+      <i class="fa fa-eye fa-fw"></i><%= getWatches() %><br>\
 </a></div>\
   <div class="table-list-cell snippet-title">\
     <a href="/github.com/snippets/<%= _id %>" class="issue-title-link js-navigation-open">\
@@ -67,11 +70,12 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
     </a>\
   </div>\
   <div class="table-list-cell snippet-author">\
-    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link " aria-label="User snipppets" class="tooltipped tooltipped-n">\
+    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link " aria-label="Filter snipppets" class="tooltipped tooltipped-n">\
       <%= getUserId() %>\
     </a>\
-  </div>\
-  <div class="table-list-cell table-list-cell-avatar">\
+    <a href="/github.com/<%= getUserId() %>" class="muted-link " aria-label="User Profile" class="tooltipped tooltipped-n">\
+      (<%= userName() %>)\
+    </a>\
   </div>\
   <div class="table-list-cell sp-updated">\
     <a aria-label="Last modified" class="tooltipped tooltipped-n">\
@@ -96,6 +100,19 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
 			 },
              getUserId: function() {
                  if (this["userId"] && this["userId"].username) return this["userId"].username;
+                 return "";
+             },
+             getForks: function() {
+                 return this["forks"] || 0;
+             },
+             getStars: function() {
+                 return this["stars"] || 0;
+             },
+             getWatches: function() {
+                 return this["watches"] || 0;
+             },
+             userName: function() {
+                 if (this["userId"] && this["userId"].displayName) return this["userId"].displayName;
                  return "";
              },
              UpdatedAt: function() {

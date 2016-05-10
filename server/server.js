@@ -203,7 +203,11 @@ var dbAPI = {
             });
         });
     },
-    getUserByName: function (name) {
+    //
+    // @currentUser is null when we do not need to extract dependency
+    //              between curent user and requested
+    //
+    getUserByName: function (currentUser, name) {
         return new Promise(function (resolve, reject) {
             models.GithubUserModel.findOne({username: name}, function (error, realUser) {
                 if (error) {
@@ -211,27 +215,76 @@ var dbAPI = {
                     reject({message: "Invalid user", code: 500});
                 }
                 else {
-
-                    resolve(realUser);
+                    //
+                    // work-around to minimize the number of requests
+                    //
+                    if (currentUser == null) {
+                        resolve(realUser);
+                        return;
+                    }
+                    //
+                    // no way to extract any dependencies if user not registered
+                    //
+                    if (realUser == null) {
+                        // No errors but no user found
+                        resolve({user: null});
+                        return;
+                    }
+                    
+                    // Extract relations between requested user and current user
+                    // To propose follow or un-follow
+                    models
+                    .GithubUserFollow
+                    .findOne({user: currentUser._id, follow_user: realUser._id}, function(error, item) {
+                        if (error || item == null) {
+                            resolve({user: realUser, error: error});
+                        }
+                        else {
+                            // @follow - indicates if current log-in user follow to the requested user
+                            resolve({user: realUser, follow: item.follow});
+                        }
+                    });
                 }
             });
         });
     },
-    followUser: function (userId, followId) {
+    followUser: function (logInUser, followedUser, follow) {
         return new Promise(function (resolve, reject) {
-            var followme = model.GithubUserFollow({
-                user: userId,
-                follow: followId
-            });
+            var searchQuery = {
+              user: logInUser.id,
+              follow_user: followedUser.id
+            };
 
-            followme
-                .save(function (err, snippet) {
-                    if (err)
-                        reject({message: "Failed to create snippet: ", staus: 500});
-                    else
-                        resolve(snippet);
-                }); // save
-        });
+            var updates = {
+                user: logInUser.id,
+                follow_user: followedUser.id,
+                follow: follow
+            };
+
+            var options = {
+                upsert: true
+            };
+
+            models.GithubUserFollow.findOneAndUpdate(searchQuery, updates, options, function (err, userFollowRef) {
+                if (err) {
+                     return reject(err);
+                } else {
+                    // userFollowRef - an old value reference, could be null if there was not any reference
+                    // check that follow state changed, otherwise do nothing
+                    if ((userFollowRef == null && follow) || (userFollowRef.follow != follow)) {
+                        // TODO: temporary stubs for an old created users
+                        //if (followedUser.follower == undefined)  followedUser.follower = 0;
+                        followedUser.followers += (follow ? 1 : -1);
+                        followedUser.save();
+                        // TODO: temporary stubs for an old created users
+                        //if (logInUser.following == undefined) logInUser.following = 0;
+                        logInUser.following += (follow ? 1 : -1);
+                        logInUser.save();
+                    }
+                    return resolve(userFollowRef || {});
+                }
+            });
+        }); // Promise
     },
     checkRepoFollowing: function (userId, repoId) {
         return new Promise(function (resolve, reject) {
@@ -528,7 +581,7 @@ server.get('/api/users', function (req, res) {
     }
 
     dbAPI
-        .getUserByName(req.query.username)
+        .getUserByName(req.user, req.query.username)
         .then(
             function (user) {
                 if (!user) {
@@ -547,7 +600,7 @@ server.get('/api/users', function (req, res) {
 });
 
 server.put('/api/users/:id', function (req, res, id) {
-    if (!req.query.follow) {
+    if (!req.body.follow) {
         res.send({status: 400, error: "Only follow parameter update supported"});
         return;
     }
@@ -557,7 +610,8 @@ server.put('/api/users/:id', function (req, res, id) {
             return res.send({error: 'Not found'});
         }
         if (!err) {
-            dbAPI.followUser(req.user.id, user._id);
+            dbAPI.followUser(req.user, user, req.body.follow);
+           
             return res.send({status: 'OK', user: user});
         } else {
             res.statusCode = 500;
@@ -748,7 +802,7 @@ server.get('/api/snippets', ensureAuthenticated, function (req, res) {
     }
 
     if (req.query.user) {
-        dbAPI.getUserByName(req.query.user).then(
+        dbAPI.getUserByName(null, req.query.user).then(
             function (realUser) {
                 if (!realUser) {
                     res.send("No user found:" + req.query.user);
