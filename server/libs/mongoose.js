@@ -104,7 +104,7 @@ var GithubUserFollow = new Schema({
 // Keep the number of user repositories
 // which user committed snippets
 //
-var GithubUserRefs = new Schema({
+var GithubUserRepoRefs = new Schema({
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
@@ -158,11 +158,38 @@ var SnippetItem = new Schema({
     },
     stars: { type: Number, required: true, default: 0},
     forks: { type: Number, required: true, default: 0},
-    watches: { type: Number, required: true, default: 0},
+    followers: { type: Number, required: true, default: 0},
     createdAt: Date,
     updatedAt: Date,
     ccount: Number // Number of comments
 });
+
+
+var GithubUserSnippetRefs = new Schema({
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        snippet: {
+            type: Schema.Types.ObjectId,
+            ref: 'snippet',
+            required: true
+        },
+        star: {
+            type: Boolean,
+            default: false
+        },
+        follow: {
+            // Is user follow this snipp
+            type: Boolean,
+            default: false
+        }
+    },
+    {
+        versionKey: false
+    }
+);
 
 var rawSnippets = new Schema({
     snippetId: {type: Schema.Types.ObjectId, ref: 'snippet', required: true}, // Unique snippet id
@@ -171,8 +198,10 @@ var rawSnippets = new Schema({
 
 
 module.exports.GithubUserModel = mongoose.model('User', GithubUser);
-module.exports.GithubUserFollow = mongoose.model('UserFollow', GithubUserFollow);
-module.exports.GithubUserRefs = mongoose.model('UserRepoFollow', GithubUserRefs);
+module.exports.GithubUserFollow = mongoose.model('UserUserFollow', GithubUserFollow);
+module.exports.GithubUserRepoRefs = mongoose.model('UserRepoFollow', GithubUserRepoRefs);
+module.exports.GithubUserSnippetRefs = mongoose.model('UserSnippetFollow', GithubUserSnippetRefs);
+
 module.exports.GithubRepoModel = mongoose.model('github_repo', GithubRepo);
 module.exports.CommentItemModel = mongoose.model('comment', CommentItem);
 module.exports.SnippetItemModel = mongoose.model('snippet', SnippetItem);

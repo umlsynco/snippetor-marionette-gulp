@@ -86,29 +86,31 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
             //
             // Follow/Unfollow snippet
             //
-            doFollow: function(options, value) {
-                var that = this;
-                $.ajax({
-                    // it is not possible to PUT user data over
-                    url: SERVER_API_URL + "snippets/" + this.get("_id"),
-                    type: 'PUT',
-                    dataType: "JSON",
-                    data: {"follow": value}
-                }).then(function(data) {
-                    if (data && data.follow != undefined) {
-                        that.set("follow", data.follow);
+            doPatch: function(options) {
+                if (!this.has("_id"))  return;
+                this
+                .save(options, {patch: true,
+                    success: function(data) {
+                        alert("PATCHED !!!");
+                    },
+                    error: function(error) {
+                        alert("PATCH FAILED !!!");
                     }
-                });
+                    });
+                
+                
             },
-            follow: function(options) {
-                // Do nothing for not save snippet, becase not save snippet doesn't belong to user
-                if (this.has("_id")) {
-                  this.doFollow(options, true);
-                  return;
-                }
+            follow: function() {
+              this.doPatch({follow:true});
             },
-            unfollow: function(options) {
-                this.doFollow(options, false);
+            unfollow: function() {
+              this.doPatch({follow: false});
+            },
+            star: function() {
+              this.doPatch({star:true});
+            },
+            unstar: function() {
+              this.doPatch({star: false});
             }
         });
 

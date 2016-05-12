@@ -289,7 +289,7 @@ var dbAPI = {
     getUserRepos: function(realUser, query) {
       return new Promise(function(resolve,reject) {
                     models
-                    .GithubUserRefs
+                    .GithubUserRepoRefs
                     .find({user: realUser._id})
                     .sort({'count': -1, 'follow': -1})
                     .limit(query.limit ? query.limit : 10)
@@ -308,7 +308,7 @@ var dbAPI = {
     checkRepoFollowing: function (userId, repoId) {
         return new Promise(function (resolve, reject) {
             console.log({user: userId, repository: repoId});
-            models.GithubUserRefs.findOne({user: userId, repository: repoId},
+            models.GithubUserRepoRefs.findOne({user: userId, repository: repoId},
                 function (err, item) {
                     if (err || !item)
                         reject();
@@ -336,7 +336,7 @@ var dbAPI = {
             };
 
             // update the user data if it is exist or add a new user data
-            models.GithubUserRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
+            models.GithubUserRepoRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
                 if (err || !userRef) {
                      return reject(err);
                 } else {
@@ -464,6 +464,54 @@ var dbAPI = {
                             }
                         });// on save comment
         }); // Promise
+    },
+    //
+    // Update user-snippet relations
+    //
+    updateSnippetRefs: function(user, snippet, data) {
+        return new Promise(function(resolve, reject) {
+            var searchQuery = {
+                user: user.id,
+                snippet: snippet.id
+            };
+
+            var updates = {
+                user: user.id,
+                snippet: snippet.id,
+                follow: data.follow,
+                star: data.star
+            };
+
+            var options = {
+                upsert: true
+            };
+
+            // update the user if s/he exists or add a new user
+          models.GithubUserSnippetRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
+                if (err || !userRef) {
+                    return reject(err);
+                } else {
+                    if (userRef == null) {
+                        // it is not possible to unfollow snippet
+                        // if there were not any reference
+                        snippet.followers += data.follow ? 1: 0;
+                        snippet.stars += data.star ? 1 : 0;
+                    }
+                    else {
+                      if (data.follow != undefined && userRef.follow != data.follow) {
+                        snippet.followers += data.follow ? 1: -1;
+                      }
+                      else if (data.star != undefined && userRef.star != data.star) {
+                        snippet.stars += data.star ? 1 : -1;
+                      }
+                    }
+                    snippet.save();
+                    return resolve(userRef);
+                }
+            });
+          
+        });
+        
     },
     listSnippet: function (options) {
         options = options || {};
@@ -735,21 +783,12 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
             dbAPI
             .followRepo(req.user.id, foundRepo.id, req.body.follow)
             .then(function(obj) {
-                // Increase/decrease followers
-                
-// TODO: Compare the previous value with a new one, and do nothing if nothing changed
-console.log("BODU IS: " + req.body.follow);
-var what_is_going_on = 
-(foundRepo.followers == undefined || foundRepo.followers < 0 ? {$set: {followers: 0}} :
-                  {$inc: {followers: (req.body.follow == "true" ? 1 : -1)}});
+              // Increase/decrease followers
+              var what_is_going_on = 
+                (foundRepo.followers == undefined || foundRepo.followers < 0 ? {$set: {followers: 0}} :
+                    {$inc: {followers: (req.body.follow == "true" ? 1 : -1)}});
 
-                  console.log(what_is_going_on);
-
-                models.GithubRepoModel.update(foundRepo, what_is_going_on, {wait:true}, function(err, data) {
-                      console.log(err);
-                      console.log(data);
-                      console.log(foundRepo);
-                      });
+                models.GithubRepoModel.update(foundRepo, what_is_going_on, {wait:true}, function(err, data) {});
                 res.send(obj);
             },
             function(err) {
@@ -757,7 +796,6 @@ var what_is_going_on =
             });
         },
         function (err) {
-            log.info("ERROR: " + err);
             res.send({status: 500, error: err});
         });
 });
@@ -926,6 +964,34 @@ server.put('/api/snippets/:id', ensureAuthenticated, function (req, res) {
         return;
     }
 
+    // Update relations to the snippet
+    if (req.body.follow != undefined || req.body.star != undefined) {
+      dbAPI
+        .getSnippetById(req.params.id, req.user.id)
+        .then(
+            function (snippet) {
+              if (req.user.id == snippet.userId) {
+                res.send({status: 404, error: "It is not possible to follow or star your own snippet"});
+                return;
+              }
+              dbAPI
+                .updateSnippetRefs(req.user, snippet, req.body)
+                .then(function(item) {
+                   res.send(item);
+                },
+                function(error) {
+                  res.send({status: 500, error:error});
+                });
+                return;
+            },
+            function (error) {
+                log.info("GOT SNIPPET PROMISE FAILED");
+                res.send({error: "Failed to create snippet", status: 400});
+            });
+      return;
+    } // update relation
+              
+    // Update snippet itself
     dbAPI
         .updateSnippet(data, req.user.id)
         .then(
