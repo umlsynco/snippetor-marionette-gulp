@@ -134,6 +134,17 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     // User model
     //
     var userModel = Backbone.Model.extend({url: SERVER_API_URL + "users",
+            parse: function(response) {
+                if (!response || !response.user) return response;
+                var result = $.extend({}, response.user, {follow: response.follow});
+                return result;
+            },
+            canFollow: function() {
+              if(this.get("follow")  != true && this.get("follow")  != "true") {
+                  return "follow";
+              }
+              else return "unfollow";
+            },
             doFollow: function(options, value) {
                 var that = this;
                 $.ajax({
@@ -152,12 +163,15 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
                   this.doFollow(options, true);
                   return;
                 }
+                else {
+                    alert("NO WAY TO FOLLOW NOT REGISTERED USER  !!!");
+                }
 
-                var that = this;
+/*                var that = this;
                 this.save({wait:true}).then(function(model) {
                   if (that.has("_id"))
                     that.doFollow(options, true);
-                });
+                });*/
             },
             unfollow: function(options) {
                 this.doFollow(options, false);
@@ -197,7 +211,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
 
                getUser
                .fetch({data: {username: descr.login}}, {wait: true})
-               .then(function() {
+               .then(function(data) {
                      resolve(getUser);
                    },
                    function(err) {

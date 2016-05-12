@@ -42,6 +42,9 @@ define(
         },
         snippet_repo_model : null,
         onRender : function() {
+          // if gid available then it is server model            
+          if (this.model.get("gid")) return;
+
           var that = this;
           serverAPI.getRepoModel(
               {
@@ -52,8 +55,10 @@ define(
               },
               function(err, model) {
                 if (model && model.has("count")) {
-                  that.$el.find("#repo-snippets-count")
-                      .append(model.get("count"));
+                  that
+                  .$el
+                  .find("#repo-snippets-count")
+                  .append(model.get("count"));
                 }
                 that.snippet_repo_model = model;
               }); // getRepoModel
@@ -65,7 +70,15 @@ define(
         template : _.template(
             '<h3>Popular repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
         childView : repoListView,
+        initialize: function() {
+            this.collection = this.model.collection;
+        },
         childViewContainer : "ul.mini-repo-list"
+      });
+      
+      var repoColumns = Marionette.CollectionView.extend({
+          className: "one-half",
+          childView: miniRepoList
       });
 
       var VcardView = Marionette.ItemView.extend({
@@ -102,17 +115,27 @@ define(
         childViewContainer : "ul.mini-repo-list",
         regions : {
           vcard : "div.vcard",
-          popularRepos : "div.popular-repos>div.one-half"
+          vcard_snippets: "div.vcard_snippets",
+          popularRepos : "div.popular-repos",
         },
         initialize : function(options) {
           this.github = options.githubAPI;
           serverAPI = options.serverAPI;
         },
         events: {
-			"click span.follow": "onFollow"
+			"click span.follow": "onFollow",
+            "click span.unfollow": "onUnFollow"
 		},
 		onFollow: function() {
+            if (this.$el.find("span.follow").hasClass("disabled")) return;
 			this.serverUser.follow();
+                         this.$el.find("span.follow").css("display", "none");
+                         this.$el.find("span.unfollow").css("display", "block");
+		},
+		onUnFollow: function() {
+			this.serverUser.unfollow();
+                         this.$el.find("span.unfollow").css("display", "none");
+                         this.$el.find("span.follow").css("display", "block");
 		},
         serverUser: null,
         //
@@ -129,6 +152,12 @@ define(
 			var model = new Backbone.Model(data)
 
             that.vcard.show(new VcardView({model : model}));
+            //
+            // Mini repo view - uses to show the list of the user repositories
+            // There are 3 views could be created
+            //
+            that.popularReposModels = new Backbone.Collection;
+            that.popularRepos.show(new repoColumns({collection: that.popularReposModels}));
 
             //
             // Ask server about user and repositories
@@ -139,6 +168,24 @@ define(
             .getUserDetails(data)
             .then(function(srvUserData) {
                    that.serverUser = srvUserData;
+                   // TODO: probably extra checking, if no user then reject ?
+                   if (srvUserData.get("_id")) {
+                     var cf = that.serverUser.canFollow();
+                     if (cf == "follow") {
+                         that.$el.find("span.follow button").removeClass("disabled");
+                     }
+                     else {
+                         that.$el.find("span.follow button").removeClass("disabled");
+                         that.$el.find("span.follow").css("display", "none");
+                         that.$el.find("span.unfollow").css("display", "block");
+                     }
+                   }
+                   // TODO: Extract user popular repositories
+                   /*var data2 = that.serverUser.getPopularRepos();
+                   if (data2) {
+                     var allRepos = new Backbone.Collection(data2)
+                     that.popularReposModels.add(allRepos.models[0]);
+                   }*/
 				},
 				function(error) {
                     alert(error);
@@ -149,8 +196,11 @@ define(
             // Get list of user repositories
             //
             user.userRepos(username, {type : data.type}, function(err, data2) {
-              that.popularRepos.show(new miniRepoList(
-                  {collection : new Backbone.Collection(data2)}));
+              if (data2 && data2.length > 0) {
+                 // Extend user repositories from github
+                 var allRepos = new Backbone.Collection(data2)
+                 that.popularReposModels.add(allRepos.models[0]);
+              }
             });
           });
         },

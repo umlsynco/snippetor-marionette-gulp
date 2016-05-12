@@ -286,6 +286,25 @@ var dbAPI = {
             });
         }); // Promise
     },
+    getUserRepos: function(realUser, query) {
+      return new Promise(function(resolve,reject) {
+                    models
+                    .GithubUserRefs
+                    .find({user: realUser._id})
+                    .sort({'count': -1, 'follow': -1})
+                    .limit(query.limit ? query.limit : 10)
+                    .populate("repository")
+                    .exec()
+                    .then(function(error, listOfUserRepos) {
+                        if (error) {
+                            reject({status: 500, error: "Server error: " + error});
+                        }
+                        else {
+                            resolve(listOfUserRepos);
+                        }
+                    });
+      }); // Promise
+    },
     checkRepoFollowing: function (userId, repoId) {
         return new Promise(function (resolve, reject) {
             console.log({user: userId, repository: repoId});
@@ -567,6 +586,30 @@ server.get('/api/users/:id', function (req, res, id) {
         }
         if (!err) {
             return res.send({status: 'OK', user: user});
+        } else {
+            res.statusCode = 500;
+            log.error('Internal error(%d): %s', res.statusCode, err.message);
+            return res.send({error: 'Server error'});
+        }
+    });
+});
+
+server.get('/api/users/:id/repos', function (req, res, id) {
+    return userModel.findById(req.params.id, function (err, user) {
+        if (!user) {
+            res.statusCode = 404;
+            return res.send({error: 'Not found'});
+        }
+        if (!err) {
+            dbAPI
+            .getUserRepos(user, req.query)
+            .then(function(repositories) {
+                res.send(repositories);
+            },
+            function(error) {
+                res.statusCode = 500;
+                res.send(error);
+            });
         } else {
             res.statusCode = 500;
             log.error('Internal error(%d): %s', res.statusCode, err.message);
