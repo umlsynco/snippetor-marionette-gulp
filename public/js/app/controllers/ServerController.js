@@ -91,7 +91,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
                 this
                 .save(options, {patch: true,
                     success: function(data) {
-                        alert("PATCHED !!!");
+                        App.vent.trigger("snippet:updated", data);
                     },
                     error: function(error) {
                         alert("PATCH FAILED !!!");
@@ -224,14 +224,16 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         working_snippet: null,
         resetWorkingSnippet: function (ws) {
             this.working_snippet = ws;
+            App.vent.trigger("snippet:new", this.working_snippet);
         },
         //
         // Get an opened working snippet
         // OR create a new model
         //
         getWorkingSnippet: function () {
-            if (!this.working_snippet)
-                this.working_snippet = new snippetItem();
+            if (!this.working_snippet) {
+                this.resetWorkingSnippet(new snippetItem());
+            }
             return this.working_snippet;
         },
         //

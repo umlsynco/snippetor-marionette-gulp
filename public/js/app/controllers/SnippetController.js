@@ -1,3 +1,9 @@
+//
+// It should be bridge between snippet and history models
+// It should be github independent part and should not provide
+// storage specific options for comment and history items
+//
+//
 define([
   'App',
   'backbone',
@@ -70,6 +76,7 @@ define([
                  }
              }});
              this.server.resetWorkingSnippet(model);
+             this.history.resetWorkingSnippet(model);
            },
            //
            // reload current snippet

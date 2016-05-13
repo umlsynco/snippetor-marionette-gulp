@@ -2,11 +2,10 @@ define([
   'App',
   'backbone',
   'marionette',
-  //'controllers/SnippetHistoryController',
   'controllers/SnippetNextPrevController',
   'views/HistoryView'
 ],
-       function(App, Backbone, Marionette, // SnippetHistoryController,
+       function(App, Backbone, Marionette,
                 SnippetNextPrevController, historyListView) {
 
          var serverAPI = null;
@@ -32,6 +31,8 @@ define([
 
          var nextPrevController =
              new SnippetNextPrevController({historyList : historyList});
+             
+         var toolboxModel = new Backbone.Model;
 
          App.addInitializer(function() {
            // Add visited page to the list
@@ -43,6 +44,7 @@ define([
              var active = historyList.where({"active" : true});
              if (active.length == 0) {
                historyList.add(new historyModel(data));
+               alert("NEW ITEM !!! RESET TOOLBOX !!!");
              } else {
                // insert right after active element
                // TODO: check that it is not the same file !!!
@@ -157,6 +159,10 @@ define([
                }
              }); // page:navigate
            });   // history:navigate
+
+           App.vent.on("snippet:new", function(snippet) {
+               alert("HANDLE NEW SNIPPET !!!");
+           });
          });     // addInitializer
 
          return Backbone.Marionette.Controller.extend({
@@ -164,7 +170,10 @@ define([
              // left side history view
              this.server = options.backend;
              serverAPI = options.backend;
-             this.view = new historyListView({collection : historyList});
+             this.view = new historyListView({collection : historyList, model: toolboxModel});
+           },
+           resetWorkingSnippet: function(snippet) {
+               
            },
            //
            // Left side view
