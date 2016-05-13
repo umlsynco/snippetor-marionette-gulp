@@ -133,7 +133,7 @@ define(['App', 'backbone', 'marionette'],
         <li><a class="sp-menu-item" href="#"><i class="fa fa-code-fork fw"></i> Fork snippet</a></li>\
         <li><a class="sp-menu-item" href="#"><i class="fa fa-star fw"></i> Star snippet</a></li>\
         <li><a class="sp-menu-item" href="#"><i class="fa fa-user fw"></i> More user\'s snippets </a></li>\
-        <li><a class="sp-menu-item" href="#"><i class="fa fa-eye-open fw"></i> Watch </a></li>\
+        <li><a class="sp-menu-item" href="#"><i class="fa fa-eye fw"></i> Watch </a></li>\
         <li><a class="sp-menu-item" href="#"><i class="fa fa-question fw"></i> Questions ???</a></li>\
     </ul>\
   </div>\
@@ -157,25 +157,25 @@ define(['App', 'backbone', 'marionette'],
         showType: function(ifa) {
             if (ifa.hasClass("fa-user")) {
                 // show user for current snippet
-                App.trigger("snippet:user", {});
+                App.vent.trigger("snippet:user", {});
             }
             else if (ifa.hasClass("fa-star")) {
-                App.trigger("snippet:star", {});
+                App.vent.trigger("snippet:star", true);
             }
             else if (ifa.hasClass("fa-code-fork")) {
-                App.trigger("snippet:fork", {});
+                App.vent.trigger("snippet:fork", {});
             }
-            else if (ifa.hasClass("fa-eye-open")) {
-                App.trigger("snippet:watch", {});
+            else if (ifa.hasClass("fa-eye")) {
+                App.vent.trigger("snippet:follow", true);
             }
             else if (ifa.hasClass("fa-question")) {
-                App.trigger("snippet:question", {});
+                App.vent.trigger("snippet:question", {});
             }
             else if (ifa.hasClass("fa-save")) {
                 App.appRouter.navigate("/github.com/snippets/save", {trigger: true});
             }
             else if (ifa.hasClass("fa-repeat")) {
-                App.trigger("snippet:reload", {});
+                App.vent.trigger("snippet:reload", {});
             }
             else if (ifa.hasClass("fa-close")) {
                 App.vent.trigger("snippet:close", {});

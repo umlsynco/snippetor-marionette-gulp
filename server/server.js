@@ -477,10 +477,11 @@ var dbAPI = {
 
             var updates = {
                 user: user.id,
-                snippet: snippet.id,
-                follow: data.follow,
-                star: data.star
+                snippet: snippet.id
             };
+
+            if (data.follow) updates.follow = data.follow;
+            if (data.star) updates.star = data.star;
 
             var options = {
                 upsert: true
@@ -488,7 +489,7 @@ var dbAPI = {
 
             // update the user if s/he exists or add a new user
           models.GithubUserSnippetRefs.findOneAndUpdate(searchQuery, updates, options, function (err, userRef) {
-                if (err || !userRef) {
+                if (err) {
                     return reject(err);
                 } else {
                     if (userRef == null) {
@@ -506,7 +507,7 @@ var dbAPI = {
                       }
                     }
                     snippet.save();
-                    return resolve(userRef);
+                    resolve({star: data.star, follow: data.follow, stars: snippet.stars, followers: snippet.followers});
                 }
             });
           
@@ -963,34 +964,7 @@ server.put('/api/snippets/:id', ensureAuthenticated, function (req, res) {
         res.send({error: "Invalid parameter", status: 400});
         return;
     }
-
-    // Update relations to the snippet
-    if (req.body.follow != undefined || req.body.star != undefined) {
-      dbAPI
-        .getSnippetById(req.params.id, req.user.id)
-        .then(
-            function (snippet) {
-              if (req.user.id == snippet.userId) {
-                res.send({status: 404, error: "It is not possible to follow or star your own snippet"});
-                return;
-              }
-              dbAPI
-                .updateSnippetRefs(req.user, snippet, req.body)
-                .then(function(item) {
-                   res.send(item);
-                },
-                function(error) {
-                  res.send({status: 500, error:error});
-                });
-                return;
-            },
-            function (error) {
-                log.info("GOT SNIPPET PROMISE FAILED");
-                res.send({error: "Failed to create snippet", status: 400});
-            });
-      return;
-    } // update relation
-              
+             
     // Update snippet itself
     dbAPI
         .updateSnippet(data, req.user.id)
@@ -1002,6 +976,48 @@ server.put('/api/snippets/:id', ensureAuthenticated, function (req, res) {
                 res.send({error: "Failed to create snippet", status: 400});
             });
 }); // PUT
+
+
+server.patch('/api/snippets/:id', ensureAuthenticated, function (req, res) {
+    console.log(req.body);
+    var data = req.body;
+
+    // Update relations to the snippet
+    if (req.body.follow == undefined && req.body.star == undefined) {
+        res.send({error: "Invalid parameter", status: 400});
+        return;
+    }
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // TODO: do not populate snippet's repositories and comments
+    //       Just check that snippet exists
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    dbAPI
+    .getSnippetById(req.params.id, req.user.id)
+    .then(
+      function (snippet) {
+        if (req.user.id == snippet.userId) {
+          res.send({status: 404, error: "It is not possible to follow or star your own snippet"});
+          return;
+        }
+        dbAPI
+        .updateSnippetRefs(req.user, snippet, req.body)
+        .then(
+          function(item) {
+            res.send(item);
+          },
+          function(error) {
+            res.send({status: 500, error:error});
+          }
+        );
+        return;
+      },
+      function (error) {
+        log.info("GOT SNIPPET PROMISE FAILED");
+        res.send({error: "Failed to create snippet", status: 400});
+    });
+}); // PATCH
+
 
 //
 // DELETE snipppet by id
