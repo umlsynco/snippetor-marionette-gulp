@@ -177,6 +177,24 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
             },
             unfollow: function(options) {
                 this.doFollow(options, false);
+            },
+            getPopularRepos: function(query) {
+              var that = this;
+              return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: SERVER_API_URL + "users/" + that.get("_id") + "/repos",
+                    type: 'GET',
+                    dataType: "JSON",
+                    data: query
+                }).then(function(data) {
+                    if (data && data.length > 0) {
+                        resolve(new Backbone.Collection(data));
+                    }
+                    else {
+                        reject("Failed to get use repositories");
+                    }
+                });
+              }); // Promise
             }
         });
 

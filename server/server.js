@@ -295,14 +295,16 @@ var dbAPI = {
                     .limit(query.limit ? query.limit : 10)
                     .populate("repository")
                     .exec()
-                    .then(function(error, listOfUserRepos) {
-                        if (error) {
-                            reject({status: 500, error: "Server error: " + error});
+                    .then(
+                        function(listOfUserRepos) {
+                          resolve(listOfUserRepos.filter(function(value) {
+                            return (value.repository != null);
+                          }));
+                        },
+                        function(error) {
+                          reject({status: 500, error: "Server error: " + error});
                         }
-                        else {
-                            resolve(listOfUserRepos);
-                        }
-                    });
+                    ); // then
       }); // Promise
     },
     checkRepoFollowing: function (userId, repoId) {
@@ -869,11 +871,6 @@ server.post('/api/repos', function (req, res) {
 // TODO: make more complex search by repo, user etc.
 //
 server.get('/api/snippets', ensureAuthenticated, function (req, res) {
-
-    //log.info("GOT USER PROMISE DONE" + req.session.);
-    log.info("_ID: " + req.user._id);
-    log.info("ID:" + req.user.id);
-
     function listSnippetsForQuery(query) {
         dbAPI.listSnippet(query).then(function (snippets) {
                 res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});

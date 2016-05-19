@@ -112,7 +112,7 @@ var GithubUserRepoRefs = new Schema({
         },
         repository: {
             type: Schema.Types.ObjectId,
-            ref: 'github_repo',
+            ref: 'repository',
             required: true
         },
         count: {
@@ -136,7 +136,7 @@ var GithubUserRepoRefs = new Schema({
 // Schemas
 
 var CommentItem = new Schema({
-    repository: {type: Schema.Types.ObjectId, ref: 'github_repo', required: true},
+    repository: {type: Schema.Types.ObjectId, ref: 'repository', required: true},
     path: {type: String, required: true},
     line: {type: Number, required: true},
     comment: {type: String, required: true},
@@ -150,7 +150,7 @@ var SnippetItem = new Schema({
     description: {type: String, required: true}, // Detailed description of the snippet
     tags: {type: String, required: true}, // Hash tags ???
     comments: [{type: Schema.Types.ObjectId, ref: 'comment'}], // list of comments
-    repositories: [{type: Schema.Types.ObjectId, ref: 'github_repo'}], // list of repositories
+    repositories: [{type: Schema.Types.ObjectId, ref: 'repository'}], // list of repositories
     visibility: {
         type: String,
         enum: ['public', 'private', "draft"],
@@ -191,18 +191,40 @@ var GithubUserSnippetRefs = new Schema({
     }
 );
 
-var rawSnippets = new Schema({
-    snippetId: {type: Schema.Types.ObjectId, ref: 'snippet', required: true}, // Unique snippet id
-    commentId: {type: Schema.Types.ObjectId, ref: 'comment', required: true}  // Unique comment for this snippet
-});
+var GithubUserLogs = new Schema({
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        mixed: {
+            type: Schema.Types.Mixed,
+            required: true
+        },
+        action: {
+            type: String,
+            enum: ["create-snippet", "remove-snippet", "update-snippet", "fork-snippet",
+                   "star-snippet", "unstar-snippet",
+                   "follow-snippet", "unfollow-snippet",
+                   "follow-user", "unfollow-user",
+                   "follow-repo", "unfollow-repo"],
+            required: true
+        },
+        modified: Date
+    },
+    {
+        versionKey: false
+    }
+);
 
 
-module.exports.GithubUserModel = mongoose.model('User', GithubUser);
-module.exports.GithubUserFollow = mongoose.model('UserUserFollow', GithubUserFollow);
-module.exports.GithubUserRepoRefs = mongoose.model('UserRepoFollow', GithubUserRepoRefs);
-module.exports.GithubUserSnippetRefs = mongoose.model('UserSnippetFollow', GithubUserSnippetRefs);
+module.exports.GithubUserModel = mongoose.model('User', GithubUser); // User model
+module.exports.GithubUserFollow = mongoose.model('UserUserFollow', GithubUserFollow); // User-User
+module.exports.GithubUserRepoRefs = mongoose.model('UserRepoFollow', GithubUserRepoRefs); // User-Repo
+module.exports.GithubUserSnippetRefs = mongoose.model('UserSnippetFollow', GithubUserSnippetRefs); // User-Snippet
 
-module.exports.GithubRepoModel = mongoose.model('github_repo', GithubRepo);
+module.exports.GithubUserLogs = mongoose.model('UserLogs', GithubUserLogs); // User-Logs - for dashboard
+
+module.exports.GithubRepoModel = mongoose.model('repository', GithubRepo);
 module.exports.CommentItemModel = mongoose.model('comment', CommentItem);
 module.exports.SnippetItemModel = mongoose.model('snippet', SnippetItem);
-module.exports.RawSnippetsModel = mongoose.model('comment_snippet_raw', rawSnippets);
