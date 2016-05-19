@@ -298,6 +298,10 @@ var dbAPI = {
                     .then(
                         function(listOfUserRepos) {
                           resolve(listOfUserRepos.filter(function(value) {
+                              if (value.repository == null) {
+                                value.remove();
+                                return false;
+                              }
                             return (value.repository != null);
                           }));
                         },
@@ -379,6 +383,7 @@ var dbAPI = {
         return new Promise(function (resolve, reject) {
             var newRepo = models.GithubRepoModel({
                 repository: descr.repository,
+                description: descr.description,
                 dataProvider: "GitHub",
                 gid: descr.gid,
                 branch: descr.branch,

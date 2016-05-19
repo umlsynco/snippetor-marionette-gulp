@@ -22,37 +22,10 @@ define(
             <%=stargazers_count%>\
             <svg aria-label="stars" class="octicon octicon-star" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-0.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14l4.33-2.33 4.33 2.33L10.4 9.26 14 6z"></path></svg>\
           </span>\
-          <span class="repo-description css-truncate-target"><%description%></span>\
+          <span class="repo-description css-truncate-target"><%=description%></span>\
         </a>'),
         ui : {"item" : "a#sp-repo-item"},
         events : {"click @ui.item" : "onNavigate"},
-        templateHelpers: function() {
-           return {
-               getFullName: function() {
-                   if (this["_id"]) {
-                       if (this["repository"] ) {
-                           return this["repository"]["repository"];
-                       }
-                       return "NONE";
-                   }
-                   
-                   return this["full_name"] 
-               },
-               getStars: function() {
-                   if (this["_id"]) {
-                       if (this["repository"] ) {
-                           return this["repository"]["stars"];
-                       }
-                       return "NONE";
-                   }
-                   
-                   return this["stargazers_count"] 
-               },
-               getDescription: function() {
-                   return this["description"] || "";
-               }
-           };
-        },
         onNavigate : function(e) {
           e.preventDefault();
           App.appRouter.navigate("/github.com/" + this.model.get("full_name"),
@@ -96,19 +69,21 @@ define(
         className : "public source",
         tagName : "li",
         template : _.template(
-            '<a href="#" id="sp-repo-item" class="mini-repo-list-item css-truncate">\
+        '<a href="#" id="sp-repo-item" class="mini-repo-list-item css-truncate">\
           <svg aria-hidden="true" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
           <span class="repo-and-owner css-truncate-target">\
             <span class="repo" title="node-github"><%= getFullName() %></span>\
           </span>\
-          <span class="stars">\
-            <%=getFollowCount()%>\
-            <svg aria-label="Repository" class="octicon octicon-repo repo-icon" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>\
-          </span>\
-          <span class="repo-description css-truncate-target"><i class="fa fa-comment fw">&nbsp;&nbsp;&nbsp;<%getSnippets()%></i></span>\
+          <span class="right" lable="Repo followers"><i class="fa fa-eye fw">&nbsp;<%=getFollowCount()%>&nbsp;&nbsp;</i></span>\
+          <span id="sp-repo-comments" class="right" lable="Repo snippets"><i class="fa fa-comment fw">&nbsp;<%= getSnippets() %>&nbsp;&nbsp;</i></span>\
+          <span id="sp-repo-comments-for-user" class="right" lable="User snippets in this repo"><i class="fa fa-comment fw">&nbsp;<%= getUserSnippets() %>&nbsp;&nbsp;</i></span>\
         </a>'),
         ui : {"item" : "a#sp-repo-item"},
-        events : {"click @ui.item" : "onNavigate"},
+        events : {
+            "click @ui.item>span.repo-and-owner" : "onNavigate",
+            "click @ui.item>span#sp-repo-comments" : "showRepoSnippets",
+            "click @ui.item>span#sp-repo-comments-for-user" : "showUserRepoSnippets",
+        },
         templateHelpers: function() {
            return {
                getFullName: function() {
@@ -119,6 +94,10 @@ define(
                },
                getSnippets: function() {
                    return this["repository"]["count"];
+               },
+               getUserSnippets: function() {
+                   //
+                   return this["count"];
                }
            };
         },
@@ -129,6 +108,16 @@ define(
                                  {trigger : true});
          
           App.vent.trigger("repo:select", {server : this.model});
+        },
+        showRepoSnippets: function(e) {
+            e.preventDefault();
+            var repo = this.model.get("repository");
+            App.appRouter.navigate("/github.com/snippets?repo=" + repo.repository, {trigger : true});
+        },
+        showUserRepoSnippets: function(e) {
+            e.preventDefault();
+            var repo = this.model.get("repository");
+            App.appRouter.navigate("/github.com/snippets?repo=" + repo.repository+ "&user=" + this.options.user, {trigger : true});
         },
         onRender : function() {
           // if gid available then it is server model            
@@ -152,9 +141,10 @@ define(
       var miniRepoList2 = Marionette.CompositeView.extend({
         className : "boxed-group flush",
         template : _.template(
-            '<h3>Popular repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
+            '<h3>Snippet repositories</h3><ul class="boxed-group-inner mini-repo-list"></ul>'),
         childView : serverRepoItem,
         initialize: function() {
+            this.childViewOptions = {user: this.model.get("user")};
             //this.collection = this.model.collection;
         },
         childViewContainer : "ul.mini-repo-list"
@@ -272,7 +262,7 @@ define(
                    .then(function(data2) {
                       if (data2) {
                         //var allRepos = data2;
-                        that.popularSnippetRepos.show(new miniRepoList2({collection: data2}));
+                        that.popularSnippetRepos.show(new miniRepoList2({collection: data2, model: that.model}));
                         //that.popularReposModels.add(allRepos.models[0]);
                       }
                    });
@@ -290,7 +280,7 @@ define(
                  // Extend user repositories from github
                  var allRepos = new Backbone.Collection(data2)
                  //that.popularReposModels.add(allRepos.models[0]);
-                 that.popularUserRepos.show(new miniRepoList({collection: allRepos}));
+                 that.popularUserRepos.show(new miniRepoList({collection: allRepos, model: that.model}));
               }
             });
           });

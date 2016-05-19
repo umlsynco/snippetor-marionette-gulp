@@ -58,6 +58,15 @@ var GithubRepo = new Schema({
             type: String,
             required: true
         },
+        description: {
+            type: String,
+            required: true
+        },
+        isDefault: { // Indicate if it is default branch
+            type: Boolean,
+            required: true,
+            default: 0
+        },
         gid: { // Github repo id, to be able to handle repo name change in the future
             type: Number,
             required: true
