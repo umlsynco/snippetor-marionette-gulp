@@ -43,7 +43,7 @@ define(
         snippetorAPI : snippetorAPI,
         serverAPI : serverAPI
       });
-      
+
       var snippetController = new SnippetController({
           server: serverAPI,
           history: snippetorAPI,

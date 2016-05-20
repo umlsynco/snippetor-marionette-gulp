@@ -44,7 +44,6 @@ define([
              var active = historyList.where({"active" : true});
              if (active.length == 0) {
                historyList.add(new historyModel(data));
-               alert("NEW ITEM !!! RESET TOOLBOX !!!");
              } else {
                // insert right after active element
                // TODO: check that it is not the same file !!!

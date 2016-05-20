@@ -150,11 +150,6 @@ define(
         childViewContainer : "ul.mini-repo-list"
       });
       
-/*      var repoColumns = Marionette.CollectionView.extend({
-          className: "one-half",
-          childView: miniRepoList
-      });
-*/
       var VcardView = Marionette.ItemView.extend({
         template : _.template(
             '<a href="<%= avatar_url%>&amp;s=400" aria-hidden="true" class="vcard-avatar d-block position-relative" itemprop="image">\
@@ -271,7 +266,6 @@ define(
                     alert(error);
 				}
             ); // then
-
             //
             // Get list of user repositories
             //
@@ -286,6 +280,5 @@ define(
           });
         },
         template : _.template(user_profile)
-
       });
     });

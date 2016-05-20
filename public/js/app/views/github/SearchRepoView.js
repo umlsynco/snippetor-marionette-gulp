@@ -94,7 +94,8 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
              serverAPI.getRepoModel({
                 gid: this.model.get("id"), // github id
                 repository: this.model.get("full_name"), // repository full name
-                branch: this.model.get("default_branch") // default branch
+                branch: this.model.get("default_branch"), // default branch
+                description: this.model.get("description"),
             },
             function(err, model) {
                     if (model && model.has("count")) {
