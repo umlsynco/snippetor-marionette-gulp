@@ -524,7 +524,7 @@ var dbAPI = {
     listSnippet: function (options) {
         options = options || {};
         return new Promise(function (resolve, reject) {
-            models
+              models
                 .SnippetItemModel
                 .find(options)
                 .populate("userId")
@@ -885,19 +885,49 @@ server.get('/api/snippets', ensureAuthenticated, function (req, res) {
             });
     }
 
-    if (req.query.user) {
-        dbAPI.getUserByName(null, req.query.user).then(
+    function listSnippetsForUser(username, repoId) {
+      dbAPI.getUserByName(null, username).then(
             function (realUser) {
                 if (!realUser) {
-                    res.send("No user found:" + req.query.user);
+                    res.send("No user found:" + username);
                     return;
                 }
 
-                listSnippetsForQuery({userId: realUser._id});
+                if (repoId) {
+                  listSnippetsForQuery({userId: realUser._id, repositories: repoId});
+                }
+                else {
+                  listSnippetsForQuery({userId: realUser._id});
+                }
             },
             function (error) {
                 res.send("Failed to get user info:" + req.params.user);
             });
+    }
+
+    if (req.query.repo) {
+        console.log("REPO IS : " + req.query.repo);
+            dbAPI
+            .getRepo({repository: req.query.repo})
+            .then(function(gotRepo) {
+                if (gotRepo && gotRepo.length > 0) {
+                  if (req.query.user) {
+                    listSnippetsForUser(req.query.user, gotRepo[0]._id);
+                  }
+                  else {
+                      listSnippetsForQuery({repositories: gotRepo[0]._id});
+                  }
+                }
+                else {
+                    res.send("Failed to get repository info:" + req.query.repo);
+                }
+            },
+            function(error) {
+                 res.send("Failed to get repository info:" + req.params.repo);
+            });
+    }
+    else if (req.query.user) {
+        listSnippetsForUser(req.query.user);
     }
     else {
         listSnippetsForQuery({});
