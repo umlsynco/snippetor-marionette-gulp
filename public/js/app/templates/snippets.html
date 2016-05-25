@@ -9,8 +9,8 @@
           Filters
         </button>
   <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
-    <li><a href="#"><input type="checkbox" value="">   User (user:umlsynco)</a></li>
-    <li><a href="#"><input type="checkbox" value="">   Respository (repo:baragoz/diagrams)</a></li>
+    <li><a id="sp-snippets-user" href="#"><input type="checkbox" value="">   User (  <span></span>  )</a></li>
+    <li><a id="sp-snippets-repo" href="#"><input type="checkbox" value="">   Respository (  <span></span>  )</a></li>
     <li role="separator" class="divider"></li>
     <li><a href="#"><input type="checkbox" value="">   Modified (modified:*)</a></li>
     <li><a href="#"><input type="checkbox" value="">   Created at (age:*)</a></li>
@@ -20,7 +20,7 @@
 
       </div>
 
-<form accept-charset="UTF-8" action="/github.com/snippets" class="sp-submission subnav-search left" data-pjax="true" method="get">
+<form id="sp-snippets-search" accept-charset="UTF-8" action="/github.com/snippets" class="sp-submission subnav-search left" data-pjax="true" method="get">
       <div style="margin:0;padding:0;display:inline">
           <input name="utf8" value="✓" type="hidden">
           <input name="user" value="all" type="hidden">
@@ -29,7 +29,7 @@
           <input name="createdAt" value="" type="hidden">
           <input name="modifiedAt" value="" type="hidden">
       </div>
-      <input name="q" value="search scope" id="js-issues-search" class="subnav-search-input input-contrast" placeholder="Search all issues" aria-label="Search all issues" type="text">
+      <input id="q" name="q" value="search scope" id="js-issues-search" class="subnav-search-input input-contrast" placeholder="Search all issues" aria-label="Search all issues" type="text">
       <svg aria-hidden="true" class="octicon octicon-search subnav-search-icon" height="16" role="img" version="1.1" viewBox="0 0 16 16" width="16"><path d="M15.7 14.3L11.89 10.47c0.7-0.98 1.11-2.17 1.11-3.47 0-3.31-2.69-6-6-6S1 3.69 1 7s2.69 6 6 6c1.3 0 2.48-0.41 3.47-1.11l3.83 3.81c0.19 0.2 0.45 0.3 0.7 0.3s0.52-0.09 0.7-0.3c0.39-0.39 0.39-1.02 0-1.41zM7 11.7c-2.59 0-4.7-2.11-4.7-4.7s2.11-4.7 4.7-4.7 4.7 2.11 4.7 4.7-2.11 4.7-4.7 4.7z"></path></svg>
 </form>
 

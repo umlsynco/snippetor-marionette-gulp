@@ -177,6 +177,19 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
               "click a.snippets-remove": "removeSelected",
               "click a.sp-snippets-search": "searchScope"
           },
+          onRender: function() {
+              var $input = this.$el.find("#sp-snippets-search>input#q");
+              if (this.model.get("repo")) {
+                  this.$el.find("#sp-snippets-repo>span").html(this.model.get("repo"));
+                  this.$el.find("#sp-snippets-repo>input").prop("checked", true );
+                  $input.val("repo:" + this.model.get("repo") + " " + $input.val());
+              }
+              if (this.model.has("user")) {
+                  this.$el.find("#sp-snippets-user>span").html(this.model.get("user"));
+                  this.$el.find("#sp-snippets-user>input").prop("checked", true );
+                  $input.val("user:" + this.model.get("user") + " " + $input.val());
+              }
+          },
           searchScope: function(e) {
               e.preventDefault();
               var selected_item = $(e.currentTarget);

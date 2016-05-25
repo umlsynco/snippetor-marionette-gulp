@@ -166,7 +166,17 @@ define(
         //
         // Show list of the user snippets
         //
-        showSnippets : function(q) { pageAPI.request({type : "snippets", query:q || ""}); },
+        showSnippets : function(q) { 
+            var obj = {type : "snippets", query:q};
+            if (q) {
+                var s = q.split("&");
+                for (var i=0; i < s.length; ++i) {
+                    var kv = s[i].split("=");
+                    obj[kv[0]] = kv[1];
+                }
+            }
+            pageAPI.request(obj); 
+        },
         //
         // Create new snippet
         //
