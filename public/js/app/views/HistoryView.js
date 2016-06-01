@@ -141,6 +141,10 @@ define(['App', 'backbone', 'marionette'],
         childViewContainer: "ul.history-list",
         ui: {
             save: "i.fa-save",
+            trash: "i.fa-trash",
+            star: "i.fa-star",
+            eye: "i.fa-eye",
+            codefork: "i.fa-code-fork",
             do_action: "i.fa"
         },
 		childView: historyItem,
@@ -153,6 +157,50 @@ define(['App', 'backbone', 'marionette'],
             "click i.fa" : "OnAction",
             "click button" : "OnButton",
             "click a.sp-menu-item" : "OnTextMenu"
+        },
+        modelEvents: {
+            "change": "OnConfigChange"
+        },
+        onRender: function(){
+          // Initial setup
+          this.model.set({"owner": "init", "modified": false});
+        },
+        OnConfigChange: function() {
+            var modified = this.model.get("modified"),
+            status = this.model.get("owner");
+            if (status == "new") { // New snippet appeared
+                this.ui.save.parent().attr("disabled", false);
+                this.ui.trash.parent().attr("disabled", false);
+                this.ui.star.parent().attr("disabled", true);
+                this.ui.eye.parent().attr("disabled", true);
+                this.ui.codefork.parent().attr("disabled", true);
+            }
+            if (status == "init") { // no data at all, no active menus
+                this.ui.save.parent().attr("disabled", true);
+                this.ui.trash.parent().attr("disabled", true);
+                this.ui.star.parent().attr("disabled", true);
+                this.ui.eye.parent().attr("disabled", true);
+                this.ui.codefork.parent().attr("disabled", true);
+            }
+            else if (status == "owner") { // user could do everythiong with his own snippet
+                if (modified) {
+                  this.ui.save.parent().attr("disabled", false);
+                }
+                else {
+                  this.ui.save.parent().attr("disabled", true);
+                }
+                this.ui.trash.parent().attr("disabled", false);
+                this.ui.star.parent().attr("disabled", false);
+                this.ui.eye.parent().attr("disabled", false);
+                this.ui.codefork.parent().attr("disabled", false);
+            }
+            else if (status == "3pp") { // User can't save or remove snippet of another user
+                this.ui.save.parent().attr("disabled", true);
+                this.ui.trash.parent().attr("disabled", true);
+                this.ui.star.parent().attr("disabled", false);
+                this.ui.eye.parent().attr("disabled", false);
+                this.ui.codefork.parent().attr("disabled", false);
+            }
         },
         showType: function(ifa) {
             if (ifa.hasClass("fa-user")) {

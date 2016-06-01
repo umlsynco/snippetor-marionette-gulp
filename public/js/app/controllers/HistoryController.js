@@ -57,6 +57,11 @@ define([
            // Get item in focus, compare with model, add comment to the  item
            //
            App.vent.on("history:bubble", function(data) {
+             toolboxModel.set({"modified": true});
+             if (toolboxModel.get("owner") == "init") {
+                 toolboxModel.set({"owner": "new"});
+             }
+             
              var wms = historyList.where(
                  {repo : data.repo, branch : data.branch, path : data.path});
              if (wms.length == 0) {
@@ -159,8 +164,26 @@ define([
              }); // page:navigate
            });   // history:navigate
 
+           //
+           // This event trigger on snippet open and close only
+           //
            App.vent.on("snippet:new", function(snippet) {
-               alert("HANDLE NEW SNIPPET !!!");
+               // @toolbox - change 
+               if (snippet == null) {
+                 // null happen on close active snippet
+                 // therefore toolbox show be recovered
+                 toolboxModel.set({"owner": "init"});
+               }
+               else {
+                 // Split owner and 3pp snippets
+                 var owner = snippet.get("owner");
+                 if (owner == "new") {
+                    toolboxModel.set({"owner":  "new"});
+                 }
+                 else
+                    toolboxModel.set({"owner":  owner ? "owner" : "3pp"});
+               }
+               toolboxModel.set({"modified": false});
            });
          });     // addInitializer
 

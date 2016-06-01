@@ -242,6 +242,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         working_snippet: null,
         resetWorkingSnippet: function (ws) {
             this.working_snippet = ws;
+            // uses to update toolbox status.
             App.vent.trigger("snippet:new", this.working_snippet);
         },
         //
@@ -250,7 +251,7 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         //
         getWorkingSnippet: function () {
             if (!this.working_snippet) {
-                this.resetWorkingSnippet(new snippetItem());
+                this.resetWorkingSnippet(new snippetItem({owner: "new"}));
             }
             return this.working_snippet;
         },

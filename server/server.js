@@ -976,10 +976,11 @@ server.get('/api/snippets/:id', ensureAuthenticated, function (req, res) {
         .getSnippetById(req.params.id, req.user.id)
         .then(
             function (snippet) {
-                res.send(snippet);
+                var obj = snippet.toObject();
+                obj.owner = req.user.id == snippet.userId;
+                res.send(obj);
             },
             function (error) {
-                log.info("GOT SNIPPET PROMISE FAILED");
                 res.send({error: "Failed to create snippet", status: 400});
             });
 });
