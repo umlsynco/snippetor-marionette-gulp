@@ -52,7 +52,7 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
       <i class="fa fa-eye fa-fw"></i><%= getWatches() %><br>\
 </a></div>\
   <div class="table-list-cell snippet-title">\
-    <a href="/github.com/snippets/<%= _id %>" class="issue-title-link js-navigation-open">\
+    <a href="/github.com/snippets/<%= _id %>" class="issue-title-link js-navigation-open sp-navigation">\
       <%= name %>\
     </a>\
     <div class="issue-meta">\
@@ -70,10 +70,10 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
     </a>\
   </div>\
   <div class="table-list-cell snippet-author">\
-    <a href="/github.com/snippets?user=<%= getUserId() %>" class="muted-link " aria-label="Filter snipppets" class="tooltipped tooltipped-n">\
+    <a href="/github.com/snippets?user=<%= getUserId() %>" aria-label="Filter snipppets" class="muted-link tooltipped tooltipped-n sp-navigation">\
       <%= getUserId() %>\
     </a>\
-    <a href="/github.com/<%= getUserId() %>" class="muted-link " aria-label="User Profile" class="tooltipped tooltipped-n">\
+    <a href="/github.com/<%= getUserId() %>" aria-label="User Profile" class="muted-link tooltipped tooltipped-n sp-navigation">\
       (<%= userName() %>)\
     </a>\
   </div>\
@@ -136,6 +136,10 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
              "click @ui.fork": "onFork",
              "click @ui.trash": "onSnippetRemove",
              "click @ui.checkbox": "OnChecked"
+         },
+         behaviors: {
+             PreventNavigation: {
+             }
          },
          OnChecked: function() {
              this.model.set({selected: this.ui.checkbox.is(":checked")});

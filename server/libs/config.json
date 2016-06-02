@@ -5,7 +5,7 @@
     },
     "github" :{
       "clientID" : "2495af26a8418ad2f652",
-      "clientSecret" : "cacef225c2e332b31791bc6e8ddfd7078a3690c0",
+      "clientSecret" : "d4bd75c0911de4d84511f7563a4d86ef1eb11a36",
       "callbackURL" : "http://localhost:8001/auth/github/callback"
     }
 }
