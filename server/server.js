@@ -323,7 +323,7 @@ var dbAPI = {
                 });
         });
     },
-    followRepo: function (userId, repoId, follow) {
+    upsertUserRepoRef: function (userId, repoId, follow, count) {
         return new Promise(function (resolve, reject) {
             var searchQuery = {
                 user: userId,
@@ -332,9 +332,10 @@ var dbAPI = {
 
             var updates = {
                 user: userId,
-                repository: repoId,
-                follow: follow
+                repository: repoId
             };
+            if (follow != undefined)  updates.follow = follow;
+            if (count != undefined) updates.$inc = {count: 1};
 
             var options = {
                 upsert: true,
@@ -789,7 +790,7 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
 
     dbAPI.getRepoById(req.params.id).then(function (foundRepo) {
             dbAPI
-            .followRepo(req.user.id, foundRepo.id, req.body.follow)
+            .upsertUserRepoRef(req.user.id, foundRepo.id, req.body.follow)
             .then(function(obj) {
               // Increase/decrease followers
               var what_is_going_on = 
@@ -961,6 +962,15 @@ server.post('/api/snippets', ensureAuthenticated, function (req, res) {
         .then(
             function (snippet) {
                 res.send(snippet);
+                // Update user counter for the created snippets
+                // TODO: Identify how to reduce the number of the user
+                //       snippets for the current repository
+                var update_repo_refs = function(repoId) {
+                   // undefined allow us to do not update follow flag
+                   // true - means that we need to increase counter
+                   dbAPI.upsertUserRepoRef(req.user.id, repoId, undefined, true);
+                };
+                snippet.repositories.map(update_repo_refs);
             },
             function (error) {
                 log.info("GOT SNIPPET PROMISE FAILED");
