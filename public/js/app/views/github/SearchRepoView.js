@@ -1,9 +1,8 @@
-define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette, PreventSubmission) {
-	
-    
+define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
+  function(App, Marionette, PreventSubmission, PreventNavigation) {
       var serverAPI = null;
+
 	  // GitHub Repository item description:
-	
       var repoItem = Marionette.ItemView.extend({
          tagName: 'tr',
          template: _.template('\
@@ -21,7 +20,7 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
                       </p>\
             </td>\
             <td style="background-color:rgba(0, 10, 0, 0.1);">\
-                        <a class="repo-list-stat-item tooltipped tooltipped-s" href="/github.com/snippets?repo=<%= full_name %>" aria-label="Snippets" id="repo-snippets-count">\
+                        <a class="repo-list-stat-item tooltipped tooltipped-s sp-navigation" href="/github.com/snippets?repo=<%= full_name %>" aria-label="Snippets" id="repo-snippets-count">\
                           <i class="fa fa-comment fw">&nbsp;&nbsp;&nbsp;0</i>\
                         </a>\
             </td>\
@@ -68,6 +67,10 @@ define( ['App', 'marionette', 'behaviours/submission'], function(App, Marionette
              "click h3.repo-list-name>a": "OnSelectRepo",
              "click button#sp-follow-repo": "onRepoFollow",
              "click button#sp-unfollow-repo": "onRepoUnfollow"
+         },
+         behaviors: {
+           PreventNavigation: {
+           }
          },
          onRepoFollow: function() {
              this.snippet_repo_model && this.snippet_repo_model.follow();
