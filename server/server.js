@@ -453,6 +453,10 @@ var dbAPI = {
                     }
                     else {
                         snippet.repositories.map(dbAPI.increaseSnippetsCount);
+                        // @journal - report snippet create in the repository
+                        snippet.repositories.map(function(repoId) {
+                            dbAPI.reportLog(userModelId, repoId, snippet.id, null, "create-snippet");
+                        });
                         resolve(snippet);
                     }
                 }); // save
@@ -478,7 +482,11 @@ var dbAPI = {
                                 reject({message: "Failed to create snippet comment", staus: 500});
                             }
                             else {
-                                resolve(affected);
+                              // @journal - report snippet update for all repositories
+                              data.repos.map(function(repoId) {
+                                dbAPI.reportLog(userModelId, repoId, data._id, null, "update-snippet");
+                              });
+                              resolve(affected);
                             }
                         });// on save comment
         }); // Promise
@@ -498,8 +506,8 @@ var dbAPI = {
                 snippet: snippet.id
             };
 
-            if (data.follow) updates.follow = data.follow;
-            if (data.star) updates.star = data.star;
+            if (data.follow != undefined) updates.follow = data.follow;
+            if (data.star != undefined) updates.star = data.star;
 
             var options = {
                 upsert: true
@@ -510,6 +518,16 @@ var dbAPI = {
                 if (err) {
                     return reject(err);
                 } else {
+                    // @journal - report snippet follow/unfollow
+                    if (data.follow != undefined && (
+                       userRef == null || userRef.follow != data.follow)) // userRef == null means that it is a new record
+                    dbAPI.reportLog(user.id, null, snippet.id, null,  (data.follow ? "follow-snippet" : "unfollow-snippet"));
+
+                    // @journal - report snippet star/unstar
+                    if (data.star != undefined && (
+                       userRef == null || userRef.star != data.star))  // userRef == null means that it is a new record
+                    dbAPI.reportLog(user.id, null, snippet.id, null,  (data.star ? "star-snippet": "unstar-snippet"));
+                    
                     if (userRef == null) {
                         // it is not possible to unfollow snippet
                         // if there were not any reference
@@ -659,7 +677,42 @@ var dbAPI = {
                 }
             });// on save comment
         }); // Promise
-    } // make user report
+    }, // make user report
+
+    dashboard: function(userId, page) {
+     return new Promise(function (resolve, reject) {
+        var showLimit=30;
+        // There are 3 tables of user references:
+        Promise
+        .all([models.GithubUserSnippetRefs.find({user: userId}, 'follow_user').exec(),
+              models.GithubUserRepoRefs.find({user: userId}, 'repository').exec(),
+              models.GithubUserFollow.find({user: userId}, 'snippet').exec()])
+        .then(function(values) {
+            console.log("GOL VALUES");
+            console.log(values);
+            var followUsers = values[0], followRepos = values[1], followSnippets = values[2];
+            models.GithubUserLogs
+            .where('user').in(followUsers)
+            .where('repository').in(followRepos)
+            .where('snippet').in(followSnippets)
+            .skip(showLimit*page)
+            .limit(showLimit)
+            .asc('createdAt')
+//            .populate('user')
+//            .populate('repository')
+//            .populate('snippet')
+            .exec(function(err, docs) {
+                if (err) { reject(err); }
+                else { resolve(docs); }
+                
+            });
+        },
+        function(error) {
+            console.log("PROMISE ALL ERRROR");
+            console.log(error);
+        }); // Promise.all
+      });// Promise   
+    }
 };
 
 
@@ -1107,6 +1160,23 @@ server.delete('/api/snippets/:id', ensureAuthenticated, function (req, res) {
                 res.send({error: "Failed to remove snippet", status: 400});
             }); // got user complete
 }); // DELETE
+
+/////////////////////////////////////////// DASHBOARD API ///////////
+//
+// Request user subscriptions
+//
+server.get('/api/dashboard', ensureAuthenticated, function (req, res) {
+    console.log("DASHBOARD");
+    dbAPI.dashboard(req.user.id, 0).then(function (activityLogs) {
+        console.log("COMPLETE !!!");
+            res.send(activityLogs);
+        },
+        function (err) {
+            console.log("ERROR COMPLETE !!!");
+            log.info("ERROR: " + err);
+            res.send(err);
+        });
+});
 
 server.get("/", function (req, res) {
     if (req.isAuthenticated()) {
