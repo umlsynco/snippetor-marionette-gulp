@@ -2,6 +2,7 @@ define(['marionette', 'controllers/Controller'], function(Marionette, Controller
    return Marionette.AppRouter.extend({
        //"index" must be a method in AppRouter's controller
        appRoutes: {
+           "github\.com/": "showDashboard",
            "github\.com/search": "githubRepoSearch", // q=query & type=Repositories & utf8 - unused
            "github\.com/snippets": "showSnippets",
            "github\.com/snippets/new": "newSnippetForm",

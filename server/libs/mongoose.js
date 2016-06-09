@@ -204,11 +204,21 @@ var GithubUserLogs = new Schema({
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: true
+            required: false
+        },
+        repository: {
+            type: Schema.Types.ObjectId,
+            ref: 'repository',
+            required: false
+        },
+        snippet: {
+            type: Schema.Types.ObjectId,
+            ref: 'snippet',
+            required: false
         },
         mixed: {
-            type: Schema.Types.Mixed,
-            required: true
+            type: Schema.Types.ObjectId, // it depends on first
+            required: false
         },
         action: {
             type: String,
@@ -219,7 +229,7 @@ var GithubUserLogs = new Schema({
                    "follow-repo", "unfollow-repo"],
             required: true
         },
-        modified: Date
+        createdAt: Date,
     },
     {
         versionKey: false

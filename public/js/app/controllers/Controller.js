@@ -182,6 +182,9 @@ define(
         //
         newSnippetForm : function() {
              pageAPI.request({type : "new-snippet"});
+        },
+        showDashboard: function() {
+          pageAPI.request({type : "dashboard"});
         }
       }); // Controller
     });   // define

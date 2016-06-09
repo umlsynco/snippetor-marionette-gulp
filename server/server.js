@@ -269,6 +269,10 @@ var dbAPI = {
                 if (err) {
                      return reject(err);
                 } else {
+                    // @journal - journal add follow/unfollow user logs
+                    if (userFollowRef == null || (userFollowRef != null && userFollowRef.follow != follow))
+                      dbAPI.reportLog(logInUser.id, null, null, followedUser.id, follow ? "follow-user" : "unfollow-user");
+
                     // userFollowRef - an old value reference, could be null if there was not any reference
                     // check that follow state changed, otherwise do nothing
                     if ((userFollowRef == null && follow) || (userFollowRef.follow != follow)) {
@@ -347,6 +351,12 @@ var dbAPI = {
                 if (err || !userRef) {
                      return reject(err);
                 } else {
+                    // @journal - log user follow repo
+                    if (follow != undefined && (userRef == null || (userRef && userRef.follow != follow))) {
+                        // keep user ref in the mixed field for a future
+                        dbAPI.reportLog(userId, repoId, null, userRef ? userRef.id: null, (follow ? "follow-repo" : "unfollow-repo"));
+                    }
+                    
                     return resolve(userRef);
                 }
             });
@@ -594,7 +604,6 @@ var dbAPI = {
 
             newComment.save(function (err, nextComment) {
                 if (err) {
-                    console.log("ERROR: " + err);
                     reject({message: "Failed to create snippet comment", staus: 500});
                 }
                 else {
@@ -617,18 +626,40 @@ var dbAPI = {
                         },
                         function (err, affected, resp) {
                             if (err) {
-                                console.log("ERROR: " + err);
                                 reject({message: "Failed to create snippet comment", staus: 500});
                             }
                             else {
-                                console.log("ERR: " + err);
-                                console.log("AFFECTED: " + affected);
-                                console.log("RESP: " + resp);
                                 resolve(affected);
                             }
                         });// on save comment
         }); // Promise
     }, // updateComment
+
+    //
+    // User logs API
+    //
+    reportLog: function(userId, repoId, snippetId, refId, action) {
+        return new Promise(function (resolve, reject) {
+            var data = models.GithubUserLogs({
+                user: userId,
+                repository: repoId,
+                snippet: snippetId,
+                mixed: refId,
+                action: action,
+                createdAt: new Date()
+            });
+
+            data.save(function (err, logItem) {
+                if (err) {
+                    console.log("ERROR: " + err);
+                    reject({message: "Failed to create snippet comment", staus: 500});
+                }
+                else {
+                    resolve(logItem);
+                }
+            });// on save comment
+        }); // Promise
+    } // make user report
 };
 
 

@@ -3,10 +3,12 @@ define( [ 'App', 'marionette',
           "views/github/ListRootView", // "views/github/ListBranchRootView", "views/github/ListSubTreeView", // Tree views
           "views/github/ShowContentView",
           "views/github/UserProfile",
+          "views/github/Dashboard",
           "views/snippets/SnippetsView", "views/snippets/NewSnippetView"], // content view
     function(App, Marionette,
              gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView, // GitHub related views
              gUserProfile, // Github User information
+             DashboardView, // Dashboard view
              SnippetsView, NewSnippetView) { // Snippetor's views
 
         // Collection of the different content which was loaded
@@ -19,6 +21,7 @@ define( [ 'App', 'marionette',
               <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab" data-route="/github.com/search"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab" data-route="/github.com/snippets">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-profile"><a data-target="#profile" data-toggle="tab" data-route="/github.com/umlsynco">Profile <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-dashboard"><a data-target="#dashboard" data-toggle="tab" data-route="/github.com/">Dashboard<i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\
             <div class="tab-content">\
               <div class="tab-pane active" id="tree"></div>\
@@ -27,6 +30,7 @@ define( [ 'App', 'marionette',
               <div class="tab-pane" id="search-repo"></div>\
               <div class="tab-pane" id="snippets"></div>\
               <div class="tab-pane" id="profile"></div>\
+              <div class="tab-pane" id="dashboard"></div>\
             </div>'),
             getChildView: function(model) {
                 // work-around for snippets switch
@@ -52,6 +56,9 @@ define( [ 'App', 'marionette',
                 }
                 else if (model.get("type") == "new-snippet") {
                     return NewSnippetView;
+                }
+                else if (model.get("type") == "dashboard") {
+                    return DashboardView;
                 }
                 return gSearchRepoView;
             },
@@ -100,6 +107,12 @@ define( [ 'App', 'marionette',
                     containter.children("div#snippets").empty();
                     containter.children("div#snippets").append("<br><br>");
                     return containter.children("div#snippets");
+                }
+                else if (childView.model.get("type") == "dashboard") {
+                    $("ul#sp-content-tabs>li#tab-dashboard>a").trigger("click", {skip:true});
+                    containter.children("div#dashboard").empty();
+                    containter.children("div#dashboard").append("<br><br>");
+                    return containter.children("div#dashboard");
                 }
                 return containter;
             },
