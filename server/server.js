@@ -684,32 +684,44 @@ var dbAPI = {
         var showLimit=30;
         // There are 3 tables of user references:
         Promise
-        .all([models.GithubUserSnippetRefs.find({user: userId}, 'follow_user').exec(),
+        .all([models.GithubUserFollow.find({user: userId}, 'follow_user').exec(),
               models.GithubUserRepoRefs.find({user: userId}, 'repository').exec(),
-              models.GithubUserFollow.find({user: userId}, 'snippet').exec()])
+              models.GithubUserSnippetRefs.find({user: userId}, 'snippet').exec()])
         .then(function(values) {
             console.log("GOL VALUES");
             console.log(values);
-            var followUsers = values[0], followRepos = values[1], followSnippets = values[2];
+            var followUsers = values[0].map(function(item) {
+                   return item.follow_user;
+                }),
+                followRepos = values[1].map(function(item) {
+                   return item.repository;
+                }),
+                followSnippets = values[2].map(function(item) {
+                   return item.snippet;
+                });
             models.GithubUserLogs
+            .find({})
             .where('user').in(followUsers)
-            .where('repository').in(followRepos)
-            .where('snippet').in(followSnippets)
+//            .where('repository').in(followRepos)
+//            .where('snippet').in(followSnippets)
             .skip(showLimit*page)
             .limit(showLimit)
-            .asc('createdAt')
-//            .populate('user')
-//            .populate('repository')
-//            .populate('snippet')
+//            .asc('createdAt')
+            .populate('user')
+            .populate('repository')
+            .populate('snippet')
             .exec(function(err, docs) {
                 if (err) { reject(err); }
                 else { resolve(docs); }
                 
+            }, function(error) {
+                console.log("XXX" + error);
             });
         },
         function(error) {
             console.log("PROMISE ALL ERRROR");
             console.log(error);
+            reject("PROMISE ALL FAILED: " + error);
         }); // Promise.all
       });// Promise   
     }
