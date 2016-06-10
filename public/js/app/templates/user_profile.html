@@ -33,19 +33,19 @@
 
         <ul class="nav nav-tabs tabnav-tabs" role="navigation">
           <li id="tab-profile-user-repo" class="active">
-          <a href="/github.com/search?user=umlsynco&scope=github" class="tabnav-tab selected" aria-selected="true" data-target="#profile-user-repo" data-toggle="tab">
+          <a href="#profile-user-repo" class="tabnav-tab selected" data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-diff-added" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 1H1C0.45 1 0 1.45 0 2v12c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V2c0-0.55-0.45-1-1-1z m0 13H1V2h12v12zM6 9H3V7h3V4h2v3h3v2H8v3H6V9z"></path></svg>
             Contributions
           </a>
           </li>
-          <li id="tab-user-filter-ref" class="active">
-          <a href="/github.com/search?user=umlsynco&scope=snippets" class="tabnav-tab " aria-selected="false" role="tab" data-target="#user-filter-ref" data-toggle="tab">
+          <li id="tab-user-filter-ref">
+          <a href="#user-filter-ref" class="tabnav-tab " data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-repo" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>
             Repositories
           </a>
           </li>
-          <li id="tab-user-dashboard" class="active">
-          <a href="/github.com/dashboard" class="tabnav-tab " aria-selected="false" data-target="#user-dashboard" data-toggle="tab">
+          <li id="tab-user-dashboard">
+          <a href="#user-dashboard" class="tabnav-tab " data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-rss" height="16" role="img" version="1.1" viewBox="0 0 10 16" width="10"><path d="M2 13H0V11c1.11 0 2 0.89 2 2zM0 3v1c4.97 0 9 4.03 9 9h1c0-5.52-4.48-10-10-10z m0 4v1c2.75 0 5 2.25 5 5h1c0-3.31-2.69-6-6-6z"></path></svg>
             Public activity
           </a>
@@ -168,9 +168,26 @@
 </div><!-- /.contributions-tab -->
 
       </div>
+    <div class="tab-pane repo-tab" id="user-filter-ref">
+        <div class="filter-bar border-bottom border-gray-dark p-0 pb-3 position-relative">
+    <ul class="right mt-2">
+        <li class="ml-3 position-relative right"><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".mirror">Mirrors</a></li>
+      <li class="ml-3 position-relative right"><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".fork">Forks</a></li>
+      <li class="ml-3 position-relative right"><a href="#" class="repo_filter js-repo-filter-tab" data-filter=".source">Sources</a></li>
+      <li class="all_repos ml-3 position-relative right"><a href="#" class="repo_filter js-repo-filter-tab filter-selected" data-filter=".public, .private">All</a></li>
+    </ul>
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default">Filter</button>
+      </form>
+  </div>
+      <div id="profile-user-repo-filter">
+      </div>
 
-    <div class="tab-pane" id="user-filter-ref">FILTER REPOSITORIES</div>\
-    <div class="tab-pane" id="user-dashboard">USER DASHBOARD</div>\
+    </div>
+    <div class="tab-pane" id="user-dashboard"></div>
     </div>
       </div>
   </div>

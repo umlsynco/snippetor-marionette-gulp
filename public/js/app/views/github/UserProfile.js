@@ -192,7 +192,9 @@ define(
           vcard : "div.vcard",
           vcard_snippets: "div.vcard_snippets",
           popularUserRepos : "div.popular-repos>div#sp-user-github-repos",
-          popularSnippetRepos: "div.popular-repos>div#sp-user-snippet-repos"
+          popularSnippetRepos: "div.popular-repos>div#sp-user-snippet-repos",
+          filterUserRepos: "div#profile-user-repo-filter",
+          userDashboard: "div#user-dashboard"
         },
         initialize : function(options) {
           this.github = options.githubAPI;
@@ -224,6 +226,24 @@ define(
           var that = this;
           var user = this.github.getUser();
           var username = this.model.get("user");
+          
+          this.$el.find("#tab-user-filter-ref").click(function() {
+              if (!$(this).attr("data-init")) {
+                $(this).attr("data-init", true);
+                // TODO: github and snippetor descriptions:
+                // that.filterUserRepos.show(new RepoListView({collectoin: that.userRepositories));
+              }
+          });
+
+          this.$el.find("#tab-user-dashboard").click(function() {
+              if (!$(this).attr("data-init")) {
+                $(this).attr("data-init", true);
+                if (that.serverUser && that.serverUser.get("_id"))
+                  that.userDashboard.show(new DashboardView({user: that.serverUser.get("_id"), serverAPI: that.options.serverAPI}));
+              }
+          });
+
+          
           user.show(this.model.get("user"), function(err, data) {
 			var model = new Backbone.Model(data)
 
