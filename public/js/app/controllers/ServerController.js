@@ -203,9 +203,30 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
     //
     var userRepoModel =
         Backbone.Model.extend({rootUrl: SERVER_API_URL + "user/repos"});
+        
+    //
+    // User dashboard model
+    //
+    var dashboardCollection =
+        Backbone.Collection.extend({
+            url: SERVER_API_URL + "dashboard",
+            limit: 13,
+            hasNextPage: false,
+            hasNext: function () {
+                return false;
+            }
+        }); // collection
 
     return Backbone.Marionette.Controller.extend({
         initialize: function (options) {
+        },
+        dashboard: null,
+        getDashboard: function() {
+            if (this.dashboard == null) {
+                this.dashboard = new dashboardCollection();
+                this.dashboard.fetch();
+            }
+            return this.dashboard;
         },
         getRepoModel: function (data, callback) {
             var collection = new repositoryCollection();
