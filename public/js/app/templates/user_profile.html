@@ -5,45 +5,55 @@
     <div class="column three-fourths">
       <div class="tabnav">
           <div class="right">
-                <span class="user-following-container js-toggler-container js-social-container ">
+  <span class="user-following-container js-toggler-container js-social-container ">
 
     <span class="follow">
-      <form accept-charset="UTF-8" action="/users/follow?target=mikedeboer" class="js-toggler-form" data-form-nonce="22b7455b24aa4c8e2262fb34e8b218be1a6340c3" data-remote="true" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"><input name="authenticity_token" value="xl/r9F0kZm5eL5T+f/6WYkZsA1wzskoeVgL2e/CJwFwyRLfOPAthhA4Jg6DWeSXZRQCN8mlebzgFSII/+/hEww==" type="hidden"></div>
-        <button type="button" class="btn btn-sm btn-primary js-toggler-target disabled" aria-label="Follow this person" title="Follow mikedeboer">
+      <form accept-charset="UTF-8" class="js-toggler-form" method="post"><div style="margin:0;padding:0;display:inline">
+        <input name="utf8" value="✓" type="hidden">
+        <input name="authenticity_token" value="xl/r9F0kZm5eL5T+f/6WYkZsA1wzskoeVgL2e/CJwFwyRLfOPAthhA4Jg6DWeSXZRQCN8mlebzgFSII/+/hEww==" type="hidden"></div>
+        <button type="button" class="btn btn-sm btn-primary js-toggler-target disabled" aria-label="Follow this person" title="Follow">
           <svg aria-hidden="true" class="octicon octicon-person" height="16" role="img" version="1.1" viewBox="0 0 8 16" width="8"><path d="M7 6H1c-0.55 0-1 0.45-1 1v5h2v3c0 0.55 0.45 1 1 1h2c0.55 0 1-0.45 1-1V12h2V7c0-0.55-0.45-1-1-1z m0 5h-1V9h-1v6H3V9h-1v2H1V7h6v4z m0-8C7 1.34 5.66 0 4 0S1 1.34 1 3s1.34 3 3 3 3-1.34 3-3zM4 5c-1.11 0-2-0.89-2-2S2.89 1 4 1s2 0.89 2 2-0.89 2-2 2z"></path></svg>
           Follow user snippets
         </button>
-</form>    </span>
+      </form>
+    </span>
 
     <span class="unfollow">
-      <!-- </textarea> --><!-- '"` --><form accept-charset="UTF-8" action="/users/unfollow?target=mikedeboer" class="js-toggler-form" data-form-nonce="22b7455b24aa4c8e2262fb34e8b218be1a6340c3" data-remote="true" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" value="✓" type="hidden"><input name="authenticity_token" value="teA6vtcjdC44Igt1yI6LBWrLCemJpRiBNCeQOYRHuzBH6ZT1LOlTH3T1g0Hw5wCwC+brMDlTjR19PZhq8S5DFQ==" type="hidden"></div>
-        <button type="button" class="btn btn-sm js-toggler-target" aria-label="Unfollow this person" title="Unfollow mikedeboer">
+      <form accept-charset="UTF-8" class="js-toggler-form" method="post"><div style="margin:0;padding:0;display:inline">
+        <input name="utf8" value="✓" type="hidden">
+        <input name="authenticity_token" value="teA6vtcjdC44Igt1yI6LBWrLCemJpRiBNCeQOYRHuzBH6ZT1LOlTH3T1g0Hw5wCwC+brMDlTjR19PZhq8S5DFQ==" type="hidden"></div>
+        <button type="button" class="btn btn-sm js-toggler-target" aria-label="Unfollow this person" title="Unfollow">
           <svg aria-hidden="true" class="octicon octicon-person" height="16" role="img" version="1.1" viewBox="0 0 8 16" width="8"><path d="M7 6H1c-0.55 0-1 0.45-1 1v5h2v3c0 0.55 0.45 1 1 1h2c0.55 0 1-0.45 1-1V12h2V7c0-0.55-0.45-1-1-1z m0 5h-1V9h-1v6H3V9h-1v2H1V7h6v4z m0-8C7 1.34 5.66 0 4 0S1 1.34 1 3s1.34 3 3 3 3-1.34 3-3zM4 5c-1.11 0-2-0.89-2-2S2.89 1 4 1s2 0.89 2 2-0.89 2-2 2z"></path></svg>
           Unfollow user snippets
         </button>
-</form>    </span>
+      </form>
+    </span>
   </span>
+          </div>
 
-
- </div>
-
-        <nav class="tabnav-tabs" data-pjax="" role="navigation">
-          <a href="/github.com/search?user=umlsynco&scope=github" class="tabnav-tab selected" aria-selected="true" role="tab">
+        <ul class="nav nav-tabs tabnav-tabs" role="navigation">
+          <li id="tab-profile-user-repo" class="active">
+          <a href="/github.com/search?user=umlsynco&scope=github" class="tabnav-tab selected" aria-selected="true" data-target="#profile-user-repo" data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-diff-added" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 1H1C0.45 1 0 1.45 0 2v12c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V2c0-0.55-0.45-1-1-1z m0 13H1V2h12v12zM6 9H3V7h3V4h2v3h3v2H8v3H6V9z"></path></svg>
             Contributions
           </a>
-          <a href="/github.com/search?user=umlsynco&scope=snippets" class="tabnav-tab " aria-selected="false" role="tab">
+          </li>
+          <li id="tab-user-filter-ref" class="active">
+          <a href="/github.com/search?user=umlsynco&scope=snippets" class="tabnav-tab " aria-selected="false" role="tab" data-target="#user-filter-ref" data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-repo" height="16" role="img" version="1.1" viewBox="0 0 12 16" width="12"><path d="M4 9h-1v-1h1v1z m0-3h-1v1h1v-1z m0-2h-1v1h1v-1z m0-2h-1v1h1v-1z m8-1v12c0 0.55-0.45 1-1 1H6v2l-1.5-1.5-1.5 1.5V14H1c-0.55 0-1-0.45-1-1V1C0 0.45 0.45 0 1 0h10c0.55 0 1 0.45 1 1z m-1 10H1v2h2v-1h3v1h5V11z m0-10H2v9h9V1z"></path></svg>
             Repositories
           </a>
-          <a href="/github.com/dashboard" class="tabnav-tab " aria-selected="false" role="tab">
+          </li>
+          <li id="tab-user-dashboard" class="active">
+          <a href="/github.com/dashboard" class="tabnav-tab " aria-selected="false" data-target="#user-dashboard" data-toggle="tab">
             <svg aria-hidden="true" class="octicon octicon-rss" height="16" role="img" version="1.1" viewBox="0 0 10 16" width="10"><path d="M2 13H0V11c1.11 0 2 0.89 2 2zM0 3v1c4.97 0 9 4.03 9 9h1c0-5.52-4.48-10-10-10z m0 4v1c2.75 0 5 2.25 5 5h1c0-3.31-2.69-6-6-6z"></path></svg>
             Public activity
           </a>
-        </nav>
-      </div>
+          </li>
+        </ul>
 
-      <div class="js-repo-filter position-relative">
+<div class="tab-content">
+      <div class="js-repo-filter position-relative tab-pane active" id="profile-user-repo">
           <div class="contributions-tab">
 
   <div class="columns popular-repos">
@@ -158,6 +168,9 @@
 </div><!-- /.contributions-tab -->
 
       </div>
-    </div>
 
+    <div class="tab-pane" id="user-filter-ref">FILTER REPOSITORIES</div>\
+    <div class="tab-pane" id="user-dashboard">USER DASHBOARD</div>\
+    </div>
+      </div>
   </div>

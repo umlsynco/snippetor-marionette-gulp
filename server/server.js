@@ -724,7 +724,29 @@ var dbAPI = {
             reject("PROMISE ALL FAILED: " + error);
         }); // Promise.all
       });// Promise   
+    },
+    //
+    // Show concreate user activity
+    //
+    userDashboard: function(userId, page) {
+     return new Promise(function (resolve, reject) {
+        var showLimit=30;
+            models.GithubUserLogs
+            .find({})
+            .where('user').in([userId])
+            .skip(showLimit*page)
+            .limit(showLimit)
+            .populate('user')
+            .populate('repository')
+            .populate('snippet')
+            .exec(function(err, docs) {
+                if (err) { reject(err); }
+                else { resolve(docs); }
+                
+            });
+      });// Promise   
     }
+
 };
 
 
@@ -1185,6 +1207,21 @@ server.get('/api/dashboard', ensureAuthenticated, function (req, res) {
         },
         function (err) {
             console.log("ERROR COMPLETE !!!");
+            log.info("ERROR: " + err);
+            res.send(err);
+        });
+});
+//
+// Request user public activity log
+//
+server.get('/api/dashboard/:id', ensureAuthenticated, function (req, res) {
+    console.log("DASHBOARD");
+    dbAPI.userDashboard(req.params.id, 0).then(function (activityLogs) {
+        console.log("COMPLETE MINI DASHBOARD!!!");
+            res.send(activityLogs);
+        },
+        function (err) {
+            console.log("ERROR COMPLETE MINI DASHBOARD !!!");
             log.info("ERROR: " + err);
             res.send(err);
         });

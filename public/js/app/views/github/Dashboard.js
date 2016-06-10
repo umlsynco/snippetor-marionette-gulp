@@ -35,7 +35,7 @@ define(
       var snippetActionView = Marionette.ItemView.extend({
         template : _.template('<div class="alert watch_started simple"><div class="body">\
 <div class="simple">\
-  <svg aria-label="Watch" class="octicon octicon-star dashboard-event-icon" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74z"></path></svg>\
+  <%= getActionIcon() %>\
   <div class="title">\
     <a href="/github.com/<%= getUserName() %>"><%= getUserName() %></a> <%= getAction() %> snippet: <a href="/github.com/snippets/<%= getSnippetId() %>" > <%= getSnippetTitle() %></a>\
   </div>\
@@ -46,6 +46,19 @@ define(
 </div></div>'),
          templateHelpers: function(){
            return {
+             getActionIcon: function() {
+               var action = this["action"];
+               if (action == "create-snippet") return '<i class="fa fa-cogs" aria-hidden="true"></i>'; // "remove-snippet", "update-snippet", "fork-snippet",
+               if (action == "remove-snippet") return '<i class="fa fa-trash" aria-hidden="true"></i>';
+               if (action == "update-snippet") return '<i class="fa fa-cog" aria-hidden="true"></i>';
+               if (action == "fork-snippet") return '<i class="fa fa-code-fork" aria-hidden="true"></i>';
+               if (action == "start-snippet") return '<i class="fa fa-star" aria-hidden="true"></i>';
+               if (action == "unstart-snippet") return '<i class="fa fa-star-o" aria-hidden="true"></i>';
+               if (action == "follow-snippet") return '<i class="fa fa-eye" aria-hidden="true"></i>';
+               if (action == "unfollow-snippet") return '<i class="fa fa-eye-slash" aria-hidden="true"></i>';
+               return '';
+               
+             },
              getRelativeTime: function() {
                  return dateAgo(this["createdAt"]);
              },
@@ -78,7 +91,7 @@ define(
       var repoActionView = Marionette.ItemView.extend({
         template : _.template('<div class="alert watch_started simple"><div class="body">\
 <div class="simple">\
-  <svg aria-label="Watch" class="octicon octicon-star dashboard-event-icon" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74z"></path></svg>\
+  <%= getActionIcon() %>\
   <div class="title">\
     <a href="/github.com/<%= getUserName()  %>"><%= getUserName() %></a> <%= getAction() %>  repository <a href="/github.com/<%= getRepoName() %>" ><%= getRepoName() %></a>\
   </div>\
@@ -87,8 +100,15 @@ define(
   </div>\
 </div>\
 </div></div>'),
+
          templateHelpers: function(){
            return {
+             getActionIcon: function() {
+               var action = this["action"];
+               if (action == "follow-repo") return '<i class="fa fa-eye" aria-hidden="true"></i>'; // "remove-snippet", "update-snippet", "fork-snippet",
+               if (action == "unfollow-repo") return '<i class="fa fa-eye-slash" aria-hidden="true"></i>';
+               return '';
+             },
              getRelativeTime: function() {
                  return dateAgo(this["createdAt"]);
              },
@@ -109,7 +129,7 @@ define(
       var userActionView = Marionette.ItemView.extend({
         template : _.template('<div class="alert watch_started simple"><div class="body">\
 <div class="simple">\
-  <svg aria-label="Watch" class="octicon octicon-star dashboard-event-icon" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74z"></path></svg>\
+  <%= getActionIcon() %>\
   <div class="title">\
     <a href="/github.com/<%= getUserName()  %>"><%= getUserName() %></a> <%= getAction() %>  user: <a href="/github.com/<%= getFollowUser() %>" ><%= getFollowUser() %></a>\
   </div>\
@@ -120,6 +140,12 @@ define(
 </div></div>'),
          templateHelpers: function(){
            return {
+             getActionIcon: function() {
+               var action = this["action"];
+               if (action == "follow-user") return '<i class="fa fa-eye" aria-hidden="true"></i>'; // "remove-snippet", "update-snippet", "fork-snippet",
+               if (action == "unfollow-user") return '<i class="fa fa-eye-slash" aria-hidden="true"></i>';
+               return '';
+             },
              getRelativeTime: function() {
                  return dateAgo(this["createdAt"]);
              },
@@ -155,7 +181,7 @@ define(
         initialize : function(options) {
           this.github = options.githubAPI;
           serverAPI = options.serverAPI;
-          this.collection = serverAPI.getDashboard();
+          this.collection = serverAPI.getDashboard(options.user);
         },
         getChildView: function(model) {
 /* See mongoose database for the actual list of actions

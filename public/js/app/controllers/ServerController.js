@@ -221,7 +221,17 @@ define(['App', 'backbone', 'marionette'], function (App, Backbone, Marionette) {
         initialize: function (options) {
         },
         dashboard: null,
-        getDashboard: function() {
+        getDashboard: function(userId) {
+            // Fetch single user activity, which we do not need to cache
+            if (userId) {
+                var result = new (dashboardCollection.extend({
+                  url: SERVER_API_URL + "dashboard/" + userId,
+                }));
+                result.fetch();
+                return result;
+            }
+
+            // Log-in'ed user dashboard
             if (this.dashboard == null) {
                 this.dashboard = new dashboardCollection();
                 this.dashboard.fetch();
