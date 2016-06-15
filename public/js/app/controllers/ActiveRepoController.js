@@ -4,6 +4,34 @@ define(
       // List of the route requests
       var working_repos = new Backbone.Collection;
       var working_srv_repos = new Backbone.Collection;
+      var that_that = null;
+      
+      function addSnippetRepo(github_repo, server_repo) {
+            if (server_repo && github_repo) {
+              working_srv_repos.add(server_repo);
+              working_repos.add(github_repo);
+              return;
+            }
+            if (server_repo) {
+              var text = server_repo.get("repository");
+              // TODO: HMMMMMMMMMMMMM.....
+              if (text instanceof Object)
+                text = server_repo.get("repository")["repository"];
+                  
+              working_srv_repos.add(server_repo);
+              that_that
+              .options
+              .githubAPI2
+              .getRepositoryInfo(text)
+              .then(function(repo) {
+                repo.repo_ref = server_repo.get("_id");
+                working_repos.add(repo);
+              },
+              function(err) {
+                alert("FAILED TO GET GITHUB REPOSITORY INFO: " + server_repo.get("repository"));
+              });
+            }
+        }
 
       var repoItemView = Marionette.CompositeView.extend({
         tagName : 'h3',
@@ -60,13 +88,13 @@ define(
           //            "/blob/" + nav.branch + "/" + nav.path);
 
           // trigger open manually
-          working_repos.add(repo_data.github);
-          working_srv_repos.add(repo_data.server);
+          addSnippetRepo(repo_data.github, repo_data.server);
         }); // repo:select
       });   // addInitializer
 
       return Backbone.Marionette.Controller.extend({
         initialize : function(options) {
+          that_that = this;
           // Initialize PAGES
           this.active_repos_view = new shortRepoView({
             collection : working_repos,
@@ -93,25 +121,7 @@ define(
               working_repos.reset();
         },
         addSnippetRepo: function(github_repo, server_repo) {
-            if (server_repo && github_repo) {
-              working_srv_repos.add(server_repo);
-              working_repos.add(github_repo);
-              return;
-            }
-            if (server_repo) {
-              working_srv_repos.add(server_repo);
-              this
-              .options
-              .githubAPI2
-              .getRepositoryInfo(server_repo.get("repository"))
-              .then(function(repo) {
-                repo.repo_ref = server_repo.get("_id");
-                working_repos.add(repo);
-              },
-              function(err) {
-                alert("FAILED TO GET GITHUB REPOSITORY INFO: " + server_repo.get("repository"));
-              });
-            }
+            addSnippetRepo(github_repo, server_repo);
         }
       }); // Controller
     });   // define

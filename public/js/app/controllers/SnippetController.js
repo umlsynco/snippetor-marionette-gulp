@@ -15,7 +15,7 @@ define([
              // left side history view
              this.server = options.server;
              this.history = options.history;
-             this.active_repo_ctl = options.active_repo_ctl;
+             this.syncAPI = options.syncAPI;
 
              var that = this;
 
@@ -52,10 +52,10 @@ define([
                  if (dataModel && that.history) {
                      // RESET CURRENT HISTORY STATUS
                      that.history.getHistoryList().reset();
-                     that.active_repo_ctl.reset();
+                     that.syncAPI.reset();
                      
                      dataModel.repos.each(function(repoItem) {
-                         that.active_repo_ctl.addSnippetRepo(null, repoItem);
+                         that.syncAPI.addSnippetRepo(null, repoItem);
                      });
                      
                      dataModel.comments.each(function(item, idx) {
@@ -156,7 +156,7 @@ define([
              if (snippet) {
                this.server.resetWorkingSnippet(null);
                this.history.getHistoryList().reset();
-               this.active_repo_ctl.reset();
+               this.syncAPI.reset();
              }
            },
            //
@@ -184,7 +184,7 @@ define([
                snippet.destroy();
                this.server.resetWorkingSnippet(null);
                this.history.getHistoryList().reset();
-               this.active_repo_ctl.reset();
+               this.syncAPI.reset();
              }
            },
            followSnippet: function(follow) {

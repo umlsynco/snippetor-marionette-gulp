@@ -20,6 +20,15 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
       this.user_repositories = new Backbone.Collection();
       this.search_repositories = new Backbone.Collection();
     },
+    loginUser: null,
+    getUser: function(userName) {
+        if (!userName) {
+            if (!loginUser) loginUser = github.getUser();
+            return loginUser;
+        }
+        else return github.getUser(userName);
+    },
+    
     getAPI : function() { return github; },
     //
     // Get current user repositories if user == null

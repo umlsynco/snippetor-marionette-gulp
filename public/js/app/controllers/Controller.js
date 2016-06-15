@@ -29,14 +29,6 @@ define(
       //
       var githubAPI = new GithubController;
 
-      // Initialize PAGES
-      var pageAPI = new PageController({
-        githubAPI : githubAPI.getAPI(),
-        githubAPI2 : githubAPI,
-        snippetorAPI : snippetorAPI,
-        serverAPI : serverAPI
-      });
-
       var activeRepoCtl = new ActiveRepoController({
         githubAPI : githubAPI.getAPI(),
         githubAPI2 : githubAPI,
@@ -44,11 +36,20 @@ define(
         serverAPI : serverAPI
       });
 
+      // Initialize PAGES
+      var pageAPI = new PageController({
+        githubAPI : githubAPI.getAPI(),
+        githubAPI2 : githubAPI,
+        snippetorAPI : snippetorAPI,
+        serverAPI : serverAPI,
+        syncAPI: activeRepoCtl
+      });
+
       var snippetController = new SnippetController({
           server: serverAPI,
           history: snippetorAPI,
           github: githubAPI,
-          active_repo_ctl: activeRepoCtl
+          syncAPI: activeRepoCtl
       });
 
       // Cache of the different pages which were requested
