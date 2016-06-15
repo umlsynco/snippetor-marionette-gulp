@@ -281,9 +281,12 @@ define(
                    .serverUser
                    .getPopularRepos()
                    .then(function(data2) {
-                      if (data2) {
-                        //var allRepos = data2;
-                        that.popularSnippetRepos.show(new miniRepoList2({collection: data2, model: that.model}));
+                      if (data2 && data2.models) {
+                        var top10 = new Backbone.Collection();
+                        for (var r = 0; r< data2.models.length && r<10; ++r) {
+                          top10.add(data2.models[r]);
+                        }
+                        that.popularSnippetRepos.show(new miniRepoList2({collection: top10, model: that.model}));
                         //that.popularReposModels.add(allRepos.models[0]);
                       }
                    });
@@ -298,9 +301,13 @@ define(
             user.userRepos(username, {type : data.type}, function(err, data2) {
               if (data2 && data2.length > 0) {
                  // Extend user repositories from github
-                 var allRepos = new Backbone.Collection(data2)
+                 var allRepos = new Backbone.Collection(data2);
+                 var top10 = new Backbone.Collection();
+                 for (var r = 0; r< data2.length && r<10; ++r) {
+                     top10.add(data2[r]);
+                 }
                  //that.popularReposModels.add(allRepos.models[0]);
-                 that.popularUserRepos.show(new miniRepoList({collection: allRepos, model: that.model}));
+                 that.popularUserRepos.show(new miniRepoList({collection: top10, model: that.model}));
               }
             });
           });
