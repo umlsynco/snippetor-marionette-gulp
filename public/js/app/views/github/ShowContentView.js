@@ -157,6 +157,8 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                        ////////////////////////////////////
                        // Show snippet bubble
                        ////////////////////////////////////
+                       that.$el.find("pre.prettyprint").parent().css({height: "600px", overflow: "scroll"});
+
                        that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
                          $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
                        });
@@ -171,7 +173,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                                if (list.length == 1) {
                                   var pos = list.position();
                                   pos.left += 50;
-                                  pos.top += 190;
+                                  //pos.top += 190;
 
                                   list.children("i.fa").addClass("fa-comment");
                                   list.children("i.fa").click(function() {
@@ -186,12 +188,13 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                                         controller: that.snippetor.getNextPrevController()
                                     }));
                                     var $t = $("div#step-0");
-                                    $t.css(pos);
+                                    
+                                    $t.css({left:pos.left});
 
                                     // SCROLL TO THE ELEMENT
-                                    $('html, body').animate({
+                                    that.$el.find("pre.prettyprint").parent().animate({
                                        scrollTop: pos.top
-                                    }, 2000);
+                                    }, 1000);
                                   } // active
                               } // if has line
 
