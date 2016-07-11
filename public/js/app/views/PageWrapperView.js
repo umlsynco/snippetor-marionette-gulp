@@ -4,13 +4,13 @@ define( [ 'App', 'marionette',
           "views/github/ShowContentView",
           "views/github/UserProfile",
           "views/github/Dashboard",
-          "views/UmlView",
+          //"views/UmlView",
           "views/snippets/SnippetsView", "views/snippets/NewSnippetView"], // content view
     function(App, Marionette,
              gSearchRepoView, gSearchCodeView, gListTreeRoot, gShowContentView, // GitHub related views
              gUserProfile, // Github User information
              DashboardView, // Dashboard view
-             UmlView, // Edit/view UML diagram
+             //UmlView, // Edit/view UML diagram
              SnippetsView, NewSnippetView) { // Snippetor's views
 
         // Collection of the different content which was loaded
@@ -19,7 +19,7 @@ define( [ 'App', 'marionette',
             <ul class="nav nav-tabs" id="sp-content-tabs">\
               <li id="tab-tree" class="active"><a data-target="#tree" data-toggle="tab">Tree <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-code"><a data-target="#code" data-toggle="tab">Code <i class="fa fa-close fa-fw"></i></a></li>\
-              <li id="tab-uml"><a data-target="#uml" data-toggle="tab">UML <i class="fa fa-close fa-fw"></i></a></li>\
+              <!-- li id="tab-uml"><a data-target="#uml" data-toggle="tab">UML <i class="fa fa-close fa-fw"></i></a></li -->\
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab" data-route="/github.com/search"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab" data-route="/github.com/snippets">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
@@ -29,7 +29,7 @@ define( [ 'App', 'marionette',
             <div class="tab-content">\
               <div class="tab-pane active" id="tree"></div>\
               <div class="tab-pane" id="code"></div>\
-              <div class="tab-pane" id="uml"></div>\
+              <!-- div class="tab-pane" id="uml"></div -->\
               <div class="tab-pane" id="search"></div>\
               <div class="tab-pane" id="search-repo"></div>\
               <div class="tab-pane" id="snippets"></div>\
