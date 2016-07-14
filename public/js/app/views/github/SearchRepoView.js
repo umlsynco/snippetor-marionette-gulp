@@ -141,10 +141,25 @@ define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
             });
          }
     });
-          
+
+
+
       return Marionette.CompositeView.extend({
 		  className: "repo-tab",
 		  childView: repoItem,
+          setStatus: function(status) {
+              if (typeof this.ui.status === "string") return;
+
+              var text = "There is no search result ...";
+              if (status == "loading") // never happen, therefore hardcoded to template
+                text = "Loading data from GitHub ...";
+              if (status == "error")
+                text = "Failed to load data from GitHub ...";
+              if (status == "loaded")
+                text = "";
+            
+              this.ui.status.text(text);
+          },
 		  childViewContainer: "DIV.container>table.table>tbody", //"ul.repo-list",
 		  initialize: function(options) {
 			  this.github = options.githubAPI;
@@ -166,18 +181,37 @@ define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
 			  
 			  this.model.set("req", req);
 
+this.setStatus("loading");
+
 
 if (req == "") {
 	this.github.getUserRepositories(undefined, function(error, repos) {
-				  if (!error)
-				    that.collection.add(repos.models);
+				if (!error) {
+                    if (repos.models.length == 0) {
+                           that.setStatus("empty");
+                    }
+                    else {
+				      that.collection.add(repos.models);
+                      that.setStatus("loaded");
+                    }
+                }
+                else that.setStatus("error");
     });
 
 }
 else {
 	this.github.searchRepositories(req, function(error, repos) {
-				  if (!error)
-				    that.collection.add(repos.models);
+				  if (!error) {
+                      if (repos.models.length == 0) {
+                           that.setStatus("empty");
+                       }
+                       else {
+				         that.collection.add(repos.models);
+                         that.setStatus("loaded");
+                       }
+                  }
+                  else
+                    that.setStatus("error");
     });
 }
 
@@ -185,6 +219,9 @@ else {
           behaviors: {
               PreventSubmission: {
               }
+          },
+          ui : {
+              'status': "#sp-repo-search-status"
           },
           template: _.template('<div class="filter-bar">\
 <div class="btn-group right" id="sp-repo-filer">\
@@ -221,6 +258,7 @@ else {
            </tr>\
           </thead>\
           <tbody></tbody></table></div>\
+      <label id="sp-repo-search-status">Loading data from GitHub ...</label>\
       <ul class="repo-list js-repo-list" data-filterable-for="your-repos-filter" data-filterable-type="substring"></ul>')
 
       });

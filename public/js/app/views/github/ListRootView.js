@@ -52,6 +52,10 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
           className: "file-wrap",
           childView: contentItem,
           childViewContainer: "tbody",
+          emptyView: Marionette.ItemView.extend({
+              template: _.template("<h1 class='has-error' style='color:red;'>&nbsp;&nbsp;&nbsp;\
+              There no data to show ... <br>&nbsp;&nbsp;&nbsp;Directory or repository is empty</h1>")
+          }),
           initialize: function(options) {
               this.github = options.githubAPI;
               this.collection = new Backbone.Collection;
