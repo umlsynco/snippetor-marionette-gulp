@@ -32,6 +32,7 @@ define([ 'App', 'backbone', 'marionette', 'views/PageWrapperView' ],
              // Initialize PAGES
              this.pages = new PageWrapperView({
                collection : requests,
+               githubAPI : options.githubAPI,
                childViewOptions : {
                  githubAPI : options.githubAPI,
                  snippetorAPI : options.snippetorAPI,

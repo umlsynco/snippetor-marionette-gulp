@@ -23,7 +23,7 @@ define( [ 'App', 'marionette',
               <li id="tab-search"><a data-target="#search" data-toggle="tab">Search <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-search-repo"><a data-target="#search-repo" data-toggle="tab" data-route="/github.com/search"><i class="fa fa-search fa-fw"></i> Repo <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-snippets"><a data-target="#snippets" data-toggle="tab" data-route="/github.com/snippets">Snippets <i class="fa fa-close fa-fw"></i></a></li>\
-              <li id="tab-profile"><a data-target="#profile" class="sp-default-user-name" data-toggle="tab" data-route="/github.com/umlsynco">Profile <i class="fa fa-close fa-fw"></i></a></li>\
+              <li id="tab-profile"><a data-target="#profile" class="sp-default-user-name" data-toggle="tab" data-route="/login">Profile <i class="fa fa-close fa-fw"></i></a></li>\
               <li id="tab-dashboard"><a data-target="#dashboard" data-toggle="tab" data-route="/github.com/">Dashboard<i class="fa fa-close fa-fw"></i></a></li>\
             </ul>\
             <div class="tab-content">\
@@ -137,6 +137,14 @@ define( [ 'App', 'marionette',
                 //$("DIV#page-wrapper").empty();
             },
             onRender: function(view) {
+                var that = this;
+                // trigger data rouing
+                this.options.githubAPI.getUser().then(function(data) {
+                    var $ptab = that.$el.find(".sp-default-user-name");
+                    if ($ptab.attr("data-route") == "/login")
+                      $ptab.attr("data-route", "/github.com/"+data.login);
+                });
+
                 var $t = $("DIV#page-wrapper").children("DIV").children("DIV");
                 $t.hide();
                 view.$el.show();
