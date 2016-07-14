@@ -30,16 +30,14 @@ define(
       var githubAPI = new GithubController;
 
       var activeRepoCtl = new ActiveRepoController({
-        githubAPI : githubAPI.getAPI(),
-        githubAPI2 : githubAPI,
+        githubAPI : githubAPI,
         snippetorAPI : snippetorAPI,
         serverAPI : serverAPI
       });
 
       // Initialize PAGES
       var pageAPI = new PageController({
-        githubAPI : githubAPI.getAPI(),
-        githubAPI2 : githubAPI,
+        githubAPI : githubAPI,
         snippetorAPI : snippetorAPI,
         serverAPI : serverAPI,
         syncAPI: activeRepoCtl

@@ -34,7 +34,6 @@ define([ 'App', 'backbone', 'marionette', 'views/PageWrapperView' ],
                collection : requests,
                childViewOptions : {
                  githubAPI : options.githubAPI,
-                 githubAPI2 : options.githubAPI2,
                  snippetorAPI : options.snippetorAPI,
                  serverAPI : options.serverAPI
                }

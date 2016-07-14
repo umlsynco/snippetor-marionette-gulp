@@ -21,7 +21,7 @@ define(
               working_srv_repos.add(server_repo);
               that_that
               .options
-              .githubAPI2
+              .githubAPI
               .getRepositoryInfo(text)
               .then(function(repo) {
                 repo.repo_ref = server_repo.get("_id");
@@ -100,7 +100,6 @@ define(
             collection : working_repos,
             childViewOptions : {
               githubAPI : options.githubAPI,
-              githubAPI2 : options.githubAPI2,
               snippetorAPI : options.snippetorAPI,
               serverAPI : options.serverAPI
             }

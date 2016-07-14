@@ -179,7 +179,6 @@ define(
       return Marionette.CollectionView.extend({
         className : "page-content container news column two-thirds",
         initialize : function(options) {
-          this.github = options.githubAPI;
           serverAPI = options.serverAPI;
           this.collection = serverAPI.getDashboard(options.user);
         },

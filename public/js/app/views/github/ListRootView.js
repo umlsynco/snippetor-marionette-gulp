@@ -57,11 +57,8 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
               this.collection = new Backbone.Collection;
 
               var that = this;
-              var repo = this.github.getRepo(this.model.get("repo"));
-              
-
+              var repo = this.github.getAPI().getRepo(this.model.get("repo"));
               var branch = this.model.get("branch") || "master";
-              
 
               var path = this.model.get("path") || "";
               var repoName = this.model.get("repo");

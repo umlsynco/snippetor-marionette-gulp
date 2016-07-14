@@ -65,7 +65,7 @@ define( [ 'marionette', 'hljs', 'App', 'behaviours/submission'], function(Marion
 		 },
 		 onRender: function(options) {
 			 // Request code
-			 var repo = cachedGithub.getRepo(this.model.get("repository").full_name);
+			 var repo = cachedGithub.getAPI().getRepo(this.model.get("repository").full_name);
 			 var that = this;
 			 repo.getBlob(this.model.get("sha"), function(err, data) {
 				 if (data)

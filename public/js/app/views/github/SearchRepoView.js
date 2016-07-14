@@ -148,7 +148,7 @@ define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
 		  childViewContainer: "DIV.container>table.table>tbody", //"ul.repo-list",
 		  initialize: function(options) {
 			  this.github = options.githubAPI;
-              this.github_api = options.githubAPI2;
+//              this.github_api = options.githubAPI;
               
               serverAPI = options.serverAPI;
               
@@ -168,14 +168,14 @@ define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
 
 
 if (req == "") {
-	this.github_api.getUserRepositories(function(error, repos) {
+	this.github.getUserRepositories(undefined, function(error, repos) {
 				  if (!error)
 				    that.collection.add(repos.models);
     });
 
 }
 else {
-	this.github_api.searchRepositories(req, function(error, repos) {
+	this.github.searchRepositories(req, function(error, repos) {
 				  if (!error)
 				    that.collection.add(repos.models);
     });

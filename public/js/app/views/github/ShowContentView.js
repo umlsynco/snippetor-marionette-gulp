@@ -122,7 +122,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
 
               this.collection = new Backbone.Collection;
               var that = this;
-              var repo = this.github.getRepo(this.model.get("repo"));
+              var repo = this.github.getAPI().getRepo(this.model.get("repo"));
               var model = this.model;
 
               var repoName = model.get("repo");

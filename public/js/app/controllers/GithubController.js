@@ -23,10 +23,13 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
     loginUser: null,
     getUser: function(userName) {
         if (!userName) {
-            if (!loginUser) loginUser = github.getUser();
-            return loginUser;
+            if (!this.loginUser)
+              this.loginUser = github.getUser();
+
+            return this.loginUser;
         }
-        else return github.getUser(userName);
+        else
+            return github.getUser(userName);
     },
     
     getAPI : function() { return github; },
