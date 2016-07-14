@@ -7,6 +7,8 @@ define([ 'marionette', 'text!templates/header.html'],
             template: _.template(template),
             onRender: function() {
 				this.$el.attr({role:"navigation", style:"margin-bottom: 0"});
+                this.options.githubAPI.getUser().then(function(userModel) {
+                });
 			},
 			regions: {
 				historyRegion: "ul#sp-history"

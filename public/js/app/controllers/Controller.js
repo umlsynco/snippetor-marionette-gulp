@@ -56,7 +56,7 @@ define(
 
       return Backbone.Marionette.Controller.extend({
         initialize : function(options) {
-          var hv = new HeaderView();
+          var hv = new HeaderView({githubAPI: githubAPI});
           App.rootLayout.headerRegion.show(hv);
           // Show history in a left side menu
           hv.historyRegion.show(snippetorAPI.getView());

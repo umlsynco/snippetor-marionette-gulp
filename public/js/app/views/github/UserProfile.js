@@ -224,8 +224,9 @@ define(
         //
         onRender : function() {
           var that = this;
-          var user = this.github.getUser();
+          
           var username = this.model.get("user");
+          var user = this.github.getUser(username);
           
           this.$el.find("#tab-user-filter-ref").click(function() {
               if (!$(this).attr("data-init")) {
@@ -244,8 +245,8 @@ define(
           });
 
           
-          user.show(this.model.get("user"), function(err, data) {
-			var model = new Backbone.Model(data)
+          user.then(function(data) {
+			var model = new Backbone.Model(data);
 
             that.vcard.show(new VcardView({model : model}));
             //
@@ -298,13 +299,13 @@ define(
             //
             // Get list of user repositories
             //
-            user.userRepos(username, {type : data.type}, function(err, data2) {
-              if (data2 && data2.length > 0) {
+            that.github.getUserRepositories(username, function(err, data2) {
+              if (!err) {
                  // Extend user repositories from github
-                 var allRepos = new Backbone.Collection(data2);
+                 var allRepos = new Backbone.Collection(data2.models);
                  var top10 = new Backbone.Collection();
-                 for (var r = 0; r< data2.length && r<10; ++r) {
-                     top10.add(data2[r]);
+                 for (var r = 0; r< data2.models.length && r<10; ++r) {
+                     top10.add(data2.models[r]);
                  }
                  //that.popularReposModels.add(allRepos.models[0]);
                  that.popularUserRepos.show(new miniRepoList({collection: top10, model: that.model}));

@@ -20,16 +20,28 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
       this.user_repositories = new Backbone.Collection();
       this.search_repositories = new Backbone.Collection();
     },
-    loginUser: null,
+    loginUser: "",
+    userCache: {},
     getUser: function(userName) {
-        if (!userName) {
-            if (!this.loginUser)
-              this.loginUser = github.getUser();
-
-            return this.loginUser;
-        }
-        else
-            return github.getUser(userName);
+        var name = userName? userName: this.loginUser;
+        var that = this;
+        if (!this.userCache[name])
+          this.userCache[name] = new Promise(function(resolve, reject) {
+            var user = github.getUser(name);
+            user.show(name, function(err, data) {
+                if (!err) {
+                  resolve(data);
+                  // Avoid double request of the user name
+                  if (name == "") {
+                    that.userCache[data.name] = that.userCache[name];
+                    that.loginUser = data.name;
+                  }
+                }
+                else
+                  reject(err);
+            });
+          });
+        return this.userCache[name];
     },
     
     getAPI : function() { return github; },
