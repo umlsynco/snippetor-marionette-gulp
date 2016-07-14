@@ -33,8 +33,8 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
                   resolve(data);
                   // Avoid double request of the user name
                   if (name == "") {
-                    that.userCache[data.name] = that.userCache[name];
-                    that.loginUser = data.name;
+                    that.userCache[data.login] = that.userCache[name];
+                    that.loginUser = data.login;
                   }
                 }
                 else
@@ -48,12 +48,12 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
     //
     // Get current user repositories if user == null
     //
-    getUserRepositories : function(user, callback) {
+    getUserRepositories : function(userName, callback) {
       // Get current user or concreate user
-      var user = (user ? github.getUser(user) : github.getUser());
+      var user = (userName ? github.getUser(userName) : github.getUser());
       var that = this;
       // request
-      user.repos({type : 'all'}, function(err, repo) {
+      var handler = function(err, repo) {
         if (!err) {
           that.user_repositories.reset();
           that.user_repositories.add(repo);
@@ -61,7 +61,13 @@ define([ 'App', 'backbone', 'marionette', 'github-api', 'access_token' ],
         } else {
           callback(err, null);
         }
-      });
+      };
+
+      // There are two different APIs for log-ined user and another one
+      if (!userName)
+        user.repos({type : 'all'}, handler);
+      else
+        user.userRepos(userName, {type : 'Users'}, handler);
     },
     //
     // Make query for the github repository search
