@@ -58,8 +58,8 @@ define([ 'App', 'backbone', 'marionette' ], function(App, Backbone,
       if (item.length == 1) {
         var idx = this.collection.indexOf(item[0]);
         return {
-          hasNext : (idx < this.collection.length - 1),
-          hasPrev : (idx > 0)
+          hasPrev : (idx < this.collection.length - 1),
+          hasNext : (idx > 0)
         };
       }
       return {
@@ -67,7 +67,7 @@ define([ 'App', 'backbone', 'marionette' ], function(App, Backbone,
         hasPrev : false
       };
     },
-    stepNext : function(historyItem, commentItem) {
+    stepPrev : function(historyItem, commentItem) {
       var item = this.collection.where(
           {hcid : historyItem.cid, ccid : commentItem.cid});
       if (item.length == 1) {
@@ -87,7 +87,7 @@ define([ 'App', 'backbone', 'marionette' ], function(App, Backbone,
         nextComment.set("active", true);
       }
     },
-    stepPrev : function(historyItem, commentItem) {
+    stepNext : function(historyItem, commentItem) {
       var item = this.collection.where(
           {hcid : historyItem.cid, ccid : commentItem.cid});
       if (item.length == 1) {
