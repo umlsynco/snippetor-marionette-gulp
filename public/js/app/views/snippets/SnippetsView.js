@@ -32,9 +32,9 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
           return "a few minutes ago";
       };
 	
-	  // GitHub Repository item description:
+	  // GitHub Snippet item description:
  	
-      var repoItem = Marionette.ItemView.extend({
+      var snippetItem = Marionette.ItemView.extend({
 		  tagName: "LI",
 		  className: "selectable read table-list-item js-navigation-item js-issue-row",
          template: _.template('\
@@ -161,7 +161,7 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
           
       return Marionette.CompositeView.extend({
 		  className: "issues-listing",
-		  childView: repoItem,
+		  childView: snippetItem,
 		  childViewContainer: "ul.table-list-issues",
 		  initialize: function(options) {
 			  this.snippets = options.snippetorAPI;

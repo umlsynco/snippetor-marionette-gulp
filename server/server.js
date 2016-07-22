@@ -553,9 +553,13 @@ var dbAPI = {
     listSnippet: function (options) {
         options = options || {};
         return new Promise(function (resolve, reject) {
+          var showLimit = options.limit || 5;
+          var page = options.page || 0;
               models
                 .SnippetItemModel
                 .find(options)
+                .skip(showLimit*page)
+                .limit(showLimit)
                 .populate("userId")
                 .sort({updatedAt: 'desc'})
                 .exec(function (err, data) {
@@ -566,6 +570,16 @@ var dbAPI = {
                         resolve(data);
                     }
                 });
+        });
+    },
+    countSnippets: function (options) {
+        options = options || {};
+        return new Promise(function (resolve, reject) {
+           models
+            .SnippetItemModel
+            .count(options, function(err, count) {
+                resolve(count);
+            });
         });
     },
     getSnippetById: function (id, userModel) {
@@ -998,7 +1012,14 @@ server.post('/api/repos', function (req, res) {
 server.get('/api/snippets', ensureAuthenticated, function (req, res) {
     function listSnippetsForQuery(query) {
         dbAPI.listSnippet(query).then(function (snippets) {
-                res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
+                if (!req.query.page || req.query.page == 0) {
+                    dbAPI.countSnippets(query).then(function(count) {
+                        res.send({hasNext: false, limit: 7, total: count, page: 0, snippets: snippets});
+                    });
+                } 
+                else {
+                  res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
+                }
             },
             function (err) {
                 res.send("Failed to get user snippets:" + err);
