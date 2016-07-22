@@ -681,7 +681,7 @@ var dbAPI = {
 
     dashboard: function(userId, page) {
      return new Promise(function (resolve, reject) {
-        var showLimit=30;
+        var showLimit=7;
         // There are 3 tables of user references:
         Promise
         .all([models.GithubUserFollow.find({user: userId}, 'follow_user').exec(),
@@ -730,10 +730,11 @@ var dbAPI = {
     //
     userDashboard: function(userId, page) {
      return new Promise(function (resolve, reject) {
-        var showLimit=30;
+        var showLimit=5;
             models.GithubUserLogs
             .find({})
             .where('user').in([userId])
+            .sort({createdAt: 'desc'})
             .skip(showLimit*page)
             .limit(showLimit)
             .populate('user')
@@ -1201,7 +1202,9 @@ server.delete('/api/snippets/:id', ensureAuthenticated, function (req, res) {
 //
 server.get('/api/dashboard', ensureAuthenticated, function (req, res) {
     console.log("DASHBOARD");
-    dbAPI.dashboard(req.user.id, 0).then(function (activityLogs) {
+    var page = req.query.page || 0;
+    console.log("FFFFFFFFFFF" + req.query.page);
+    dbAPI.dashboard(req.user.id, page).then(function (activityLogs) {
         console.log("COMPLETE !!!");
             res.send(activityLogs);
         },
@@ -1215,8 +1218,9 @@ server.get('/api/dashboard', ensureAuthenticated, function (req, res) {
 // Request user public activity log
 //
 server.get('/api/dashboard/:id', ensureAuthenticated, function (req, res) {
-    console.log("DASHBOARD");
-    dbAPI.userDashboard(req.params.id, 0).then(function (activityLogs) {
+    console.log("DASHBOARD: " + req.params.id);
+    var page = req.query.page || 0;
+    dbAPI.userDashboard(req.params.id, page).then(function (activityLogs) {
         console.log("COMPLETE MINI DASHBOARD!!!");
             res.send(activityLogs);
         },

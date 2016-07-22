@@ -176,11 +176,21 @@ define(
 </div></div>')
   }); // Fork
 
-      return Marionette.CollectionView.extend({
+      return Marionette.CompositeView.extend({
         className : "page-content container news column two-thirds",
+        template: _.template("<div class='sp-dashboard'></div><p><a class='sp-dashboard-load-more btn btn-default btn-large' style='width:100%;'>More &raquo;</a></p>"),
+        childViewContainer: "div.sp-dashboard",
+        events: {
+          "click a.sp-dashboard-load-more": 'loadMore'
+        },
+        page: 0,
         initialize : function(options) {
           serverAPI = options.serverAPI;
           this.collection = serverAPI.getDashboard(options.user);
+        },
+        loadMore: function() {
+          this.page++;
+          this.collection.fetch({data: {page: this.page}, add: true, remove: false});
         },
         getChildView: function(model) {
 /* See mongoose database for the actual list of actions
