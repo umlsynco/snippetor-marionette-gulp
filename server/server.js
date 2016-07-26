@@ -362,6 +362,31 @@ var dbAPI = {
             });
         });
     },
+    
+    countFollowers: function(userId) {
+            var x = new Promise(function (resolve, reject) {
+             models
+             .GithubUserFollow
+             .count({user: userId, follow: true}, function(err, count) {
+                resolve(count);
+             });
+            });
+            var y = new Promise(function (resolve, reject) {
+             models
+             .GithubUserFollow
+             .count({follow_user: userId, follow: true}, function(err, count) {
+                resolve(count);
+             });
+            });
+            var z = new Promise(function (resolve, reject) {
+             models
+             .GithubUserRepoRefs
+             .count({user: userId}, function(err, count) {
+                resolve(count);
+             });
+            });
+            return Promise.all([x,y,z]);
+    },
     //
     // Repository APIs
     //
@@ -782,6 +807,10 @@ server.get('/api/users/:id', function (req, res, id) {
             return res.send({error: 'Server error'});
         }
     });
+});
+
+server.get('/api/users/:id/refs', function (req, res, id) {
+    //123
 });
 
 server.get('/api/users/:id/repos', function (req, res, id) {
