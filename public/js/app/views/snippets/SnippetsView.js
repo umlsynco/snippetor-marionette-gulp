@@ -1,4 +1,5 @@
-define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets.html'], function(App, Marionette, PreventNavigation, templateSnippets) {
+define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 'text!templates/snippets.html'],
+  function(App, Marionette, PreventNavigation, PaginationView, templateSnippets) {
 
       var snippetorAPI = null;
       var serverAPI = null;
@@ -159,18 +160,23 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
          }
     });
           
-      return Marionette.CompositeView.extend({
+var SearchResultTable = Marionette.CompositeView.extend({
 		  className: "issues-listing",
 		  childView: snippetItem,
 		  childViewContainer: "ul.table-list-issues",
+          page: 0,
 		  initialize: function(options) {
 			  this.snippets = options.snippetorAPI;
               snippetorAPI = options.snippetorAPI;
               serverAPI = options.serverAPI;
 
 			  this.collection = serverAPI.getSnippets({user:"umlsynco"});
+              var that = this;
               // latest modified for current user
-              this.collection.fetch({data: this.model.get("query")});
+              this.collection.fetch({data: this.model.get("query")}).then(function(data) {
+                  // Sync-up pagination
+                  that.options.model.set({limit: data.limit, page: data.page, total: data.total});
+               });
 		  },
           template: _.template(templateSnippets),
           behaviors: {
@@ -179,7 +185,11 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
           },
           events: {
               "click a.snippets-remove": "removeSelected",
-              "click a.sp-snippets-search": "searchScope"
+              "click a.sp-snippets-search": "searchScope",
+              "click ": 'loadPage'
+          },
+          loadPage: function(e) {
+              // 1. 
           },
           onRender: function() {
               var $input = this.$el.find("#sp-snippets-search>input#q");
@@ -216,5 +226,21 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'text!templates/snippets
                });
           }
       });
+
+    return Marionette.LayoutView.extend({
+        template: _.template("<div id='sp-snippet-search-table'></div><div id='sp-snippet-search-pagination'></div>"),
+        regions: {
+           searchTable: "#sp-snippet-search-table",
+           pagination: "#sp-snippet-search-pagination"
+        },
+        search_table_view: null,
+        onBeforeShow: function() {
+            // fill pagination model
+            this.showChildView('searchTable', new SearchResultTable(this.options));
+            // update pagination model
+            this.showChildView('pagination', new PaginationView(this.options));
+        }
+    });
+
 });
 
