@@ -579,7 +579,8 @@ var dbAPI = {
         options = options || {};
         return new Promise(function (resolve, reject) {
           var showLimit = options.limit || 5;
-          var page = options.page || 0;
+          var page = (options.page-1) || 0;
+          delete options.page;
               models
                 .SnippetItemModel
                 .find(options)
@@ -1040,6 +1041,7 @@ server.post('/api/repos', function (req, res) {
 //
 server.get('/api/snippets', ensureAuthenticated, function (req, res) {
     function listSnippetsForQuery(query) {
+        query.page = req.query.page || 1;
         dbAPI.listSnippet(query).then(function (snippets) {
                 if (!req.query.page || req.query.page == 0) {
                     dbAPI.countSnippets(query).then(function(count) {
@@ -1100,7 +1102,7 @@ server.get('/api/snippets', ensureAuthenticated, function (req, res) {
         listSnippetsForUser(req.query.user);
     }
     else {
-        listSnippetsForQuery({});
+        listSnippetsForQuery(req.query || {});
     }
 }); // server get
 

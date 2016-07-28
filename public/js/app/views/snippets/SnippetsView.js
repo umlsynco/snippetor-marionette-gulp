@@ -175,9 +175,22 @@ var SearchResultTable = Marionette.CompositeView.extend({
               // latest modified for current user
               this.collection.fetch({data: this.model.get("query")}).then(function(data) {
                   // Sync-up pagination
-                  that.options.model.set({limit: data.limit, page: data.page, total: data.total});
+                  that.options.model.set({limit: data.limit, page: data.page + 1, total: data.total});
                });
 		  },
+          modelEvents: {
+             "change": "modelChanged"
+          },
+          modelChanged: function(model) {
+              if (model.changed.limit && model.changed.total)
+                return;
+              // Fetch another page
+              if (model.changed.page) {
+                var xxx = this.model.get("query") || {};
+                xxx.page = model.changed.page;
+                this.collection.fetch({data: xxx});
+              }
+          },
           template: _.template(templateSnippets),
           behaviors: {
               PreventNavigation: {
