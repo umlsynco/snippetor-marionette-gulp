@@ -1,5 +1,5 @@
-define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 'text!templates/snippets.html'],
-  function(App, Marionette, PreventNavigation, PaginationView, templateSnippets) {
+define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 'text!templates/snippets.html', 'text!templates/snippets_search_form.html'],
+  function(App, Marionette, PreventNavigation, PaginationView, templateSnippets, searchTemplateForm) {
 
       var snippetorAPI = null;
       var serverAPI = null;
@@ -34,7 +34,6 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 
       };
 	
 	  // GitHub Snippet item description:
- 	
       var snippetItem = Marionette.ItemView.extend({
 		  tagName: "LI",
 		  className: "selectable read table-list-item js-navigation-item js-issue-row",
@@ -160,7 +159,7 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 
          }
     });
           
-var SearchResultTable = Marionette.CompositeView.extend({
+      var SearchResultTable = Marionette.CompositeView.extend({
 		  className: "issues-listing",
 		  childView: snippetItem,
 		  childViewContainer: "ul.table-list-issues",
@@ -170,7 +169,7 @@ var SearchResultTable = Marionette.CompositeView.extend({
               snippetorAPI = options.snippetorAPI;
               serverAPI = options.serverAPI;
 
-			  this.collection = serverAPI.getSnippets({user:"umlsynco"});
+			  this.collection = serverAPI.getSnippets();
               var that = this;
               // latest modified for current user
               this.collection.fetch({data: this.model.get("query")}).then(function(data) {
@@ -238,16 +237,23 @@ var SearchResultTable = Marionette.CompositeView.extend({
                    item.destroy();
                });
           }
-      });
+    });
+
+
+var SnippetSearchForm = Marionette.ItemView.extend({
+    template: _.template(searchTemplateForm)
+});
 
     return Marionette.LayoutView.extend({
-        template: _.template("<div id='sp-snippet-search-table'></div><div id='sp-snippet-search-pagination'></div>"),
+        template: _.template("<div class='subnav' id='sp-snippet-search-form'></div><div id='sp-snippet-search-table'></div><div id='sp-snippet-search-pagination'></div>"),
         regions: {
+           searchForm: "#sp-snippet-search-form",
            searchTable: "#sp-snippet-search-table",
            pagination: "#sp-snippet-search-pagination"
         },
         search_table_view: null,
         onBeforeShow: function() {
+            this.showChildView('searchForm', new SnippetSearchForm(this.options));
             // fill pagination model
             this.showChildView('searchTable', new SearchResultTable(this.options));
             // update pagination model

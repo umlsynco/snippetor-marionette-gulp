@@ -578,7 +578,7 @@ var dbAPI = {
     listSnippet: function (options) {
         options = options || {};
         return new Promise(function (resolve, reject) {
-          var showLimit = options.limit || 5;
+          var showLimit = options.limit || 7;
           var page = (options.page-1) || 0;
           delete options.page;
               models
