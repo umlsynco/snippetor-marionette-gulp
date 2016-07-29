@@ -1,92 +1,18 @@
-define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 'text!templates/snippets.html', 'text!templates/snippets_search_form.html'],
-  function(App, Marionette, PreventNavigation, PaginationView, templateSnippets, searchTemplateForm) {
+define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView',
+         'text!templates/snippet_item.html', 'text!templates/snippets.html', 'text!templates/snippets_search_form.html',
+         'utils/DateToString'],
+  function(App, Marionette, PreventNavigation, PaginationView,
+     templateSnippetItem, templateSnippets, searchTemplateForm,
+     DateToString) {
 
       var snippetorAPI = null;
       var serverAPI = null;
 
-      var dateAgo = function(date) {
-          var date_now = new Date();
-          var date_before = new Date(date);
-          
-          var diff = date_now.getFullYear() - date_before.getFullYear();
-
-          if (diff < 0) return date_before;
-
-          if (diff > 0)
-              return " "  + diff + " " + (diff == 1 ? "year ago": "years ago");
-          diff = date_now.getMonth() - date_before.getMonth();
-          if (diff > 0)
-              return " "  + diff + " " + (diff == 1 ? "month ago": "months ago");
-
-          diff = date_now.getDay() - date_before.getDay();
-          if (diff > 0)
-              return " "  + (diff == 1 ? "yesterday": diff + " days ago");
-
-          diff = date_now.getHours() - date_before.getHours();
-          if (diff > 0)
-              return " "  + diff + " " + (diff == 1 ? "hour ago": "hours ago");
-
-          diff = date_now.getMinutes() - date_before.getMinutes();
-          if (diff > 0)
-              return " "  + diff + " " + (diff == 1 ? "minute ago": "minutes ago");
-
-          return "a few minutes ago";
-      };
-	
 	  // GitHub Snippet item description:
       var snippetItem = Marionette.ItemView.extend({
 		  tagName: "LI",
 		  className: "selectable read table-list-item js-navigation-item js-issue-row",
-         template: _.template('\
-    <label class="table-list-cell table-list-cell-checkbox">\
-      <input class="select-toggle-check js-check-all-item js-issues-list-check" name="snippets[]" value="8" type="checkbox">\
-    </label>\
-  <div class="table-list-cell table-list-cell-type">\
-   <a aria-label="Stargizers" class="tooltipped tooltipped-n">\
-      <i class="fa fa-star fa-fw"></i><%= getStars() %><br>\
-   </a></div>  <div class="table-list-cell table-list-cell-type">\
-<a aria-label="Forks" class="tooltipped tooltipped-n">\
-      <i class="fa fa-code-fork fa-fw"></i><%= getForks() %><br>\
-</a></div>  <div class="table-list-cell table-list-cell-type">\
-<a aria-label="Watches" class="tooltipped tooltipped-n">\
-      <i class="fa fa-eye fa-fw"></i><%= getWatches() %><br>\
-</a></div>\
-  <div class="table-list-cell snippet-title">\
-    <a href="/github.com/snippets/<%= _id %>" class="issue-title-link js-navigation-open sp-navigation">\
-      <%= name %>\
-    </a>\
-    <div class="issue-meta">\
-      <span class="issue-meta-section opened-by">\
-          <%= description %>  \
-      </span>\
-      <span class="issue-meta-section css-truncate issue-milestone">\
-      </span>\
-    </div>\
-  </div>\
-  <div class="table-list-cell sp-play-comments">\
-    <a id="sp-play-snippet" href="/github.com/snippets/<%= _id %>" aria-label="Play snipppet" class="tooltipped tooltipped-n">\
-      <svg aria-hidden="true" class="octicon octicon-comment" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M13 2H1c-0.55 0-1 0.45-1 1v8c0 0.55 0.45 1 1 1h2v3.5l3.5-3.5h6.5c0.55 0 1-0.45 1-1V3c0-0.55-0.45-1-1-1z m0 9H6L4 13V11H1V3h12v8z"></path></svg>\
-      <%= ccount %>\
-    </a>\
-  </div>\
-  <div class="table-list-cell snippet-author">\
-    <a href="/github.com/snippets?user=<%= getUserId() %>" aria-label="Filter snipppets" class="muted-link tooltipped tooltipped-n sp-navigation">\
-      <%= getUserId() %>\
-    </a>\
-    <a href="/github.com/<%= getUserId() %>" aria-label="User Profile" class="muted-link tooltipped tooltipped-n sp-navigation">\
-      (<%= userName() %>)\
-    </a>\
-  </div>\
-  <div class="table-list-cell sp-updated">\
-    <a aria-label="Last modified" class="tooltipped tooltipped-n">\
-      <%= UpdatedAt() %>\
-    </a>\
-  </div>\
-  <div class="table-list-cell sp-created">\
-    <a aria-label="date of creation" class="tooltipped tooltipped-n">\
-      <%= CreatedAt() %>\
-    </a>\
-  </div>'),
+         template: _.template(templateSnippetItem),
          templateHelpers: function(){
            return {
              getPrivate: function(){ 
@@ -116,10 +42,10 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 
                  return "";
              },
              UpdatedAt: function() {
-                 return dateAgo(this["updatedAt"]);
+                 return DateToString(this["updatedAt"]);
              },
              CreatedAt: function() {
-                 return dateAgo(this["updatedAt"]);
+                 return DateToString(this["updatedAt"]);
              }
            }
          },
@@ -240,9 +166,9 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView', 
     });
 
 
-var SnippetSearchForm = Marionette.ItemView.extend({
-    template: _.template(searchTemplateForm)
-});
+    var SnippetSearchForm = Marionette.ItemView.extend({
+       template: _.template(searchTemplateForm)
+    });
 
     return Marionette.LayoutView.extend({
         template: _.template("<div class='subnav' id='sp-snippet-search-form'></div><div id='sp-snippet-search-table'></div><div id='sp-snippet-search-pagination'></div>"),
