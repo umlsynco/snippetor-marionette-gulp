@@ -184,12 +184,31 @@ define(
       </div>')
       });
 
+      var VscardView = Marionette.ItemView.extend({
+        template : _.template(
+            '<div class="vcard-stats border-top border-bottom border-gray-light mb-3 py-3">\
+        <a class="vcard-stat" href="/github.com/users/<%=username%>/followers">\
+          <strong class="vcard-stat-count d-block"><%=followers%></strong>\
+          <span class="text-muted">Followers</span>\
+        </a>\
+        <a class="vcard-stat" href="/github.com/users/<%=username%>/starred">\
+          <strong class="vcard-stat-count d-block">?</strong>\
+          <span class="text-muted">Watch</span>\
+        </a>\
+        <a class="vcard-stat" href="/github.com/users/<%=username%>/following">\
+          <strong class="vcard-stat-count d-block"><%=following%></strong>\
+          <span class="text-muted">Following</span>\
+        </a>\
+      </div>')
+      });
+
       return Marionette.LayoutView.extend({
         className : "page-content container",
         childView : repositoryShortItem,
         childViewContainer : "ul.mini-repo-list",
         regions : {
           vcard : "div.vcard",
+          vscard : "div.vscard",
           vcard_snippets: "div.vcard_snippets",
           popularUserRepos : "div.popular-repos>div#sp-user-github-repos",
           popularSnippetRepos: "div.popular-repos>div#sp-user-snippet-repos",
@@ -265,6 +284,8 @@ define(
             .getUserDetails(data)
             .then(function(srvUserData) {
                    that.serverUser = srvUserData;
+                   // show vscard
+                   that.vscard.show(new VscardView({model: srvUserData}));
                    // TODO: probably extra checking, if no user then reject ?
                    if (srvUserData.get("_id")) {
                      var cf = that.serverUser.canFollow();

@@ -362,30 +362,31 @@ var dbAPI = {
             });
         });
     },
-    
-    countFollowers: function(userId) {
+
+    // TODO: DUPLICATE OF THE FUNCTIONALITY    
+    countFollowers: function(userModel) {
             var x = new Promise(function (resolve, reject) {
              models
              .GithubUserFollow
-             .count({user: userId, follow: true}, function(err, count) {
+             .count({user: userModel.user.id, follow: true}, function(err, count) {
                 resolve(count);
              });
             });
             var y = new Promise(function (resolve, reject) {
              models
              .GithubUserFollow
-             .count({follow_user: userId, follow: true}, function(err, count) {
+             .count({follow_user: userModel.user.id, follow: true}, function(err, count) {
                 resolve(count);
              });
             });
             var z = new Promise(function (resolve, reject) {
              models
              .GithubUserRepoRefs
-             .count({user: userId}, function(err, count) {
+             .count({user: userModel.user.id}, function(err, count) {
                 resolve(count);
              });
             });
-            return Promise.all([x,y,z]);
+            return Promise.all([userModel, x,y,z]);
     },
     //
     // Repository APIs
@@ -845,12 +846,19 @@ server.get('/api/users', function (req, res) {
 
     dbAPI
         .getUserByName(req.user, req.query.username)
+        // TODO: duplicate of the functionality
+        //       we are inc/dec counters on follow/unfollow
+        .then(dbAPI.countFollowers)
         .then(
-            function (user) {
-                if (!user) {
+            function (data) {
+                if (!data) {
                     res.statusCode = 404;
                     return res.send({error: 'Not found'});
                 }
+                var user = data[0];
+                user.following = data[1];
+                user.followers = data[2];
+                user.watch = data[3];
                 return res.send(user);
             },
             function (err) {
