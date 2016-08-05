@@ -167,7 +167,13 @@ define( [ 'App', 'marionette', 'behaviours/navigation', 'views/PaginationView',
 
 
     var SnippetSearchForm = Marionette.ItemView.extend({
-       template: _.template(searchTemplateForm)
+       template: _.template(searchTemplateForm),
+       events: {
+           "click #sp-snippets-dropdown-filter": "toggleSearchTools"
+       },
+       toggleSearchTools: function(event) {
+           this.$el.find("div.panel-body").slideToggle();
+       }
     });
 
     return Marionette.LayoutView.extend({

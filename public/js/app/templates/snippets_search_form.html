@@ -3,29 +3,19 @@
   </a>
 
   <div class="left subnav-spacer-right" role="search">
-      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown">
-        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
-          Filters
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context">
+        <button class="btn btn-default select-menu-button js-menu-target " id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          Search tools
         </button>
-  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
-    <li><a id="sp-snippets-user" href="#"><input type="checkbox" value="">   User (  <span></span>  )</a></li>
-    <li><a id="sp-snippets-repo" href="#"><input type="checkbox" value="">   Respository (  <span></span>  )</a></li>
-    <li role="separator" class="divider"></li>
-    <li><a href="#"><input type="checkbox" value="">   Modified (modified:*)</a></li>
-    <li><a href="#"><input type="checkbox" value="">   Created at (age:*)</a></li>
-    <li role="separator" class="divider"></li>
-    <li><a href="#"><input type="checkbox" value="">   Is fork (fork: true)</a></li>
-  </ul>
-
-      </div>
+  </div>
 
 <form id="sp-snippets-search" accept-charset="UTF-8" action="/github.com/snippets" class="sp-submission subnav-search left" data-pjax="true" method="get">
       <div style="margin:0;padding:0;display:inline">
-          <input name="user" value="" type="hidden">
-          <input name="repo" value="" type="hidden">
-          <input name="fork" value="" type="hidden">
-          <input name="createdAt" value="" type="hidden">
-          <input name="modifiedAt" value="" type="hidden">
+          <input name="user" value="" type="hidden" disabled>
+          <input name="repo" value="" type="hidden" disabled>
+          <input name="fork" value="" type="hidden" disabled>
+          <input name="createdAt" value="" type="hidden" disabled>
+          <input name="modifiedAt" value="" type="hidden" disabled>
       </div>
       <input id="q" name="q" value="search scope" id="js-issues-search" class="subnav-search-input input-contrast" placeholder="Search all issues" aria-label="Search all issues" type="text">
       <svg aria-hidden="true" class="octicon octicon-search subnav-search-icon" height="16" role="img" version="1.1" viewBox="0 0 16 16" width="16"><path d="M15.7 14.3L11.89 10.47c0.7-0.98 1.11-2.17 1.11-3.47 0-3.31-2.69-6-6-6S1 3.69 1 7s2.69 6 6 6c1.3 0 2.48-0.41 3.47-1.11l3.83 3.81c0.19 0.2 0.45 0.3 0.7 0.3s0.52-0.09 0.7-0.3c0.39-0.39 0.39-1.02 0-1.41zM7 11.7c-2.59 0-4.7-2.11-4.7-4.7s2.11-4.7 4.7-4.7 4.7 2.11 4.7 4.7-2.11 4.7-4.7 4.7z"></path></svg>
@@ -38,6 +28,71 @@
      <a href="/github.com/snippets" class="js-selected-navigation-item subnav-item sp-snippets-search btn btn-primary" data-selected-links="user">Yours</a>
      <a href="/github.com/snippets?type=global" class="js-selected-navigation-item subnav-item sp-snippets-search btn" data-selected-links="global">Global</a>
   </div>
+</div>
+</div>
+
+<div class="panel" style="padding-top:34px; height: 64px;">
+  <div class="panel-body" >
+      Search result is: 0   
+      </div>
+  <div class="panel-body" style="display:none;">
+
+  <!--  USER    -->
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown" style="width: 80px;">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          User:
+        </button>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
+    <li><a id="sp-snippets-user" href="#">  <input placeholder="Username:"></a></li>
+    <li role="separator" class="divider"></li>
+    <li><a id="sp-snippets-user" href="#">      Any User</a></li>
+    <li><a id="sp-snippets-user" href="#">      umlsynco</a></li>
+  </ul>
+  </div>
+  <!--  Repository    -->
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown" style="padding-left:20px;width: 80px;">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          Repository:
+        </button>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
+    <li><a id="sp-snippets-user" href="#">  <input placeholder="Repository:"></a></li>
+    <li role="separator" class="divider"></li>
+    <li><a id="sp-snippets-user" href="#">      Any repository</a></li>
+  </ul>
+  </div>
+  <!--  LAST MODIFIED    -->
+      <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown" style="padding-left:70px;">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          Last Modified:
+        </button>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
+    <li><a id="sp-snippets-user" href="#">      Any Time</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past hour</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past 24 hours</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past week</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past month</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past year</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a id="sp-snippets-user" href="#">      Custom range</a></li>
+  </ul>
+  </div>
+  <!--  CREATED -->
+      <div class="left dropdown" style=" padding-left:20px;">
+        <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
+          Created   :
+        </button>
+  <ul class="dropdown-menu" aria-labelledby="sp-snippets-dropdown-filter" style="width: 280px;">
+    <li><a id="sp-snippets-user" href="#">      Any Time</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past hour</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past 24 hours</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past week</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past month</a></li>
+    <li><a id="sp-snippets-user" href="#">      Past year</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a id="sp-snippets-user" href="#">      Custom range</a></li>
+  </ul>
+  </div>
+  <!--  SORTING -->
   <div class="subnav-links left" role="navigation" style="padding-left:40px;">
       <div class="left select-menu js-menu-container js-select-menu subnav-search-context dropdown">
         <button class="btn btn-default dropdown-toggle select-menu-button js-menu-target dropdown-toggle" id="sp-snippets-dropdown-filter-result" type="button" aria-haspopup="true" data-toggle="dropdown" aria-expanded="true">
@@ -52,4 +107,8 @@
   </ul>
   </div>
   </div>
+
+ </div>
+</div>
+
 
