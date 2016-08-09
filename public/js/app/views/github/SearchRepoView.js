@@ -1,11 +1,11 @@
-define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
-  function(App, Marionette, PreventSubmission, PreventNavigation) {
-      var serverAPI = null;
+define(['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
+    function(App, Marionette, PreventSubmission, PreventNavigation) {
+        var serverAPI = null;
 
-	  // GitHub Repository item description:
-      var repoItem = Marionette.ItemView.extend({
-         tagName: 'tr',
-         template: _.template('\
+        // GitHub Repository item description:
+        var repoItem = Marionette.ItemView.extend({
+            tagName: 'tr',
+            template: _.template('\
             <td>\
                       <h3 class="repo-list-name">\
                         <a href="<%= full_name %>">\
@@ -50,180 +50,178 @@ define( ['App', 'marionette', 'behaviours/submission', 'behaviours/navigation'],
                         </a>\
              </td>\
          '),
-         templateHelpers: function(){
-           return {
-             getPrivate: function(){ 
-               return this["private"] ? 'private' : 'public';
-             },
-             getPrivateSpan: function(){ 
-               return (this["private"] ? '<span class="repo-private-label">Private</span>': '');
-             },
-             getLanguage: function() {
-				return  (this["language"] != null ? this["language"] : '');
-			 }
-           }
-         },
-         events: {
-             "click h3.repo-list-name>a": "OnSelectRepo",
-             "click button#sp-follow-repo": "onRepoFollow",
-             "click button#sp-unfollow-repo": "onRepoUnfollow"
-         },
-         behaviors: {
-           PreventNavigation: {
-           }
-         },
-         onRepoFollow: function() {
-             this.snippet_repo_model && this.snippet_repo_model.follow();
-         },
-         onRepoUnfollow: function() {
-             this.snippet_repo_model && this.snippet_repo_model.unfollow();
-         },
-         snippet_repo_model: null,
-         //
-         // Handle repo select
-         //
-         OnSelectRepo: function(e) {
-             e.preventDefault();
-             App.appRouter.navigate("/github.com/" + this.model.get("full_name"), {trigger: true});
-
-             // Save selected model
-             if (this.snippet_repo_model && !this.snippet_repo_model.has("_id")) {
-                 this.snippet_repo_model.save({wait:true});
-             }
-             App.vent.trigger("repo:select", {github: this.model, server: this.snippet_repo_model});
-         },
-         onRender: function() {
-             var that = this;
-             serverAPI.getRepoModel({
-                gid: this.model.get("id"), // github id
-                repository: this.model.get("full_name"), // repository full name
-                branch: this.model.get("default_branch"), // default branch
-                description: this.model.get("description"),
-            },
-            function(err, model) {
-                    if (model && model.has("count")) {
-                       that.$el.find("#repo-snippets-count>i.fa").empty().append(model.get("count"));
-                       that.$el.find("#sp-follow-repo").addClass("success btn btn-primary");
-                       if (model.get("follow")) {
-                         that.$el.find("#sp-follow-repo").addClass("hidden");
-                         that.$el.find("#sp-unfollow-repo").removeClass("hidden");
-                       }
-                       that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
-                       that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
-                    }
-                    else {
-                       that.$el.find("#sp-follow-repo").addClass("btn btn-default").attr("aria-label", "There is no snippets in this repository.");
-                    }
-                    // we should get repo model anyway,
-                    // but it could be un-saved model
-                    that.snippet_repo_model = model;
-                    //
-                    //  FOLLOW / UNFOLLOW behaviour :(
-                    //
-                    that.snippet_repo_model.on("change:follow", function(model, newVal, view) {
-                      if (newVal == undefined) {
-                          that.$el.find("#sp-follow-repo").addClass("disabled");
-                          return;
-                      }
-                       if (newVal) {
-                         that.$el.find("#sp-follow-repo").addClass("hidden");
-                         that.$el.find("#sp-unfollow-repo").removeClass("hidden");
-                         model.set("followers", model.get("followers") + 1);
-                       }
-                       else {
-                         that.$el.find("#sp-follow-repo").removeClass("hidden");
-                         that.$el.find("#sp-unfollow-repo").addClass("hidden");
-                         model.set("followers", model.get("followers") - 1);
-                       }
-                       that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
-                       that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
-                    });
-            });
-         }
-    });
-
-
-
-      return Marionette.CompositeView.extend({
-		  className: "repo-tab",
-		  childView: repoItem,
-          setStatus: function(status) {
-              if (typeof this.ui.status === "string") return;
-
-              var text = "There is no search result ...";
-              if (status == "loading") // never happen, therefore hardcoded to template
-                text = "Loading data from GitHub ...";
-              if (status == "error")
-                text = "Failed to load data from GitHub ...";
-              if (status == "loaded")
-                text = "";
-            
-              this.ui.status.text(text);
-          },
-		  childViewContainer: "DIV.container>table.table>tbody", //"ul.repo-list",
-		  initialize: function(options) {
-			  this.github = options.githubAPI;
-//              this.github_api = options.githubAPI;
-              
-              serverAPI = options.serverAPI;
-              
-			  this.collection = new Backbone.Collection;
-			  var that = this;
-
-              // Parse query
-			  var req = "";
-			  _.each(this.model.get("query").split("&"), function(item) {
-				  var kv = item.split("=");
-				  if (kv.length == 2 && kv[0] == "q") {
-					  req = kv[1];
-				  }
-			  });
-			  
-			  this.model.set("req", req);
-
-this.setStatus("loading");
-
-
-if (req == "") {
-	this.github.getUserRepositories(undefined, function(error, repos) {
-				if (!error) {
-                    if (repos.models.length == 0) {
-                           that.setStatus("empty");
-                    }
-                    else {
-				      that.collection.add(repos.models);
-                      that.setStatus("loaded");
+            templateHelpers: function() {
+                return {
+                    getPrivate: function() {
+                        return this["private"] ? 'private' : 'public';
+                    },
+                    getPrivateSpan: function() {
+                        return (this["private"] ? '<span class="repo-private-label">Private</span>' : '');
+                    },
+                    getLanguage: function() {
+                        return (this["language"] != null ? this["language"] : '');
                     }
                 }
-                else that.setStatus("error");
-    });
+            },
+            events: {
+                "click h3.repo-list-name>a": "OnSelectRepo",
+                "click button#sp-follow-repo": "onRepoFollow",
+                "click button#sp-unfollow-repo": "onRepoUnfollow"
+            },
+            behaviors: {
+                PreventNavigation: {}
+            },
+            onRepoFollow: function() {
+                this.snippet_repo_model && this.snippet_repo_model.follow();
+            },
+            onRepoUnfollow: function() {
+                this.snippet_repo_model && this.snippet_repo_model.unfollow();
+            },
+            snippet_repo_model: null,
+            //
+            // Handle repo select
+            //
+            OnSelectRepo: function(e) {
+                e.preventDefault();
+                App.appRouter.navigate("/github.com/" + this.model.get("full_name"), {
+                    trigger: true
+                });
 
-}
-else {
-	this.github.searchRepositories(req, function(error, repos) {
-				  if (!error) {
-                      if (repos.models.length == 0) {
-                           that.setStatus("empty");
-                       }
-                       else {
-				         that.collection.add(repos.models);
-                         that.setStatus("loaded");
-                       }
-                  }
-                  else
-                    that.setStatus("error");
-    });
-}
+                // Save selected model
+                if (this.snippet_repo_model && !this.snippet_repo_model.has("_id")) {
+                    this.snippet_repo_model.save({
+                        wait: true
+                    });
+                }
+                App.vent.trigger("repo:select", {
+                    github: this.model,
+                    server: this.snippet_repo_model
+                });
+            },
+            onRender: function() {
+                var that = this;
+                serverAPI.getRepoModel({
+                        gid: this.model.get("id"), // github id
+                        repository: this.model.get("full_name"), // repository full name
+                        branch: this.model.get("default_branch"), // default branch
+                        description: this.model.get("description"),
+                    },
+                    function(err, model) {
+                        if (model && model.has("count")) {
+                            that.$el.find("#repo-snippets-count>i.fa").empty().append(model.get("count"));
+                            that.$el.find("#sp-follow-repo").addClass("success btn btn-primary");
+                            if (model.get("follow")) {
+                                that.$el.find("#sp-follow-repo").addClass("hidden");
+                                that.$el.find("#sp-unfollow-repo").removeClass("hidden");
+                            }
+                            that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
+                            that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
+                        } else {
+                            that.$el.find("#sp-follow-repo").addClass("btn btn-default").attr("aria-label", "There is no snippets in this repository.");
+                        }
+                        // we should get repo model anyway,
+                        // but it could be un-saved model
+                        that.snippet_repo_model = model;
+                        //
+                        //  FOLLOW / UNFOLLOW behaviour :(
+                        //
+                        that.snippet_repo_model.on("change:follow", function(model, newVal, view) {
+                            if (newVal == undefined) {
+                                that.$el.find("#sp-follow-repo").addClass("disabled");
+                                return;
+                            }
+                            if (newVal) {
+                                that.$el.find("#sp-follow-repo").addClass("hidden");
+                                that.$el.find("#sp-unfollow-repo").removeClass("hidden");
+                                model.set("followers", model.get("followers") + 1);
+                            } else {
+                                that.$el.find("#sp-follow-repo").removeClass("hidden");
+                                that.$el.find("#sp-unfollow-repo").addClass("hidden");
+                                model.set("followers", model.get("followers") - 1);
+                            }
+                            that.$el.find("#sp-follow-repo>span").text(model.get("followers"));
+                            that.$el.find("#sp-unfollow-repo>span").text(model.get("followers"));
+                        });
+                    });
+            }
+        });
 
-		  },
-          behaviors: {
-              PreventSubmission: {
-              }
-          },
-          ui : {
-              'status': "#sp-repo-search-status"
-          },
-          template: _.template('<div class="filter-bar">\
+
+
+        return Marionette.CompositeView.extend({
+            className: "repo-tab",
+            childView: repoItem,
+            setStatus: function(status) {
+                if (typeof this.ui.status === "string") return;
+
+                var text = "There is no search result ...";
+                if (status == "loading") // never happen, therefore hardcoded to template
+                    text = "Loading data from GitHub ...";
+                if (status == "error")
+                    text = "Failed to load data from GitHub ...";
+                if (status == "loaded")
+                    text = "";
+
+                this.ui.status.text(text);
+            },
+            childViewContainer: "DIV.container>table.table>tbody", //"ul.repo-list",
+            initialize: function(options) {
+                this.github = options.githubAPI;
+                //              this.github_api = options.githubAPI;
+
+                serverAPI = options.serverAPI;
+
+                this.collection = new Backbone.Collection;
+                var that = this;
+
+                // Parse query
+                var req = "";
+                _.each(this.model.get("query").split("&"), function(item) {
+                    var kv = item.split("=");
+                    if (kv.length == 2 && kv[0] == "q") {
+                        req = kv[1];
+                    }
+                });
+
+                this.model.set("req", req);
+
+                this.setStatus("loading");
+
+
+                if (req == "") {
+                    this.github.getUserRepositories(undefined, function(error, repos) {
+                        if (!error) {
+                            if (repos.models.length == 0) {
+                                that.setStatus("empty");
+                            } else {
+                                that.collection.add(repos.models);
+                                that.setStatus("loaded");
+                            }
+                        } else that.setStatus("error");
+                    });
+
+                } else {
+                    this.github.searchRepositories(req, function(error, repos) {
+                        if (!error) {
+                            if (repos.models.length == 0) {
+                                that.setStatus("empty");
+                            } else {
+                                that.collection.add(repos.models);
+                                that.setStatus("loaded");
+                            }
+                        } else
+                            that.setStatus("error");
+                    });
+                }
+
+            },
+            behaviors: {
+                PreventSubmission: {}
+            },
+            ui: {
+                'status': "#sp-repo-search-status"
+            },
+            template: _.template('<div class="filter-bar">\
 <div class="btn-group right" id="sp-repo-filer">\
 	<button type="button" class="btn btn-info">All</button>\
     <button class="btn btn-default dropdown-toggle" type="button" id="sp-user-repos-filter" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
@@ -261,6 +259,5 @@ else {
       <label id="sp-repo-search-status">Loading data from GitHub ...</label>\
       <ul class="repo-list js-repo-list" data-filterable-for="your-repos-filter" data-filterable-type="substring"></ul>')
 
-      });
-});
-
+        });
+    });

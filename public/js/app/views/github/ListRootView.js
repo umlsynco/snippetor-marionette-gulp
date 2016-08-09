@@ -54,7 +54,7 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
           childViewContainer: "tbody",
           emptyView: Marionette.ItemView.extend({
               template: _.template("<h1 class='has-error' style='color:red;'>&nbsp;&nbsp;&nbsp;\
-              There no data to show ... <br>&nbsp;&nbsp;&nbsp;Directory or repository is empty</h1>")
+              Loading ... <br>&nbsp;&nbsp;&nbsp;</h1>")
           }),
           initialize: function(options) {
               this.github = options.githubAPI;
@@ -65,6 +65,7 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
               var branch = this.model.get("branch") || "master";
 
               var path = this.model.get("path") || "";
+              this.model.set("path", path);
               var repoName = this.model.get("repo");
 
               if (path != "") {
@@ -121,25 +122,35 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
                   App.appRouter.navigate($(this).attr("href"), {trigger: true});
               });
           },
+          behaviors: {
+              PreventSubmission: {}
+          },
           template: _.template('\
-  <div class="breadcrumb js-zeroclipboard-target">\
-    <span class="repo-root js-repo-root"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo %>" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><%= getBreadcrumbs() %>\
+<div class="breadcrumb js-zeroclipboard-target">\
+    <span class="repo-root js-repo-root">\
+      <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">\
+        <a href="/github.com/<%= repo %>" class="sp-routing" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow">\
+          <span itemprop="title"><%= repo %></span>\
+        </a>\
+      </span>\
+    </span>\
+    <span class="separator">/</span><%= getBreadcrumbs() %>\
     <div class="input-group custom-search-form right" style="padding-right:0px; margin-top: -5px;">\
-<form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search" method="get" role="search">\
-<div class="input-group">\
-                                <input name="utf8" value="✓" type="hidden">\
-                                <input name="user" value="umlsynco" type="hidden">\
-<span class="input-group-addon beautiful"><span class="fa fa-check-circle-o"></span></span>\
-                                <input type="text" class="form-control" name="q" placeholder="Search...">\
-                                <span class="input-group-btn">\
-                                  <button class="btn btn-default" type="button">\
-                                    <i class="fa fa-search"></i>\
-                                  </button>\
-                                  <button class="btn btn-default" type="button">\
-                                    <i class="fa">  File</i>\
-                                  </button>\
-                                </span></div>\
-                              </form></div>\
+<form accept-charset="UTF-8" action="/github.com/<%= repo %>/search" class="repo-search sp-submission" method="get" role="search" action="/github.com/search">\
+  <div class="input-group">\
+    <input name="path" value="<%= path %>" type="hidden">\
+    <span class="input-group-addon beautiful"><span class="fa fa-check-circle-o"></span></span>\
+    <input type="text" class="form-control" name="q" placeholder="Search...">\
+    <span class="input-group-btn">\
+    <button class="btn btn-default" type="button">\
+      <i class="fa fa-search"></i>\
+    </button>\
+    <button class="btn btn-default" type="button">\
+      <i class="fa">  File</i>\
+    </button>\
+    </span>\
+  </div>\
+</form></div>\
   </div>\
           <div class="file-navigation js-zeroclipboard-container has-zeroclipboard-disabled">\
 <div class="select-menu js-menu-container js-select-menu left">\
@@ -229,4 +240,3 @@ define( [ 'marionette', 'App'], function(Marionette, App) {
 
       });
 });
-
