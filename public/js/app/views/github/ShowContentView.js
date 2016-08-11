@@ -136,8 +136,8 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                        // Report history item if it was not report before
                        if (!model.get("ref")) {
                          App.vent.trigger("history:report", {path: model.get("path"), sha: "", branch: model.get("branch"), repo_ref:model.get("repo_ref"), repo:model.get("repo")});
-                       }    
-                         
+                       }
+
                        ////////////////////////////////////
                        // Decode content
                        ////////////////////////////////////
@@ -169,7 +169,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                        if (that.snippets) {
                            that.snippets.each(function(item) {
                                var line = item.get("linenum");
-                               var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                               var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
                                if (list.length == 1) {
                                   var pos = list.position();
                                   pos.left += 50;
@@ -188,7 +188,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                                         controller: that.snippetor.getNextPrevController()
                                     }));
                                     var $t = $("div#step-0");
-                                    
+
                                     $t.css({left:pos.left});
 
                                     // SCROLL TO THE ELEMENT
@@ -203,7 +203,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
 
                               that.snippets.on("add", function(item) {
                                   var line = item.get("linenum");
-                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
                                   if (list.length == 1) {
                                     list.children("i.fa").addClass("fa-comment");
                                     list.children("i.fa").click(function() {
@@ -213,7 +213,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                               });
                               that.snippets.on("change:active", function(item, data) {
                                 var line = item.get("linenum");
-                                var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
                                 if (list.length == 1) {
                                   var pos = list.position();
                                   pos.left += 50;
@@ -238,7 +238,7 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                                     that.getRegion("bubble").reset();
                                   }
                                   var line = item.get("linenum");
-                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")"); 
+                                  var list = that.$el.find("pre.prettyprint>ol>li:eq("+line+")");
                                   if (list.length == 1) {
                                     list.children("i.fa").removeClass("fa-comment");
                                   }
@@ -287,9 +287,15 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                      else {
                        result += '<strong class="final-path">'+paths[i]+'</strong>'
                      }
-                 } // for
+                 }
                  return result;
-                 // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
+             },
+             getDirectory: function() {
+               if (this.path) {
+                 var x = this.path.split("/");
+                 x.pop();
+                 return x.join("/");
+               }
              }
            };
           },
@@ -300,9 +306,32 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
                   App.appRouter.navigate($(this).attr("href"), {trigger: true});
               });
           },
+          events: {
+            "click span.sp-search-checker": "toggleSearchCheck"
+          },
           behaviors: {
             PreventSubmission: {
             }
+          },
+          searchInScope: true,
+          toggleSearchCheck: function() {
+            this.searchInScope = !this.searchInScope;
+            var $scope = this.$el.find("span.sp-search-checker>span");
+
+            // trigger sexy checkbox
+            if (!this.searchInScope) {
+              $scope.removeClass("fa-check-circle-o")
+              $scope.addClass("fa-circle-o");
+
+            }
+            else {
+              $scope.addClass("fa-check-circle-o")
+              $scope.removeClass("fa-circle-o");
+            }
+            // disable/enable form "path" scope
+            this.$el
+            .find("input.sp-search-path")
+            .prop("disabled", !this.searchInScope);
           },
           template: _.template('\
   <div class="breadcrumb js-zeroclipboard-target">\
@@ -312,8 +341,9 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
       <div class="input-group">\
          <input name="utf8" value="✓" type="hidden">\
          <input name="user" value="umlsynco" type="hidden">\
-         <span class="input-group-addon beautiful"><span class="fa fa-check-circle-o"></span></span>\
+         <span class="input-group-addon beautiful sp-search-checker"><span class="fa fa-check-circle-o"></span></span>\
          <input type="text" class="form-control" name="q" placeholder="Search...">\
+         <input class="sp-search-path" name="path" value="<%= getDirectory() %>" type="hidden">\
          <span class="input-group-btn">\
            <button class="btn btn-default" type="button">\
              <i class="fa fa-search"></i>\
@@ -328,9 +358,9 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
   <div class="file-header">\
   <div class="file-actions">\
     <div class="btn-group">\
-      <a href="/umlsynco/umlsync-framework/raw/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm " id="raw-url">GitHub</a>\
-      <a href="/umlsynco/umlsync-framework/blame/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm js-update-url-with-hash">Check on latest</a>\
-      <a href="/umlsynco/umlsync-framework/commits/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm " rel="nofollow">Load snippets</a>\
+      <a href="/umlsynco/umlsync-framework/raw/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm tooltipped tooltipped-nw " aria-label="Open file on GitHub" id="raw-url">GitHub</a>\
+      <a href="/umlsynco/umlsync-framework/blame/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm js-update-url-with-hash tooltipped tooltipped-nw" aria-label="Open the latest version of file">Check on latest</a>\
+      <a href="/umlsynco/umlsync-framework/commits/7ce846ec3297d3a0d7272dbfa38427d21f650a35/js/Views/framework.js" class="btn btn-sm tooltipped tooltipped-nw" rel="nofollow" aria-label="Load snippet comments for this file">Load snippets</a>\
     </div>\
         <button type="button" class="btn-octicon disabled tooltipped tooltipped-nw" aria-label="Switch to markdown view">\
           <svg aria-hidden="true" class="octicon octicon-pencil" height="16" role="img" version="1.1" viewBox="0 0 14 16" width="14"><path d="M0 12v3h3l8-8-3-3L0 12z m3 2H1V12h1v1h1v1z m10.3-9.3l-1.3 1.3-3-3 1.3-1.3c0.39-0.39 1.02-0.39 1.41 0l1.59 1.59c0.39 0.39 0.39 1.02 0 1.41z"></path></svg>\
@@ -348,4 +378,3 @@ define( [ 'marionette', 'base-64', 'App', 'behaviours/submission'], function(Mar
 
       });
 });
-
