@@ -23,10 +23,23 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
                     var datar = res.split("\n");
                     var resdata = "";
                     var counter = 0;
+                    var upcaseSearchData = searchData.toUpperCase();
                     $.each(datar, function(idx, line) {
-                        if (line.indexOf(searchData) > -1 && (counter < 3)) {
-                            var fff = datar[idx].replace(searchData, "<b style='color:black;'>" + searchData + "</b>");
-                            resdata += datar[idx - 3] + "\n" + datar[idx - 2] + "\n" + datar[idx - 1] + "\n" + fff + "\n" + datar[idx + 1] + "\n" + "..." + "\n";
+                        var i = line.search(new RegExp(searchData, "i"));
+                        if (i > -1 && (counter < 4)) {
+                            var fff = line.substring(0, i) + "<b style='color:black;'>" + line.substring(i, i + searchData.length) + "</b>" + line.substring(i + searchData.length);
+                            if (counter == 3) return false;
+                            if (counter > 0)
+                              resdata += "..." + "\n";
+                            if (idx - 3 >= 0)
+                              resdata += datar[idx - 3] + "\n";
+                            if (idx - 2 >= 0)
+                              resdata += datar[idx - 2] + "\n";
+                            if (idx - 1 >= 0)
+                              resdata += datar[idx - 1] + "\n";
+                            resdata +=  fff + "\n";
+                            if (idx +1 < datar.length-1)
+                              resdata += datar[idx + 1] + "\n";
                             ++counter;
                         }
                     }); // $.each
@@ -152,26 +165,21 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
             var that = this;
             var user = this.github.getUser();
             var req = "",
-                m_search = "",
                 m_path = "", m_file="", m_ext="";
             _.each(unescape(this.model.get("query")).split("&"), function(item) {
                 var kv = item.split("=");
                 if (kv.length == 2 && kv[0] == "q") {
                     req = kv[1];
                 } else if (kv.length == 2 && kv[0] == "path") {
-                    m_search += "+path:" + kv[1];
                     m_path = kv[1];
                 } else if (kv.length == 2 && kv[0] == "file") {
-                    m_search += "+filename:" + kv[1];
                     m_file = kv[1];
                 } else if (kv.length == 2 && kv[0] == "ext") {
-                    m_search += "+extension:" + kv[1];
                     m_ext = kv[1];
                 }
             });
             // repository is a paramete of the URL neither than request
             var m_repo = this.model.get("user") + "/" + this.model.get("repo");
-            m_search += "+repo:" + m_repo;
 
             // Update model with a valid
             this.model.set("req", req);
@@ -182,11 +190,12 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
             // TODO: HACK provide to the concreate child view !!
             searchData = req;
 
-            this.searchNewScope();
+            this.searchNewScope(null, req);
         },
-        searchNewScope: function(e) {
+        searchNewScope: function(e, query) {
             // Request data
-            var req = this.$el.find("#sp-code-search-input").val();
+            var req = query ? query : this.$el.find("#sp-code-search-input").val();
+
             // Repository scope
             var repo = this.model.get("user") + "/" + this.model.get("repo");
 
