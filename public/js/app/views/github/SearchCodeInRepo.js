@@ -3,7 +3,7 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
     var cachedGithub = null,
         searchData = "";
 
-    // GitHub Repository item description:
+    // GitHub content-file preview:
     var ContentView = Marionette.ItemView.extend({
         tagName: "pre",
         className: "prettyprint linenums:1",
@@ -13,6 +13,11 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
             return {
                 getContent: function() {
                     if (!content) return;
+                    // FIXME: why JSON based content is comming as JSON
+                    //        while string is expected
+                    if (!(typeof content === "string"))
+                      content = JSON.stringify(content);
+
                     var res = content.replace(/\</g, "&lt;");
                     res = res.replace(/\>/g, "&gt;");
                     var datar = res.split("\n");
@@ -37,7 +42,7 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
         }
     });
 
-
+    // show content
     var codeSearchItem = Marionette.LayoutView.extend({
         template: _.template('\
 <div class="code-list-item code-list-item-public repo-specific">\
@@ -92,7 +97,52 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
         },
         events: {
             "click .sp-tag-bubble": "removeTagBubble",
-            "click button.btn": "searchNewScope"
+            "click button.btn": "searchNewScope",
+            "keyup input#sp-code-search-input": "handleInputKey"
+
+        },
+        modelEvents: {
+          "change": "onModelDataChange"
+        },
+        onModelDataChange: function(model) {
+          if (!this.$el)
+            return;
+
+          var that = this;
+          ["ext", "file", "path"].map(function(item) {
+            if (model.changed[item]) {
+              console.log("CHANGED: " + model.changed[item]);
+              that.$el.find("div.bootstrap-tagsinput>span[data-model='"+item+"']").empty();
+              var $spans = that.$el.find("div.bootstrap-tagsinput>span");
+              $($spans[$spans.length-1])
+              .after('<span class="tag label label-info" data-model="'+item+'">'+item
+                 +'  :  ' + model.changed[item] + '<span class="sp-tag-bubble" data-role="remove"></span></span>');
+              // limit
+              that.$el.find("div.bootstrap-tagsinput>input.sp-code-search-path[name='"+item+"']")
+              .val(model.changed[item]).prop("disabled", false);
+
+            }
+          });
+        },
+        handleInputKey: function(event) {
+            if (event.which == 32 || event.which == 32) {
+              var $el = this.$el.find("#sp-code-search-input")
+              var req = $el.val();
+              console.log(req);
+              var that = this;
+              [" file:", " path:", " ext:"].map(function(item) {
+                var pos = req.indexOf(item);
+                if (pos >= 0) {
+                  pos++;
+                  var ext = req.substring(pos, req.indexOf(' ', pos));
+                  var mdata = ext.split(":");
+                  that.model.set(mdata[0], mdata[1]);
+
+                  // replace text on tag
+                  $el.val(req.replace(ext, ''));
+                }
+              });
+            }
         },
         initialize: function(options) {
             this.github = options.githubAPI;
@@ -101,72 +151,104 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
             this.collection = new Backbone.Collection;
             var that = this;
             var user = this.github.getUser();
-            var req = "", m_search="", m_path="";
+            var req = "",
+                m_search = "",
+                m_path = "", m_file="", m_ext="";
             _.each(unescape(this.model.get("query")).split("&"), function(item) {
                 var kv = item.split("=");
                 if (kv.length == 2 && kv[0] == "q") {
                     req = kv[1];
                 } else if (kv.length == 2 && kv[0] == "path") {
                     m_search += "+path:" + kv[1];
-										m_path = kv[1];
+                    m_path = kv[1];
                 } else if (kv.length == 2 && kv[0] == "file") {
-                  m_search += "+file:" + kv[1];
-                  m_file = kv[1];
+                    m_search += "+filename:" + kv[1];
+                    m_file = kv[1];
+                } else if (kv.length == 2 && kv[0] == "ext") {
+                    m_search += "+extension:" + kv[1];
+                    m_ext = kv[1];
                 }
             });
+            // repository is a paramete of the URL neither than request
             var m_repo = this.model.get("user") + "/" + this.model.get("repo");
-            m_search  += "+repo:" + m_repo;
+            m_search += "+repo:" + m_repo;
 
             // Update model with a valid
             this.model.set("req", req);
-						this.model.set("path", m_path);
+            this.model.set("path", m_path);
+            this.model.set("file", m_file);
+            this.model.set("ext", m_ext);
+
             // TODO: HACK provide to the concreate child view !!
             searchData = req;
 
-            var search = Github.getSearch(req + m_search);
+            this.searchNewScope();
+        },
+        searchNewScope: function(e) {
+            // Request data
+            var req = this.$el.find("#sp-code-search-input").val();
+            // Repository scope
+            var repo = this.model.get("user") + "/" + this.model.get("repo");
 
+            // Search path
+            var m_path = this.model.get("path") || "";
+            if (m_path != "") {
+              m_path = "+path:" + m_path;
+            }
+
+            // Search file
+            var m_file = this.model.get("file") || "";
+            if (m_file != "") {
+              m_file = "+filename:" + m_file;
+            }
+            // Search by file extension
+            var m_ext = this.model.get("ext") || "";
+            if (m_ext != "") {
+              m_ext = "+extension:" + m_ext;
+            }
+            var search = Github.getSearch(req + "+repo:" + repo + m_path + m_file+m_ext);
+            var that = this;
             search.code({}, function(error, data) {
                 if (data) {
-                    that.collection.add(data.items);
+                    that.collection.reset(data.items);
                     that.ui.total_count.html(data.total_count);
                     that.model.set("incomplete_results", data.total_count);
                 }
             });
         },
-        searchNewScope: function(e) {
-          var req = this.$el.find("#sp-code-search-input").val();
-          var repo = this.model.get("user") + "/" + this.model.get("repo");
-          var search = Github.getSearch(req + "+repo:"+repo);
-          var that = this;
-          search.code({}, function(error, data) {
-            if (data) {
-                  that.collection.reset(data.items);
-                  that.ui.total_count.html(data.total_count);
-                  that.model.set("incomplete_results", data.total_count);
-              }
-          });
-        },
         behaviors: {
             PreventSubmission: {}
         },
         removeTagBubble: function(e) {
-          var $par = $(e.target).parent();
-          var item = $par.attr("data-model");
-          $par.remove();
-          this.model.unset(item)
+            var $par = $(e.target).parent();
+            var item = $par.attr("data-model");
+            $par.remove();
+            this.model.unset(item)
         },
-				templateHelpers: function() {
-					return {
-						getTagBubbles: function() {
-							var result = "";
-							if (this.repo)
-							  result += '<span class="tag label label-info" data-model="repo">repo  :  '+this.user+ '/' + this.repo+ '<span data-role="dropdown"></span></span>';
-								if (this.path)
-								  result += '<span class="tag label label-info" data-model="path">path  :  '+this.path+'<span class="sp-tag-bubble" data-role="remove"></span></span>';
-							return result;
-						}
-					};
-				},
+        templateHelpers: function() {
+            return {
+                getTagBubbles: function() {
+                    var result = "";
+                    if (this.repo)
+                        result += '<span class="tag label label-info" data-model="repo">repo  :  ' + this.user + '/' + this.repo + '<span data-role="dropdown"></span></span>';
+                    if (this.path)
+                        result += '<span class="tag label label-info" data-model="path">path  :  ' + this.path + '<span class="sp-tag-bubble" data-role="remove"></span></span>';
+                    if (this.filename)
+                        result += '<span class="tag label label-info" data-model="path">file  :  ' + this.file + '<span class="sp-tag-bubble" data-role="remove"></span></span>';
+                    if (this.extension)
+                        result += '<span class="tag label label-info" data-model="path">ext  :  ' + this.ext + '<span class="sp-tag-bubble" data-role="remove"></span></span>';
+                    return result;
+                },
+                getHiddenInput: function() {
+                   var result = "";
+                   var that = this;
+                   ["file", "ext", "path"].map(function(item) {
+                      result += '<input class="sp-code-search-path" name="'+item+'" value="'+ that[item] +'" type="hidden" '+(that[item] != ""  ? "":"disabled") + '>';
+                   });
+                   return result;
+                }
+            };
+        },
         template: _.template('<div class="column three-fourths codesearch-results">\
     <div class="codesearch-head">\
       <form accept-charset="UTF-8" action="/github.com/search/<%= user %>/<%= repo %>/search" class="flex-table search-form-fluid sp-submission" id="search_form" method="get">\
@@ -174,6 +256,7 @@ define(['marionette', 'hljs', 'App', 'behaviours/submission'], function(Marionet
   				<div class="bootstrap-tagsinput" style="width:100%;">\
 					  <%= getTagBubbles() %>\
 						<input id="sp-code-search-input" size="12" name="q" value="<%= req %>" tabindex="2"  placeholder="" type="text" style="min-width:80%;">\
+            <%= getHiddenInput() %>\
 				  </div>\
         </div>\
         <div class="flex-table-item">\
