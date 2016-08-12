@@ -196,7 +196,7 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                           content = data.content;
                         }
                         // FIXME: find another way to count lines
-                        data.total_lines = content.split("\n").length;
+                        data.total_lines = content.split("\n").length - 1;
 
 
                         ////////////////////////////////////

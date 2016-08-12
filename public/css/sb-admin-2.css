@@ -20122,8 +20122,8 @@ body.split-diff .new-pr-form .discussion-sidebar{
 
 .file{
 	position:relative;
-	margin-top:20px;
-	margin-bottom:15px;
+	margin-top:0px;
+	margin-bottom:0px;
 	border:1px solid #ddd;
 	border-radius:3px
 }
