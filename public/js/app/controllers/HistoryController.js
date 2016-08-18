@@ -31,7 +31,7 @@ define([
 
          var nextPrevController =
              new SnippetNextPrevController({historyList : historyList});
-             
+
          var toolboxModel = new Backbone.Model;
 
          App.addInitializer(function() {
@@ -61,7 +61,7 @@ define([
              if (toolboxModel.get("owner") == "init") {
                  toolboxModel.set({"owner": "new"});
              }
-             
+
              var wms = historyList.where(
                  {repo : data.repo, branch : data.branch, path : data.path});
              if (wms.length == 0) {
@@ -107,6 +107,8 @@ define([
            // adaptor history:open -> page:navigate
            //
            App.vent.on("history:open", function(model) {
+             // FIXME: temporary solution for the demo only
+             var is_uml = (model.get("path").indexOf(".plantuml") != -1);
              App.vent.trigger("page:navigate", {
                navigate : {
                  repo : model.get("repo"),
@@ -115,7 +117,7 @@ define([
                  sha : model.get("sha")
                },
                request : {
-                 type : "show-blob",
+                 type : is_uml ? "uml" : "show-blob",
                  ref : model.cid,
                  repo : model.get("repo"),
                  branch : model.get("branch"),
@@ -148,7 +150,8 @@ define([
                }
                model = historyList.get(idx + 1);
              }
-
+             // FIXME: temporary solution for the demo only
+             var is_uml = (model.get("path").indexOf(".plantuml") != -1);
              App.vent.trigger("page:navigate", {
                navigate : {
                  repo : model.get("repo"),
@@ -157,7 +160,7 @@ define([
                  sha : model.get("sha")
                },
                request : {
-                 type : "show-blob",
+                 type : is_uml ? "uml" : "show-blob",
                  ref : model.id,
                  comment_number : selected
                }
@@ -168,7 +171,7 @@ define([
            // This event trigger on snippet open and close only
            //
            App.vent.on("snippet:new", function(snippet) {
-               // @toolbox - change 
+               // @toolbox - change
                if (snippet == null) {
                  // null happen on close active snippet
                  // therefore toolbox show be recovered
@@ -195,7 +198,7 @@ define([
              this.view = new historyListView({collection : historyList, model: toolboxModel});
            },
            resetWorkingSnippet: function(snippet) {
-               
+
            },
            //
            // Left side view

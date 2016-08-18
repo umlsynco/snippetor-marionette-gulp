@@ -154,13 +154,13 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission', 'deflate'], fun
     // GitHub Repository item description:
     var ContentView = Marionette.ItemView.extend({
         tagName: "pre",
-        className: "prettyprint linenums:1",
+        className: "prettyprint linenums:1 sp-uml-position",
         template: _.template('<%= getContent() %>'),
         templateHelpers: function() {
             var content = this.options.content;
             return {
                 getContent: function() {
-                    var res = "<img src='/api/plantuml/" + compress(content) + "' align='center'><img>";
+                    var res = "<img class='sp-uml-diagram' src='/api/plantuml/" + compress(content) + "' align='center'><img>";
                     return res;
                 }
             };
@@ -181,6 +181,9 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission', 'deflate'], fun
             this.snippetor = options.snippetorAPI;
 
             this.collection = new Backbone.Collection;
+        },
+        onRender: function() {
+            var options = this.options;
             var that = this;
             var repo = this.github.getAPI().getRepo(this.model.get("repo"));
             var model = this.model;
@@ -217,16 +220,52 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission', 'deflate'], fun
                             content: content
                         }));
 
+                        that.historyItem = that.snippetor.getHistoryItem(model);
+                        // Get Active snippets for current content
+                        that.snippets = that.snippetor.getWorkingComments(model);
+                        if (that.snippets) {
+                            that.snippets.each(function(item) {
+                                    if (item.get("active")) {
+                                        that.showChildView("bubble", new BubbleView({
+                                            model: new Backbone.Model({
+                                                repo: repoName,
+                                                branch: branch,
+                                                path: path,
+                                                linenum: 0,
+                                                comment: item.get("comment")
+                                            }),
+                                            commentItem: item,
+                                            historyItem: that.historyItem,
+                                            controller: that.snippetor.getNextPrevController()
+                                        }));
+                                      } // if active
+                            }); // each
+                        } // snippets
+
+                        ////////////////////////////////////
+                        // Enable snippets bubble
+                        ////////////////////////////////////
+                        that.$el.find(".sp-uml-diagram").dblclick(function(event) {
+                            that.showChildView("bubble", new BubbleView({
+                                model: new Backbone.Model({
+                                    repo: repoName,
+                                    branch: branch,
+                                    path: path,
+                                    linenum: 0,
+                                    comment: "Your comment..."
+                                })
+                            }));
+                            var pos = $(this).position();
+                            pos.left = event.clientX - 240;
+                            pos.top = event.clinetY;
+                            var $t = $("div#step-0");
+                            $t.css(pos);
+                        });
+
                         ////////////////////////////////////
                         // Show snippet bubble
                         ////////////////////////////////////
-                        that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
-                            $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
-                        });
 
-                        that.historyItem = that.snippetor.getHistoryItem(model);
-                        // Get Active snippets for current content
-                        that.snippets = {};
                     }
                 });
             }
@@ -253,15 +292,6 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission', 'deflate'], fun
                     // <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/github.com/<%= repo%>" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title"><%= repo %></span></a></span></span><span class="separator">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/umlsynco/umlsync-framework/tree/7ce846ec3297d3a0d7272dbfa38427d21f650a35/css" class="" data-branch="7ce846ec3297d3a0d7272dbfa38427d21f650a35" data-pjax="true" itemscope="url" rel="nofollow"><span itemprop="title">css</span></a></span><span class="separator">/</span><strong class="final-path">speachBubble.css</strong>
                 }
             };
-        },
-        onRender: function() {
-            this.$el.find("a.sp-routing").click(function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                App.appRouter.navigate($(this).attr("href"), {
-                    trigger: true
-                });
-            });
         },
         behaviors: {
             PreventSubmission: {}
