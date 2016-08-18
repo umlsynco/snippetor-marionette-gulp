@@ -109,9 +109,6 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                     return res;
                 }
             };
-        },
-        onRender: function() {
-            //             hljs.highlightBlock($(this.ui.code));
         }
     });
 
@@ -206,10 +203,17 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                         that.showChildView("file-header", new FileHeader({
                             model: new Backbone.Model(data)
                         }));
-                        that.showChildView("content", new ContentView({
+                        var contentViewObject = new ContentView({
                             content: content
-                        }));
+                        });
 
+// prevent bubble showing in a wrong position
+contentViewObject.on("show", function() {
+                        // CSS of the pretty print
+                        that.$el.find("pre.prettyprint").parent().css({
+                          height: "600px",
+                          overflow: "scroll"
+                        });
 
                         ////////////////////////////////////
                         // Highlight code
@@ -219,11 +223,6 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                         ////////////////////////////////////
                         // Show snippet bubble
                         ////////////////////////////////////
-                        that.$el.find("pre.prettyprint").parent().css({
-                            height: "600px",
-                            overflow: "scroll"
-                        });
-
                         that.$el.find("pre.prettyprint>ol>li").each(function(idx, list) {
                             $('<i class="fa fa-fw"></i>').insertBefore($(list).children()[0]);
                         });
@@ -235,12 +234,13 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                             that.snippets.each(function(item) {
                                 var line = item.get("linenum");
                                 var list = that.$el.find("pre.prettyprint>ol>li:eq(" + line + ")");
+                                that.$el.find("pre.prettyprint>ol>li:eq(" + line + ")");
                                 if (list.length == 1) {
                                     var pos = list.position();
                                     pos.left = 45;
-                                    pos.top -= 35;
+                                    pos.top -= 600;
                                     // TODO: calculate linenum more accuratly
-                                    pos.top -= (line - 20) * 14;
+                                    //pos.top -= (line - 20) * 14;
 
                                     list.children("i.fa").addClass("fa-comment");
                                     list.children("i.fa").click(function() {
@@ -260,14 +260,15 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                                             historyItem: that.historyItem,
                                             controller: that.snippetor.getNextPrevController()
                                         }));
-                                        var $t = $("div#step-0");
+                                        var $t = $("div#step-0").hide();
 
-                                        $t.css(pos);
-
+//                                        $t.css(pos);
                                         // SCROLL TO THE ELEMENT
                                         that.$el.find("pre.prettyprint").parent().animate({
-                                            scrollTop: pos.top + 35
-                                        }, 1000);
+                                            scrollTop: (pos.top > 0 ? pos.top : 0)
+                                        }, (pos.top > 0 ? 1000: 0), function() {
+                                          $t.css({left:45, top: list.offset().top - list.parent().scrollTop() - 35}).show();
+                                        });
                                     } // active
                                 } // if has line
 
@@ -352,9 +353,10 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                             pos.top -= 35;
                             var $t = $("div#step-0");
                             $t.css(pos);
-                        }).click(function() {
-                            // TODO: hide snippet bubble
                         });
+}); // on render
+                        // trigger on render
+                        that.showChildView("content", contentViewObject);
                     }
                 });
             }
