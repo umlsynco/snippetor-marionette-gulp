@@ -150,9 +150,10 @@ define(
             }
             splitter = "/";
           }
-
+          // FIXME: work-around juse to show UML diagram for demo vide
+          var is_uml = (path.indexOf(".plantuml") != -1);
           pageAPI.request({
-            type : "show-blob",
+            type : is_uml ? "uml" : "show-blob",
             repo : user + "/" + repo,
             branch : branch,
             path : path,
@@ -165,7 +166,7 @@ define(
         //
         // Show list of the user snippets
         //
-        showSnippets : function(q) { 
+        showSnippets : function(q) {
             var obj = {type : "snippets", query:q};
             if (q) {
                 var s = q.split("&");
@@ -174,7 +175,7 @@ define(
                     obj[kv[0]] = kv[1];
                 }
             }
-            pageAPI.request(obj); 
+            pageAPI.request(obj);
         },
         //
         // Create new snippet

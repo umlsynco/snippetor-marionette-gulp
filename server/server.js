@@ -24,6 +24,8 @@ var flash = require('connect-flash');
 
 var MongoStore = require('connect-mongo')(express);
 
+//plantuml.useNailgun();
+
 // serialize and deserialize
 passport.serializeUser(function (user, done) {
     log.info("SERL : " + user);
@@ -92,7 +94,7 @@ var allowCrossDomain = function (req, res, next) {
 server.configure(function () {
 
     server.use(express.static(path.join(__dirname, "/../public")));
-    // Get standard favicon 
+    // Get standard favicon
     server.use(express.favicon());
     // console output of the all status requests
     server.use(express.logger('dev'));
@@ -102,7 +104,7 @@ server.configure(function () {
     // PUT and DELETE methods support
     server.use(express.methodOverride());
 
-    // cookie parser   
+    // cookie parser
     // server.use(express.cookieParser());
     // Express js session
     server.use(express.session({
@@ -127,7 +129,7 @@ server.configure(function () {
 
     // routing
     server.use(server.router);
-}); // server.configure 
+}); // server.configure
 
 
 function ensureAuthenticated(req, res, next) {
@@ -172,7 +174,20 @@ server.get('/api', function (req, res) {
 // @description: plantuml text -> png converter
 //
 server.get("/api/plantuml/:uml", function (req, res, next) {
-    res.set('Content-Type', 'image/png');
+     res.set('Content-Type', 'image/png');
+
+var xxx =
+`@startuml
+actor Foo1
+boundary Foo2
+control Foo3
+entity Foo4
+database Foo5
+Foo1 -> Foo2 : To boundary
+Foo1 -> Foo3 : To control
+Foo1 -> Foo4 : To entity
+Foo1 -> Foo5 : To database
+@enduml`;
 
     var decode = plantuml.decode(req.params.uml);
     var gen = plantuml.generate({format: 'png'});
@@ -230,7 +245,7 @@ var dbAPI = {
                         resolve({user: null});
                         return;
                     }
-                    
+
                     // Extract relations between requested user and current user
                     // To propose follow or un-follow
                     models
@@ -356,14 +371,14 @@ var dbAPI = {
                         // keep user ref in the mixed field for a future
                         dbAPI.reportLog(userId, repoId, null, userRef ? userRef.id: null, (follow ? "follow-repo" : "unfollow-repo"));
                     }
-                    
+
                     return resolve(userRef);
                 }
             });
         });
     },
 
-    // TODO: DUPLICATE OF THE FUNCTIONALITY    
+    // TODO: DUPLICATE OF THE FUNCTIONALITY
     countFollowers: function(userModel) {
             var x = new Promise(function (resolve, reject) {
              models
@@ -553,7 +568,7 @@ var dbAPI = {
                     if (data.star != undefined && (
                        userRef == null || userRef.star != data.star))  // userRef == null means that it is a new record
                     dbAPI.reportLog(user.id, null, snippet.id, null,  (data.star ? "star-snippet": "unstar-snippet"));
-                    
+
                     if (userRef == null) {
                         // it is not possible to unfollow snippet
                         // if there were not any reference
@@ -572,9 +587,9 @@ var dbAPI = {
                     resolve({star: data.star, follow: data.follow, stars: snippet.stars, followers: snippet.followers});
                 }
             });
-          
+
         });
-        
+
     },
     listSnippet: function (options) {
         options = options || {};
@@ -754,7 +769,7 @@ var dbAPI = {
             .exec(function(err, docs) {
                 if (err) { reject(err); }
                 else { resolve(docs); }
-                
+
             }, function(error) {
                 console.log("XXX" + error);
             });
@@ -764,7 +779,7 @@ var dbAPI = {
             console.log(error);
             reject("PROMISE ALL FAILED: " + error);
         }); // Promise.all
-      });// Promise   
+      });// Promise
     },
     //
     // Show concreate user activity
@@ -784,9 +799,9 @@ var dbAPI = {
             .exec(function(err, docs) {
                 if (err) { reject(err); }
                 else { resolve(docs); }
-                
+
             });
-      });// Promise   
+      });// Promise
     }
 
 };
@@ -882,7 +897,7 @@ server.put('/api/users/:id', function (req, res, id) {
         }
         if (!err) {
             dbAPI.followUser(req.user, user, req.body.follow);
-           
+
             return res.send({status: 'OK', user: user});
         } else {
             res.statusCode = 500;
@@ -964,7 +979,7 @@ server.put('/api/repos/:id', ensureAuthenticated, function (req, res) {
             .upsertUserRepoRef(req.user.id, foundRepo.id, req.body.follow)
             .then(function(obj) {
               // Increase/decrease followers
-              var what_is_going_on = 
+              var what_is_going_on =
                 (foundRepo.followers == undefined || foundRepo.followers < 0 ? {$set: {followers: 0}} :
                     {$inc: {followers: (req.body.follow == "true" ? 1 : -1)}});
 
@@ -1055,7 +1070,7 @@ server.get('/api/snippets', ensureAuthenticated, function (req, res) {
                     dbAPI.countSnippets(query).then(function(count) {
                         res.send({hasNext: false, limit: 7, total: count, page: 0, snippets: snippets});
                     });
-                } 
+                }
                 else {
                   res.send({hasNext: false, limit: 13, page: 0, snippets: snippets});
                 }
@@ -1186,7 +1201,7 @@ server.put('/api/snippets/:id', ensureAuthenticated, function (req, res) {
         res.send({error: "Invalid parameter", status: 400});
         return;
     }
-             
+
     // Update snippet itself
     dbAPI
         .updateSnippet(data, req.user.id)
@@ -1315,7 +1330,7 @@ server.all("/*", function (req, res, next) {
 
 //server.use(server.router);
 
-// Start servier 
+// Start servier
 // ======
 
 // Start Node.js Server

@@ -2,7 +2,7 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
 
     var BubbleView = Marionette.ItemView.extend({
         template: _.template('\
-     <div style="top: 350.1px; left: 673px; width:250px; display: block; position:absolute;" id="step-0" class="popover tour-tour tour-tour-0 fade bottom in" role="tooltip">\
+     <div style="top: 350.1px; left: 35px; width:250px; display: block; position:absolute;" id="step-0" class="popover tour-tour tour-tour-0 fade bottom in" role="tooltip">\
        <div style="content: \'\';position: absolute;border-style: solid;border-width: 15px 15px 15px 0;border-color: transparent grey;display: block;width: 0;z-index: 1;left: -15px;top: 12px;"></div>\
        <h3 class="popover-title">Snippet name</h3>\
        <div class="popover-content" style="min-height:90px;"><%= comment %></div>\
@@ -237,8 +237,10 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                                 var list = that.$el.find("pre.prettyprint>ol>li:eq(" + line + ")");
                                 if (list.length == 1) {
                                     var pos = list.position();
-                                    pos.left += 50;
-                                    //pos.top += 190;
+                                    pos.left = 45;
+                                    pos.top -= 35;
+                                    // TODO: calculate linenum more accuratly
+                                    pos.top -= (line - 20) * 14;
 
                                     list.children("i.fa").addClass("fa-comment");
                                     list.children("i.fa").click(function() {
@@ -260,13 +262,11 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                                         }));
                                         var $t = $("div#step-0");
 
-                                        $t.css({
-                                            left: pos.left
-                                        });
+                                        $t.css(pos);
 
                                         // SCROLL TO THE ELEMENT
                                         that.$el.find("pre.prettyprint").parent().animate({
-                                            scrollTop: pos.top
+                                            scrollTop: pos.top + 35
                                         }, 1000);
                                     } // active
                                 } // if has line
@@ -289,8 +289,8 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                                 var list = that.$el.find("pre.prettyprint>ol>li:eq(" + line + ")");
                                 if (list.length == 1) {
                                     var pos = list.position();
-                                    pos.left += 50;
-                                    pos.top += 190;
+                                    pos.left = 75;
+                                    pos.top -= 35;
 
                                     if (item.get("active")) {
                                         that.showChildView("bubble", new BubbleView({
@@ -348,8 +348,8 @@ define(['marionette', 'base-64', 'App', 'behaviours/submission'], function(Mario
                                 })
                             }));
                             var pos = $(this).position();
-                            pos.left += 50;
-                            pos.top += 190;
+                            pos.left = 45;
+                            pos.top -= 35;
                             var $t = $("div#step-0");
                             $t.css(pos);
                         }).click(function() {

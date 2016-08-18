@@ -19,6 +19,7 @@ require.config({
         "utf8": "../libs/utf8/utf8",
         "base-64" : "../libs/base-64/base64",
         "hljs": "../libs/highlightjs/highlight.pack",
+        "deflate": "../libs/js-deflate/rawdeflate",
         
         axios: "../libs/axios/dist/axios",
 //    "backbone.marionette": "../libs/backbone.marionette/lib/core/backbone.marionette",
